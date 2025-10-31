@@ -1,0 +1,190 @@
+"""
+Pydantic схемы для редактирования изображений.
+
+Схемы для работы с чат-сессиями и AI-ассистентом (Claude Haiku).
+"""
+
+from typing import Optional, List
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, Field, field_validator
+
+
+class ChatSessionCreate(BaseModel):
+    """Запрос на создание новой сессии чата"""
+
+    base_image_url: str = Field(
+        ...,
+        description="URL базового изображения для редактирования",
+        max_length=500,
+    )
+
+
+class ChatSessionResponse(BaseModel):
+    """Ответ с созданной сессией чата"""
+
+    session_id: str = Field(
+        ...,
+        description="UUID сессии чата",
+    )
+    base_image_url: str = Field(
+        ...,
+        description="URL базового изображения",
+    )
+    created_at: datetime = Field(
+        ...,
+        description="Время создания сессии",
+    )
+
+    model_config = {"from_attributes": True}
+
+
+class ChatMessageRequest(BaseModel):
+    """Запрос на отправку сообщения в чат"""
+
+    session_id: str = Field(
+        ...,
+        description="UUID сессии чата",
+    )
+    message: str = Field(
+        ...,
+        description="Текст сообщения пользователя",
+        min_length=1,
+        max_length=2000,
+    )
+
+
+class ChatMessageResponse(BaseModel):
+    """Ответ от AI-ассистента"""
+
+    role: str = Field(
+        ...,
+        description="Роль отправителя (user или assistant)",
+    )
+    content: str = Field(
+        ...,
+        description="Текст сообщения",
+    )
+    prompts: Optional[List[str]] = Field(
+        None,
+        description="Список сгенерированных промптов для выбора (только для assistant)",
+    )
+    timestamp: str = Field(
+        ...,
+        description="Время сообщения в ISO формате",
+    )
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        """Валидация роли сообщения"""
+        if v not in ("user", "assistant"):
+            raise ValueError("role must be 'user' or 'assistant'")
+        return v
+
+
+class GenerateImageRequest(BaseModel):
+    """Запрос на генерацию изображения по промпту"""
+
+    session_id: str = Field(
+        ...,
+        description="UUID сессии чата",
+    )
+    prompt: str = Field(
+        ...,
+        description="Промпт для генерации изображения",
+        min_length=1,
+        max_length=2000,
+    )
+
+
+class GenerateImageResponse(BaseModel):
+    """Ответ с запущенной задачей генерации"""
+
+    task_id: str = Field(
+        ...,
+        description="UUID задачи Celery",
+    )
+    status: str = Field(
+        default="pending",
+        description="Статус задачи (pending)",
+    )
+    message: str = Field(
+        default="Image generation started",
+        description="Сообщение о статусе",
+    )
+
+
+class ChatHistoryMessage(BaseModel):
+    """Сообщение из истории чата"""
+
+    role: str = Field(
+        ...,
+        description="Роль отправителя (user или assistant)",
+    )
+    content: str = Field(
+        ...,
+        description="Текст сообщения",
+    )
+    image_url: Optional[str] = Field(
+        None,
+        description="URL изображения (если есть)",
+    )
+    timestamp: str = Field(
+        ...,
+        description="Время сообщения в ISO формате",
+    )
+
+
+class ChatHistoryResponse(BaseModel):
+    """Ответ с историей чата"""
+
+    session_id: str = Field(
+        ...,
+        description="UUID сессии чата",
+    )
+    base_image_url: Optional[str] = Field(
+        None,
+        description="URL базового изображения",
+    )
+    messages: List[ChatHistoryMessage] = Field(
+        default_factory=list,
+        description="Список сообщений в хронологическом порядке",
+    )
+    message_count: int = Field(
+        ...,
+        description="Общее количество сообщений в сессии",
+    )
+    is_active: bool = Field(
+        ...,
+        description="Активна ли сессия",
+    )
+
+    model_config = {"from_attributes": True}
+
+
+class ResetSessionResponse(BaseModel):
+    """Ответ на сброс сессии"""
+
+    session_id: str = Field(
+        ...,
+        description="UUID сессии чата",
+    )
+    message: str = Field(
+        default="Chat session reset successfully",
+        description="Сообщение о результате",
+    )
+
+
+class EditingError(BaseModel):
+    """Ошибка при работе с редактированием"""
+
+    detail: str = Field(
+        ...,
+        description="Описание ошибки",
+    )
+    error_code: Optional[str] = Field(
+        None,
+        description="Код ошибки",
+    )

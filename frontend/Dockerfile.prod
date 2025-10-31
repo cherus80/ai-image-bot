@@ -1,0 +1,64 @@
+# Frontend Dockerfile.prod для AI Image Generator Bot (Production с оптимизациями)
+
+# Stage 1: Build
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Установка зависимостей для сборки
+RUN apk add --no-cache python3 make g++
+
+# Копирование package.json и package-lock.json
+COPY package*.json ./
+
+# Установка зависимостей (включая devDependencies для сборки)
+RUN npm ci
+
+# Копирование исходного кода
+COPY . .
+
+# Build-time аргументы
+ARG VITE_API_BASE_URL
+ARG VITE_APP_NAME="AI Image Generator"
+ARG VITE_ENV=production
+
+# Установка переменных окружения для build
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_APP_NAME=$VITE_APP_NAME
+ENV VITE_ENV=$VITE_ENV
+
+# Build приложения (Vite)
+RUN npm run build
+
+# Проверка, что build создан
+RUN ls -la /app/dist
+
+# Stage 2: Production с nginx
+FROM nginx:1.25-alpine
+
+# Установка curl для healthcheck
+RUN apk add --no-cache curl
+
+# Удаление дефолтной nginx конфигурации
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Копирование production build из stage 1
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Копирование nginx конфигурации
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Создание директории для логов
+RUN mkdir -p /var/log/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /usr/share/nginx/html
+
+# Expose порт 80
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/ || exit 1
+
+# Запуск nginx в foreground режиме
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "LS",
+      "MultiEdit",
+      "WebFetch",
+      "Bash(docker:*)",
+      "Bash(psql:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(git:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(touch:*)",
+      "Bash(echo:*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)"
+    ],
+    "ask": [
+      "Bash"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)"
+    ]
+  },
+  "env": {
+    "HTTP_PROXY": "http://jj8s4yzA:fJHeFKns@142.111.247.138:64178",
+    "HTTPS_PROXY": "http://jj8s4yzA:fJHeFKns@142.111.247.138:64178",
+    "http_proxy": "http://jj8s4yzA:fJHeFKns@142.111.247.138:64178",
+    "https_proxy": "http://jj8s4yzA:fJHeFKns@142.111.247.138:64178"
+  }
+}
+

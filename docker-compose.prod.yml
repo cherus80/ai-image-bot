@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai_image_bot_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"  # Только localhost для безопасности
+    networks:
+      - ai_image_bot_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis для Celery
+  redis:
+    image: redis:7-alpine
+    container_name: ai_image_bot_redis_prod
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"  # Только localhost для безопасности
+    networks:
+      - ai_image_bot_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=production
+    container_name: ai_image_bot_backend_prod
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - POSTGRES_HOST=postgres
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    ports:
+      - "127.0.0.1:8000:8000"  # Только localhost (nginx будет проксировать)
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai_image_bot_network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop --http httptools
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Celery Worker для async задач
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=production
+    container_name: ai_image_bot_celery_worker_prod
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - POSTGRES_HOST=postgres
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - ai_image_bot_network
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=4 --max-tasks-per-child=1000
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.tasks.celery_app inspect ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Celery Beat для периодических задач
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=production
+    container_name: ai_image_bot_celery_beat_prod
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - POSTGRES_HOST=postgres
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - backend_logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - ai_image_bot_network
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Frontend (Production build с nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_ENV=production
+    container_name: ai_image_bot_frontend_prod
+    restart: always
+    ports:
+      - "127.0.0.1:3000:80"  # Только localhost (nginx будет проксировать)
+    depends_on:
+      - backend
+    networks:
+      - ai_image_bot_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Telegram Bot
+  telegram_bot:
+    build:
+      context: ./telegram_bot
+      dockerfile: Dockerfile
+    container_name: ai_image_bot_telegram_prod
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - WEB_APP_URL=${WEB_APP_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      - backend
+    networks:
+      - ai_image_bot_network
+    command: python run_bot.py
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  ai_image_bot_network:
+    driver: bridge

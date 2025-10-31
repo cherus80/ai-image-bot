@@ -1,0 +1,204 @@
+"""
+Pydantic схемы для админки.
+
+Содержит модели для:
+- Общей статистики приложения
+- Списка пользователей
+- Экспорта платежей
+"""
+
+from datetime import datetime
+from decimal import Decimal
+from pydantic import BaseModel, Field
+
+
+# ============================================================================
+# Общая статистика
+# ============================================================================
+
+class AdminStats(BaseModel):
+    """Общая статистика приложения."""
+
+    # Пользователи
+    total_users: int = Field(..., description="Всего зарегистрированных пользователей")
+    active_users_today: int = Field(..., description="Активных пользователей сегодня")
+    active_users_week: int = Field(..., description="Активных пользователей за неделю")
+    active_users_month: int = Field(..., description="Активных пользователей за месяц")
+    new_users_today: int = Field(..., description="Новых пользователей сегодня")
+    new_users_week: int = Field(..., description="Новых пользователей за неделю")
+    new_users_month: int = Field(..., description="Новых пользователей за месяц")
+
+    # Генерации
+    total_generations: int = Field(..., description="Всего генераций")
+    generations_today: int = Field(..., description="Генераций сегодня")
+    generations_week: int = Field(..., description="Генераций за неделю")
+    generations_month: int = Field(..., description="Генераций за месяц")
+    fitting_generations: int = Field(..., description="Генераций примерки")
+    editing_generations: int = Field(..., description="Генераций редактирования")
+
+    # Платежи
+    total_payments: int = Field(..., description="Всего платежей")
+    successful_payments: int = Field(..., description="Успешных платежей")
+    total_revenue: Decimal = Field(..., description="Общая выручка (₽)")
+    revenue_today: Decimal = Field(..., description="Выручка сегодня (₽)")
+    revenue_week: Decimal = Field(..., description="Выручка за неделю (₽)")
+    revenue_month: Decimal = Field(..., description="Выручка за месяц (₽)")
+    average_payment: Decimal = Field(..., description="Средний чек (₽)")
+
+    # Подписки
+    active_subscriptions_basic: int = Field(..., description="Активных подписок Basic")
+    active_subscriptions_pro: int = Field(..., description="Активных подписок Pro")
+    active_subscriptions_premium: int = Field(..., description="Активных подписок Premium")
+
+    # Рефералы
+    total_referrals: int = Field(..., description="Всего рефералов")
+    active_referrals: int = Field(..., description="Активных рефералов")
+
+    # Freemium
+    freemium_users: int = Field(..., description="Пользователей с Freemium")
+    freemium_generations_today: int = Field(..., description="Freemium генераций сегодня")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "total_users": 1250,
+                "active_users_today": 85,
+                "active_users_week": 420,
+                "active_users_month": 890,
+                "new_users_today": 12,
+                "new_users_week": 78,
+                "new_users_month": 234,
+                "total_generations": 5680,
+                "generations_today": 156,
+                "generations_week": 890,
+                "generations_month": 3210,
+                "fitting_generations": 3400,
+                "editing_generations": 2280,
+                "total_payments": 345,
+                "successful_payments": 312,
+                "total_revenue": "156780.50",
+                "revenue_today": "4500.00",
+                "revenue_week": "23400.00",
+                "revenue_month": "89650.00",
+                "average_payment": "502.50",
+                "active_subscriptions_basic": 45,
+                "active_subscriptions_pro": 23,
+                "active_subscriptions_premium": 8,
+                "total_referrals": 156,
+                "active_referrals": 89,
+                "freemium_users": 678,
+                "freemium_generations_today": 45
+            }
+        }
+
+
+class ChartDataPoint(BaseModel):
+    """Точка данных для графика."""
+    date: str = Field(..., description="Дата (YYYY-MM-DD)")
+    value: float = Field(..., description="Значение")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "date": "2025-01-15",
+                "value": 4500.50
+            }
+        }
+
+
+class AdminChartsData(BaseModel):
+    """Данные для графиков."""
+    revenue_chart: list[ChartDataPoint] = Field(..., description="График выручки (последние 30 дней)")
+    users_chart: list[ChartDataPoint] = Field(..., description="График новых пользователей (последние 30 дней)")
+    generations_chart: list[ChartDataPoint] = Field(..., description="График генераций (последние 30 дней)")
+
+
+# ============================================================================
+# Список пользователей
+# ============================================================================
+
+class AdminUserItem(BaseModel):
+    """Информация о пользователе для админки."""
+    id: int
+    telegram_id: int
+    username: str | None
+    first_name: str | None
+    last_name: str | None
+    balance_credits: int
+    subscription_type: str | None
+    subscription_expires_at: datetime | None
+    freemium_actions_remaining: int
+    freemium_reset_at: datetime
+    created_at: datetime
+    last_active_at: datetime | None
+    total_generations: int = Field(..., description="Всего генераций этого пользователя")
+    total_spent: Decimal = Field(..., description="Всего потрачено (₽)")
+    referrals_count: int = Field(..., description="Количество приглашённых друзей")
+    is_active: bool = Field(..., description="Был ли активен за последние 30 дней")
+
+
+class AdminUsersResponse(BaseModel):
+    """Ответ со списком пользователей."""
+    users: list[AdminUserItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+# ============================================================================
+# Экспорт платежей
+# ============================================================================
+
+class PaymentExportItem(BaseModel):
+    """Платёж для экспорта в CSV."""
+    payment_id: str
+    user_id: int
+    telegram_id: int
+    username: str | None
+    payment_type: str
+    amount: Decimal
+    status: str
+    created_at: datetime
+    paid_at: datetime | None
+    subscription_type: str | None
+    credits_amount: int | None
+    yukassa_payment_id: str | None
+    npd_tax: Decimal = Field(..., description="НПД 4%")
+    yukassa_commission: Decimal = Field(..., description="Комиссия ЮKassa 2.8%")
+    net_amount: Decimal = Field(..., description="Чистая сумма")
+
+
+class PaymentExportResponse(BaseModel):
+    """Ответ с экспортом платежей."""
+    payments: list[PaymentExportItem]
+    total_count: int
+    total_amount: Decimal
+    total_npd_tax: Decimal
+    total_yukassa_commission: Decimal
+    total_net_amount: Decimal
+    date_from: datetime | None
+    date_to: datetime | None
+
+
+# ============================================================================
+# Запросы
+# ============================================================================
+
+class AdminUsersRequest(BaseModel):
+    """Параметры для получения списка пользователей."""
+    page: int = Field(default=1, ge=1, description="Номер страницы")
+    page_size: int = Field(default=50, ge=1, le=200, description="Размер страницы")
+    sort_by: str = Field(default="created_at", description="Поле для сортировки")
+    order: str = Field(default="desc", description="Порядок сортировки (asc/desc)")
+    search: str | None = Field(default=None, description="Поиск по username/telegram_id")
+    filter_subscription: str | None = Field(default=None, description="Фильтр по подписке")
+    filter_active: bool | None = Field(default=None, description="Фильтр по активности")
+
+
+class PaymentExportRequest(BaseModel):
+    """Параметры для экспорта платежей."""
+    date_from: datetime | None = Field(default=None, description="Начальная дата")
+    date_to: datetime | None = Field(default=None, description="Конечная дата")
+    status: str | None = Field(default="succeeded", description="Статус платежа")
+    format: str = Field(default="csv", description="Формат экспорта (csv/json)")

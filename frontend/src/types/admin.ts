@@ -1,0 +1,165 @@
+/**
+ * TypeScript типы для админки.
+ *
+ * Соответствуют Pydantic схемам из backend/app/schemas/admin.py
+ */
+
+// ============================================================================
+// Общая статистика
+// ============================================================================
+
+export interface AdminStats {
+  // Пользователи
+  total_users: number;
+  active_users_today: number;
+  active_users_week: number;
+  active_users_month: number;
+  new_users_today: number;
+  new_users_week: number;
+  new_users_month: number;
+
+  // Генерации
+  total_generations: number;
+  generations_today: number;
+  generations_week: number;
+  generations_month: number;
+  fitting_generations: number;
+  editing_generations: number;
+
+  // Платежи
+  total_payments: number;
+  successful_payments: number;
+  total_revenue: string; // Decimal as string
+  revenue_today: string;
+  revenue_week: string;
+  revenue_month: string;
+  average_payment: string;
+
+  // Подписки
+  active_subscriptions_basic: number;
+  active_subscriptions_pro: number;
+  active_subscriptions_premium: number;
+
+  // Рефералы
+  total_referrals: number;
+  active_referrals: number;
+
+  // Freemium
+  freemium_users: number;
+  freemium_generations_today: number;
+}
+
+// ============================================================================
+// Графики
+// ============================================================================
+
+export interface ChartDataPoint {
+  date: string; // YYYY-MM-DD
+  value: number;
+}
+
+export interface AdminChartsData {
+  revenue_chart: ChartDataPoint[];
+  users_chart: ChartDataPoint[];
+  generations_chart: ChartDataPoint[];
+}
+
+// ============================================================================
+// Пользователи
+// ============================================================================
+
+export interface AdminUserItem {
+  id: number;
+  telegram_id: number;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  balance_credits: number;
+  subscription_type: string | null;
+  subscription_expires_at: string | null; // ISO datetime
+  freemium_actions_remaining: number;
+  freemium_reset_at: string; // ISO datetime
+  created_at: string; // ISO datetime
+  last_active_at: string | null; // ISO datetime
+  total_generations: number;
+  total_spent: string; // Decimal as string
+  referrals_count: number;
+  is_active: boolean;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUserItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface AdminUsersRequest {
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  order?: 'asc' | 'desc';
+  search?: string;
+  filter_subscription?: string;
+  filter_active?: boolean;
+}
+
+// ============================================================================
+// Экспорт платежей
+// ============================================================================
+
+export interface PaymentExportItem {
+  payment_id: string;
+  user_id: number;
+  telegram_id: number;
+  username: string | null;
+  payment_type: string;
+  amount: string; // Decimal as string
+  status: string;
+  created_at: string; // ISO datetime
+  paid_at: string | null; // ISO datetime
+  subscription_type: string | null;
+  credits_amount: number | null;
+  yukassa_payment_id: string | null;
+  npd_tax: string; // Decimal as string
+  yukassa_commission: string; // Decimal as string
+  net_amount: string; // Decimal as string
+}
+
+export interface PaymentExportResponse {
+  payments: PaymentExportItem[];
+  total_count: number;
+  total_amount: string; // Decimal as string
+  total_npd_tax: string; // Decimal as string
+  total_yukassa_commission: string; // Decimal as string
+  total_net_amount: string; // Decimal as string
+  date_from: string | null; // ISO datetime
+  date_to: string | null; // ISO datetime
+}
+
+export interface PaymentExportRequest {
+  date_from?: string; // ISO datetime
+  date_to?: string; // ISO datetime
+  status?: string;
+  format?: 'csv' | 'json';
+}
+
+// ============================================================================
+// Локальные типы для UI
+// ============================================================================
+
+export interface StatsCardData {
+  title: string;
+  value: string | number;
+  change?: number; // Процент изменения (может быть отрицательным)
+  icon?: string;
+  color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'indigo';
+}
+
+export interface ChartConfig {
+  label: string;
+  data: ChartDataPoint[];
+  color: string;
+  backgroundColor?: string;
+}

@@ -1,0 +1,275 @@
+"""
+Сервис для работы с файловым хранилищем.
+
+Отвечает за сохранение, получение и удаление файлов.
+Файлы сохраняются с UUID именами для безопасности.
+"""
+
+import os
+import shutil
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Optional
+from uuid import UUID, uuid4
+
+from fastapi import UploadFile, HTTPException, status
+
+from app.core.config import settings
+from app.services.file_validator import get_file_extension
+
+
+class FileStorageError(Exception):
+    """Ошибка при работе с файловым хранилищем"""
+    pass
+
+
+def _ensure_upload_dir_exists() -> Path:
+    """
+    Убедиться, что директория для загрузок существует.
+
+    Returns:
+        Path: Путь к директории загрузок
+    """
+    upload_dir = Path(settings.UPLOAD_DIR)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    return upload_dir
+
+
+def _get_file_path(file_id: UUID, extension: str) -> Path:
+    """
+    Получить полный путь к файлу.
+
+    Args:
+        file_id: UUID файла
+        extension: Расширение файла
+
+    Returns:
+        Path: Полный путь к файлу
+    """
+    upload_dir = _ensure_upload_dir_exists()
+    filename = f"{file_id}.{extension}"
+    return upload_dir / filename
+
+
+async def save_upload_file(
+    file: UploadFile,
+    user_id: int
+) -> tuple[UUID, str, int]:
+    """
+    Сохранить загруженный файл.
+
+    Args:
+        file: Загруженный файл
+        user_id: ID пользователя (для логирования)
+
+    Returns:
+        tuple[UUID, str, int]: (file_id, file_url, file_size)
+
+    Raises:
+        FileStorageError: Если не удалось сохранить файл
+    """
+    try:
+        # Генерация UUID для файла
+        file_id = uuid4()
+
+        # Получение расширения файла
+        extension = get_file_extension(file.content_type)
+        if not extension:
+            raise FileStorageError(f"Unknown content type: {file.content_type}")
+
+        # Получение пути для сохранения
+        file_path = _get_file_path(file_id, extension)
+
+        # Чтение содержимого файла
+        content = await file.read()
+        file_size = len(content)
+
+        # Сохранение файла
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        # Формирование URL для доступа к файлу
+        file_url = f"/uploads/{file_id}.{extension}"
+
+        # Возврат указателя файла в начало (на случай если понадобится еще раз прочитать)
+        await file.seek(0)
+
+        return file_id, file_url, file_size
+
+    except Exception as e:
+        raise FileStorageError(f"Failed to save file: {str(e)}")
+
+
+async def save_upload_file_by_content(
+    content: bytes,
+    content_type: str,
+    user_id: int
+) -> tuple[UUID, str, int]:
+    """
+    Сохранить файл из байтов (например, для результата генерации).
+
+    Args:
+        content: Содержимое файла
+        content_type: MIME-тип
+        user_id: ID пользователя
+
+    Returns:
+        tuple[UUID, str, int]: (file_id, file_url, file_size)
+
+    Raises:
+        FileStorageError: Если не удалось сохранить файл
+    """
+    try:
+        # Генерация UUID для файла
+        file_id = uuid4()
+
+        # Получение расширения файла
+        extension = get_file_extension(content_type)
+        if not extension:
+            raise FileStorageError(f"Unknown content type: {content_type}")
+
+        # Получение пути для сохранения
+        file_path = _get_file_path(file_id, extension)
+
+        file_size = len(content)
+
+        # Сохранение файла
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        # Формирование URL для доступа к файлу
+        file_url = f"/uploads/{file_id}.{extension}"
+
+        return file_id, file_url, file_size
+
+    except Exception as e:
+        raise FileStorageError(f"Failed to save file: {str(e)}")
+
+
+def get_file_by_id(file_id: UUID) -> Optional[Path]:
+    """
+    Получить путь к файлу по его UUID.
+
+    Args:
+        file_id: UUID файла
+
+    Returns:
+        Optional[Path]: Путь к файлу или None если не найден
+    """
+    upload_dir = _ensure_upload_dir_exists()
+
+    # Поиск файла с любым расширением
+    for ext in ['jpg', 'jpeg', 'png']:
+        file_path = upload_dir / f"{file_id}.{ext}"
+        if file_path.exists():
+            return file_path
+
+    return None
+
+
+def delete_file(file_id: UUID) -> bool:
+    """
+    Удалить файл по его UUID.
+
+    Args:
+        file_id: UUID файла
+
+    Returns:
+        bool: True если файл был удален, False если не найден
+    """
+    file_path = get_file_by_id(file_id)
+
+    if not file_path:
+        return False
+
+    try:
+        file_path.unlink()
+        return True
+    except Exception:
+        return False
+
+
+def delete_old_files(hours: int = 24) -> int:
+    """
+    Удалить файлы старше указанного количества часов.
+
+    Это функция должна вызываться периодически (например, через Celery Beat).
+
+    Args:
+        hours: Количество часов, после которых файл считается старым
+
+    Returns:
+        int: Количество удаленных файлов
+    """
+    upload_dir = _ensure_upload_dir_exists()
+    cutoff_time = datetime.now() - timedelta(hours=hours)
+    deleted_count = 0
+
+    for file_path in upload_dir.glob("*"):
+        if not file_path.is_file():
+            continue
+
+        # Проверка времени модификации файла
+        file_mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
+
+        if file_mtime < cutoff_time:
+            try:
+                file_path.unlink()
+                deleted_count += 1
+            except Exception:
+                # Логируем ошибку, но продолжаем удаление остальных файлов
+                pass
+
+    return deleted_count
+
+
+def get_upload_dir_size() -> int:
+    """
+    Получить общий размер директории загрузок в байтах.
+
+    Returns:
+        int: Размер в байтах
+    """
+    upload_dir = _ensure_upload_dir_exists()
+    total_size = 0
+
+    for file_path in upload_dir.glob("*"):
+        if file_path.is_file():
+            total_size += file_path.stat().st_size
+
+    return total_size
+
+
+def get_upload_dir_file_count() -> int:
+    """
+    Получить количество файлов в директории загрузок.
+
+    Returns:
+        int: Количество файлов
+    """
+    upload_dir = _ensure_upload_dir_exists()
+    return len(list(upload_dir.glob("*")))
+
+
+def cleanup_upload_dir() -> tuple[int, int]:
+    """
+    Очистить всю директорию загрузок (использовать с осторожностью!).
+
+    Returns:
+        tuple[int, int]: (количество удаленных файлов, освобожденное место в байтах)
+    """
+    upload_dir = _ensure_upload_dir_exists()
+    deleted_count = 0
+    freed_space = 0
+
+    for file_path in upload_dir.glob("*"):
+        if file_path.is_file():
+            try:
+                file_size = file_path.stat().st_size
+                file_path.unlink()
+                deleted_count += 1
+                freed_space += file_size
+            except Exception:
+                pass
+
+    return deleted_count, freed_space
