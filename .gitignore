@@ -126,8 +126,9 @@ Desktop.ini
 # -----------------------------------------------------------------------------
 # Claude Code (VS Code Extension)
 # -----------------------------------------------------------------------------
-.claude/settings.local.json
-agents/  # Внутренняя работа VS Code
+.claude/
+!.claude/commands/
+!.claude/settings.json
 
 # -----------------------------------------------------------------------------
 # Uploads & Temporary Files
