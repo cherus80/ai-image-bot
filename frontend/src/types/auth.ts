@@ -22,7 +22,10 @@ export interface UserProfile {
   subscription_type: string | null;
   subscription_expires_at: string | null;
   freemium_actions_used: number;
+  freemium_actions_remaining: number;
+  freemium_actions_limit: number;
   freemium_reset_at: string;
+  freemium_last_reset: string;
   can_use_freemium: boolean;
   is_premium: boolean;
   is_blocked: boolean;

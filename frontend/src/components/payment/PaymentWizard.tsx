@@ -74,7 +74,7 @@ export const PaymentWizard: React.FC = () => {
       setCurrentStep('tariff');
     } else if (currentStep === 'tariff') {
       setCurrentStep('type');
-      setSelectedType(null);
+      setSelectedType(null as any);
     }
   };
 

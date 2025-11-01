@@ -25,7 +25,6 @@ export const EditingPage: React.FC = () => {
     sendMessage,
     generateImage,
     resetSession,
-    reset,
     uploadError,
     error,
     clearError,

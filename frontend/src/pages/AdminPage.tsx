@@ -13,7 +13,6 @@ import { StatsCard } from '../components/admin/StatsCard';
 import { UsersTable } from '../components/admin/UsersTable';
 import {
   getAdminStats,
-  getAdminSecret,
   setAdminSecret,
   hasAdminSecret,
   exportPaymentsCSV,

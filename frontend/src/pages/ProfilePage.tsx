@@ -9,7 +9,6 @@ import { usePayment } from '../store/paymentStore';
 import { PaymentWizard } from '../components/payment/PaymentWizard';
 import { handlePaymentReturn, pollPaymentStatus } from '../api/payment';
 import { getReferralStats, copyReferralLink, shareReferralLink, type ReferralStatsResponse } from '../api/referral';
-import type { PaymentHistoryItem } from '../types/payment';
 import toast from 'react-hot-toast';
 
 export const ProfilePage: React.FC = () => {

@@ -16,7 +16,7 @@ type WizardStep = 'user_photo' | 'item_photo' | 'zone' | 'generating' | 'result'
 
 export const FittingWizard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<WizardStep>('user_photo');
-  const { startGeneration, isGenerating } = useFittingStore();
+  const { startGeneration } = useFittingStore();
 
   const handleGenerateClick = async () => {
     setCurrentStep('generating');
