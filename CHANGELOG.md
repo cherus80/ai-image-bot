@@ -7,6 +7,89 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2025-11-04
+
+### Добавлено
+
+**Новые зоны примерки (Face & Body)**
+
+- **Frontend — Step3Zone Component** ([frontend/src/components/fitting/Step3Zone.tsx](frontend/src/components/fitting/Step3Zone.tsx)):
+  - Добавлена зона "Лицо" 👓 для примерки очков и масок
+  - Добавлена зона "Всё тело" 👔 для примерки полной одежды
+  - Итого 6 зон примерки: Голова, Лицо, Шея, Руки, Ноги, Всё тело
+  - Обновлены описания зон для большей ясности
+
+- **TypeScript Types** ([frontend/src/types/fitting.ts](frontend/src/types/fitting.ts)):
+  - Обновлён тип `AccessoryZone`: добавлены 'face' и 'body'
+  - `export type AccessoryZone = 'head' | 'face' | 'neck' | 'hands' | 'legs' | 'body' | null`
+
+- **Backend Validation** ([backend/app/schemas/fitting.py](backend/app/schemas/fitting.py)):
+  - Обновлена валидация зон в `FittingRequest.validate_accessory_zone()`
+  - valid_zones: `{"head", "face", "neck", "hands", "legs", "body"}`
+  - Обновлено описание поля: "Зона для аксессуара: head, face, neck, hands, legs, body"
+
+- **AI Prompts** ([backend/app/tasks/fitting.py](backend/app/tasks/fitting.py)):
+  - Добавлен промпт `"accessory_face"` для генерации очков/масок:
+    ```python
+    "A professional close-up portrait showing a person wearing the accessory on their face. "
+    "Clear focus on glasses/mask, natural lighting, realistic fit and placement. "
+    "High detail, photorealistic, 8k quality."
+    ```
+  - Добавлен промпт `"accessory_body"` для полной одежды:
+    ```python
+    "A full-body fashion photoshoot showing a person wearing the clothing item. "
+    "Professional studio lighting, clean background, realistic fit and draping. "
+    "Photorealistic, 8k, detailed fabric texture, full body view."
+    ```
+  - Обновлена документация функции `_get_prompt_for_zone()` с новыми зонами
+
+**Статистика рефералов в админке**
+
+- **Admin Panel Stats Card** ([frontend/src/pages/AdminPage.tsx](frontend/src/pages/AdminPage.tsx)):
+  - Добавлена 9-я карточка статистики "Рефералы" 🤝
+  - Отображает общее количество рефералов (`stats.total_referrals`)
+  - Показывает процент активных рефералов в поле `change`
+  - Цвет: зелёный (успех)
+
+- **Admin Panel Detailed Stats** ([frontend/src/pages/AdminPage.tsx](frontend/src/pages/AdminPage.tsx)):
+  - Добавлена 4-я детальная панель "Рефералы"
+  - Показывает:
+    - Всего рефералов
+    - Активных рефералов
+    - Процент активности (с точностью до 0.1%)
+    - Пояснение: "Активные рефералы - пользователи, совершившие хотя бы одно действие после регистрации"
+  - Адаптивная сетка: `grid-cols-1 lg:grid-cols-2 xl:grid-cols-4`
+
+### Изменено
+
+- **Admin Stats Cards Grid** ([frontend/src/pages/AdminPage.tsx](frontend/src/pages/AdminPage.tsx)):
+  - Было: 8 карточек статистики
+  - Стало: 9 карточек (добавлена карточка рефералов)
+
+- **Admin Detailed Stats Grid** ([frontend/src/pages/AdminPage.tsx](frontend/src/pages/AdminPage.tsx)):
+  - Было: `grid-cols-1 lg:grid-cols-3` (3 панели)
+  - Стало: `grid-cols-1 lg:grid-cols-2 xl:grid-cols-4` (4 панели с адаптивной версткой)
+
+### Технические детали
+
+**Развёртывание:**
+- Все изменения развёрнуты на production VPS (185.135.82.109)
+- Перезапущены сервисы: backend, celery_worker, celery_beat, frontend
+- Статус: все сервисы healthy
+- Frontend доступен: https://185.135.82.109
+
+**Затронутые файлы:**
+1. `backend/app/schemas/fitting.py` — валидация зон
+2. `backend/app/tasks/fitting.py` — AI промпты для новых зон
+3. `frontend/src/components/fitting/Step3Zone.tsx` — UI выбора зон
+4. `frontend/src/types/fitting.ts` — TypeScript типы
+5. `frontend/src/pages/AdminPage.tsx` — статистика рефералов
+6. `TZ.md` — техническое задание (обновлено)
+
+**Git:**
+- Коммит: `adf38e1` - "feat: Add face/body zones for fitting and referral stats to admin panel"
+- Push: успешно отправлен в origin/master
+
 ## [0.15.0] - 2025-11-02
 
 ### Добавлено
