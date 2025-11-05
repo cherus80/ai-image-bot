@@ -85,7 +85,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # Frontend dev
         "http://127.0.0.1:3000",
-        "https://yourdomain.com",  # Production (заменить на реальный домен)
+        "http://localhost:5173",  # Vite dev server
+        "https://ai-bot-media.mix4.ru",  # Production frontend
+        "https://api.ai-bot-media.mix4.ru",  # Production API
     ],
     allow_credentials=True,
     allow_methods=["*"],

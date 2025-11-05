@@ -9,7 +9,7 @@ import type {
   ChatMessage,
   BaseImageUpload,
 } from '../types/editing';
-import type { FittingStatusResponse } from '../types/fitting';
+import type { FittingStatusResponse, FittingResult } from '../types/fitting';
 import {
   uploadBaseImage,
   createChatSession,
@@ -53,7 +53,7 @@ interface ChatState {
   selectPrompt: (prompt: string) => Promise<void>;
 
   // Actions: генерация изображения
-  generateImage: (prompt: string) => Promise<void>;
+  generateImage: (prompt: string) => Promise<FittingResult>;
 
   // Actions: управление сессией
   reset: () => void;
@@ -279,6 +279,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       // Обновляем профиль пользователя (списан 1 кредит)
       await useAuthStore.getState().refreshProfile();
+
+      return result;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || 'Ошибка генерации изображения';
       set({

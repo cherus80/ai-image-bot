@@ -218,3 +218,8 @@ volumes:
 networks:
   ai_image_bot_network:
     driver: bridge
+  # Внешняя сеть для Nginx Proxy Manager (если NPM в отдельной сети)
+  # Раскомментируйте, если NPM использует свою сеть:
+  # npm_network:
+  #   external: true
+  #   name: npm_default  # Замените на фактическое имя сети NPM

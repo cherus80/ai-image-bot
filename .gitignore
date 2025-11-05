@@ -204,3 +204,6 @@ notes/
 *.DS_Store
 .AppleDouble
 .LSOverride
+
+# Claude Code logs
+.claude/hooks/*.log
