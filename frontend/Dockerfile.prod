@@ -9,16 +9,26 @@ WORKDIR /app
 COPY package*.json ./
 
 # Установка зависимостей (включая devDependencies для сборки)
-# Используем BuildKit cache mount для ускорения и стабильности
-# Пробуем без native компиляторов - большинство пакетов имеют pre-built бинарники
+# Разделяем на два этапа для лучшей стабильности
 RUN --mount=type=cache,target=/root/.npm \
-    npm set maxsockets 3 && \
-    npm set fetch-retries 10 && \
-    npm set fetch-retry-mintimeout 20000 && \
-    npm set fetch-retry-maxtimeout 120000 && \
-    npm set fetch-timeout 300000 && \
-    npm ci --prefer-offline --loglevel=error || \
-    (apk add --no-cache python3 make g++ && npm ci --prefer-offline --loglevel=error)
+    npm config set maxsockets 3 && \
+    npm config set fetch-retries 10 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-timeout 300000 && \
+    npm config set prefer-offline true
+
+# Пробуем установку с pre-built бинарниками
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --loglevel=error || \
+    echo "First attempt failed, installing build tools..."
+
+# Если предыдущая попытка не удалась, устанавливаем build tools и пробуем снова
+RUN --mount=type=cache,target=/root/.npm \
+    if [ ! -d "node_modules" ]; then \
+        apk add --no-cache python3 make g++ && \
+        npm ci --loglevel=error; \
+    fi
 
 # Копирование исходного кода
 COPY . .
