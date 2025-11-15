@@ -12,8 +12,14 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 
 # Установка зависимостей (включая devDependencies для сборки)
-# Добавлены retry и увеличен timeout для обработки сетевых проблем
-RUN npm ci --loglevel=error --fetch-timeout=60000 --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
+# Используем BuildKit cache mount для ускорения и стабильности
+RUN --mount=type=cache,target=/root/.npm \
+    npm set maxsockets 3 && \
+    npm set fetch-retries 10 && \
+    npm set fetch-retry-mintimeout 20000 && \
+    npm set fetch-retry-maxtimeout 120000 && \
+    npm set fetch-timeout 300000 && \
+    npm ci --prefer-offline --loglevel=error
 
 # Копирование исходного кода
 COPY . .
