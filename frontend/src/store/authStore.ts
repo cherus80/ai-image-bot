@@ -40,11 +40,63 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // Get Telegram initData
-          const initData = getTelegramInitData();
+          // DEV MODE: Check first before trying to get Telegram data
+          const isDev = import.meta.env.DEV;
+
+          // Try to get Telegram initData
+          let initData: string | null = null;
+
+          try {
+            initData = getTelegramInitData();
+          } catch (error) {
+            // If not in Telegram and in DEV mode, use mock data
+            if (isDev) {
+              console.warn('🔧 DEV MODE: Using mock user data (no Telegram data available)');
+
+              // Mock user data for local development
+              const mockUser: UserProfile = {
+                id: 1,
+                telegram_id: 123456789,
+                username: 'dev_user',
+                first_name: 'Dev',
+                last_name: 'User',
+                language_code: 'ru',
+                balance_credits: 10,
+                subscription_type: 'PRO',
+                subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                freemium_actions_used: 0,
+                freemium_actions_remaining: 10,
+                freemium_actions_limit: 10,
+                freemium_reset_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                freemium_last_reset: new Date().toISOString(),
+                can_use_freemium: true,
+                is_premium: true,
+                is_blocked: false,
+                created_at: new Date().toISOString(),
+                last_activity_at: new Date().toISOString(),
+                referral_code: 'DEV123',
+                referred_by_id: null,
+              };
+
+              set({
+                token: 'mock_jwt_token_for_development',
+                user: mockUser,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+
+              return;
+            }
+
+            // Not in DEV mode and no Telegram data - throw error
+            throw error;
+          }
+
+          // Got Telegram initData
 
           if (!initData) {
-            throw new Error('Telegram initData not available. Please open this app in Telegram.');
+            throw new Error('Данные Telegram недоступны. Пожалуйста, откройте это приложение в Telegram.');
           }
 
           // Call backend auth API
@@ -60,7 +112,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
         } catch (error: any) {
-          const errorMessage = error.detail || 'Authentication failed';
+          const errorMessage = error.detail || 'Ошибка авторизации';
           set({
             token: null,
             user: null,
@@ -93,7 +145,7 @@ export const useAuthStore = create<AuthState>()(
         const { token } = get();
 
         if (!token) {
-          throw new Error('Not authenticated');
+          throw new Error('Не авторизован');
         }
 
         set({ isLoading: true, error: null });
@@ -109,7 +161,7 @@ export const useAuthStore = create<AuthState>()(
 
           // Zustand persist automatically updates localStorage
         } catch (error: any) {
-          const errorMessage = error.detail || 'Failed to refresh profile';
+          const errorMessage = error.detail || 'Не удалось обновить профиль';
           set({
             isLoading: false,
             error: errorMessage,
