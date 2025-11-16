@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.11.3] - 2025-11-16
+
+### Fixed
+- **Critical:** Telegram WebApp cache busting - users not seeing frontend updates
+  - **Problem:** После деплоя изменений фронтенда пользователи продолжали видеть старую версию из-за агрессивного кэширования Telegram
+  - **Root causes:**
+    1. Nginx кэшировал статические файлы на 1 год (включая JS/CSS)
+    2. index.html также кэшировался, что блокировало загрузку новых бандлов
+    3. Отсутствие версионирования файлов (нет хешей в именах)
+    4. Telegram WebApp сам кэширует контент на клиенте
+  - **Solution:**
+    1. **Vite config**: Добавлено автоматическое хеширование файлов при сборке
+       - `index.js` → `index.[hash].js`
+       - `main.css` → `main.[hash].css`
+    2. **Nginx config**: Настроено правильное кэширование
+       - `index.html` → no-cache (всегда свежий)
+       - Файлы с хешами → 1 год (безопасно, т.к. уникальны)
+       - Файлы без хешей → 1 час (короткое кэширование)
+    3. **Deploy script**: Создан `redeploy-frontend.sh` для правильного деплоя
+       - Пересборка с новыми хешами
+       - Docker build без кэша
+       - Перезапуск контейнера
+  - **Result:** При каждом деплое генерируются уникальные имена файлов → кэш не мешает
+
+### Added
+- `redeploy-frontend.sh`: Автоматический скрипт для пересборки и деплоя фронтенда
+- `docs/CACHE_BUSTING.md`: Подробная документация по решению проблемы кэширования
+  - Описание проблемы и причин
+  - 3-уровневое решение (Vite + Nginx + Деплой)
+  - Чек-лист для деплоя новых изменений
+  - Методы очистки кэша на iOS/Android/Desktop
+  - Troubleshooting guide
+  - Best practices
+
+### Changed
+- `frontend/vite.config.ts`: Добавлены rollupOptions для хеширования файлов
+- `frontend/nginx.conf`: Обновлена стратегия кэширования
+  - HTML файлы: `Cache-Control: no-cache, no-store, must-revalidate`
+  - Файлы с хешами: `Cache-Control: public, immutable` (1 год)
+  - Файлы без хешей: `Cache-Control: public, max-age=3600` (1 час)
+
+### Documentation
+- **Cache headers verification:**
+  ```bash
+  curl -I https://your-domain.com/  # → no-cache
+  curl -I https://your-domain.com/assets/index.[hash].js  # → immutable
+  ```
+- **User guide:** Как очистить кэш Telegram на всех платформах
+- **Developer guide:** Workflow для деплоя изменений
+
+### Testing
+- ✅ Vite build генерирует файлы с хешами
+- ✅ Nginx возвращает правильные Cache-Control headers
+- ✅ Docker образ пересобирается без кэша
+- ⏳ Требуется тестирование на реальных Telegram клиентах (iOS/Android/Desktop)
+
+### Next Steps
+- Запустить `./redeploy-frontend.sh` на VPS
+- Проверить headers в production: `curl -I https://your-domain.com/`
+- Протестировать на Telegram клиентах
+- При необходимости изменить URL WebApp в BotFather (добавить `?v=2`)
+
+---
+
 ## [0.11.2] - 2025-11-16
 
 ### Fixed
