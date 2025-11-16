@@ -9,26 +9,20 @@ WORKDIR /app
 COPY package*.json ./
 
 # Установка зависимостей (включая devDependencies для сборки)
-# Разделяем на два этапа для лучшей стабильности
+# Все в одном RUN для сохранения node_modules между шагами
 RUN --mount=type=cache,target=/root/.npm \
     npm config set maxsockets 3 && \
     npm config set fetch-retries 10 && \
     npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm config set fetch-timeout 300000 && \
-    npm config set prefer-offline true
-
-# Пробуем установку с pre-built бинарниками
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --loglevel=error || \
-    echo "First attempt failed, installing build tools..."
-
-# Если предыдущая попытка не удалась, устанавливаем build tools и пробуем снова
-RUN --mount=type=cache,target=/root/.npm \
-    if [ ! -d "node_modules" ]; then \
-        apk add --no-cache python3 make g++ && \
-        npm ci --loglevel=error; \
-    fi
+    npm config set prefer-offline true && \
+    echo "Attempting npm ci without build tools..." && \
+    (npm ci --loglevel=error || \
+     (echo "First attempt failed, installing build tools..." && \
+      apk add --no-cache python3 make g++ && \
+      echo "Retrying npm ci with build tools..." && \
+      npm ci --loglevel=error))
 
 # Копирование исходного кода
 COPY . .

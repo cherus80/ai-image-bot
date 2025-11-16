@@ -16,6 +16,20 @@ export default {
           'button-text': 'var(--tg-theme-button-text-color)',
           'secondary-bg': 'var(--tg-theme-secondary-bg-color)',
         },
+        // Желтый цвет для кнопок (из нового дизайна)
+        golden: {
+          DEFAULT: '#F4C753',
+          50: '#fefcf3',
+          100: '#fef9e7',
+          200: '#fdf2c3',
+          300: '#fbe99f',
+          400: '#f8da6b',
+          500: '#F4C753',
+          600: '#f0b93f',
+          700: '#e0a02b',
+          800: '#c88a1f',
+          900: '#a06f15',
+        },
         // Современная цветовая палитра
         primary: {
           50: '#f0f9ff',

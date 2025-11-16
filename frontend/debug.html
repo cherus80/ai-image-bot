@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диагностика состояния</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #1a1c2d;
+            color: #fff;
+        }
+        .section {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        h2 {
+            color: #F4C753;
+            margin-top: 0;
+        }
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .warning { color: #ffd43b; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Диагностика Frontend</h1>
+
+    <div class="section">
+        <h2>1. Environment</h2>
+        <pre id="env"></pre>
+    </div>
+
+    <div class="section">
+        <h2>2. LocalStorage (auth-storage)</h2>
+        <pre id="localStorage"></pre>
+    </div>
+
+    <div class="section">
+        <h2>3. Текущий URL</h2>
+        <pre id="url"></pre>
+    </div>
+
+    <div class="section">
+        <h2>4. Проверка localhost:5173</h2>
+        <button onclick="checkApp()">Проверить приложение</button>
+        <pre id="appCheck"></pre>
+    </div>
+
+    <div class="section">
+        <h2>5. Действия</h2>
+        <button onclick="clearStorage()">Очистить LocalStorage</button>
+        <button onclick="goToApp()">Перейти к приложению</button>
+    </div>
+
+    <script>
+        // 1. Environment
+        document.getElementById('env').textContent = JSON.stringify({
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            onLine: navigator.onLine,
+            cookieEnabled: navigator.cookieEnabled
+        }, null, 2);
+
+        // 2. LocalStorage
+        const authData = localStorage.getItem('auth-storage');
+        document.getElementById('localStorage').innerHTML = authData
+            ? `<span class="success">✓ Найдено</span>\n${JSON.stringify(JSON.parse(authData), null, 2)}`
+            : '<span class="error">✗ Пусто</span>';
+
+        // 3. URL
+        document.getElementById('url').textContent = window.location.href;
+
+        // 4. Check app
+        async function checkApp() {
+            const output = document.getElementById('appCheck');
+            output.innerHTML = '<span class="warning">⏳ Проверка...</span>';
+
+            try {
+                const response = await fetch('http://localhost:5173/');
+                const text = await response.text();
+
+                output.innerHTML = `
+<span class="success">✓ Сервер работает (${response.status})</span>
+Размер ответа: ${text.length} байт
+HTML содержит:
+- React root: ${text.includes('id="root"') ? '✓' : '✗'}
+- Vite: ${text.includes('vite') ? '✓' : '✗'}
+- Script: ${text.includes('<script') ? '✓' : '✗'}
+                `;
+            } catch (error) {
+                output.innerHTML = `<span class="error">✗ Ошибка: ${error.message}</span>`;
+            }
+        }
+
+        // 5. Actions
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            alert('✓ LocalStorage очищен!');
+            location.reload();
+        }
+
+        function goToApp() {
+            window.location.href = 'http://localhost:5173/';
+        }
+
+        // Auto check on load
+        setTimeout(checkApp, 500);
+    </script>
+</body>
+</html>

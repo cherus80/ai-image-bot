@@ -214,5 +214,4 @@ fi
 ## См. также
 
 - [DEPLOYMENT_SUMMARY.md](../DEPLOYMENT_SUMMARY.md) - Общая информация о deployment
-- [CHANGELOG.md](../CHANGELOG.md) - История изменений
 - [QUICK_DEPLOY_GUIDE.md](../QUICK_DEPLOY_GUIDE.md) - Быстрое развёртывание

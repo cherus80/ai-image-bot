@@ -436,7 +436,6 @@ npm run dev
 
 - [README.md](README.md) — основная документация
 - [TODO.md](TODO.md) — план разработки
-- [CHANGELOG.md](CHANGELOG.md) — история изменений
 - [TESTING.md](TESTING.md) — руководство по тестированию
 - [PROJECT_STRUCTURE_ANALYSIS.md](PROJECT_STRUCTURE_ANALYSIS.md) — архитектура проекта
 

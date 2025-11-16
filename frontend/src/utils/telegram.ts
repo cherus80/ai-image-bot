@@ -23,15 +23,11 @@ export const isTelegramWebApp = (): boolean => {
  * Get Telegram initData string for backend authentication
  *
  * @returns initData string or null if not in Telegram
+ * @throws Error if not in Telegram (let the caller handle DEV mode)
  */
 export const getTelegramInitData = (): string | null => {
-  try {
-    const launchParams = retrieveLaunchParams();
-    return launchParams.initDataRaw || null;
-  } catch (error) {
-    console.error('Failed to get Telegram initData:', error);
-    return null;
-  }
+  const launchParams = retrieveLaunchParams();
+  return launchParams.initDataRaw || null;
 };
 
 /**

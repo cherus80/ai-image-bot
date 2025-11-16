@@ -88,7 +88,6 @@ Hooks: git-workflow/smart-commit, automation/telegram-notifications
 
 4. **БЕЗ ЛИШНЕЙ ДОКУМЕНТАЦИИ**
    - ❌ Не создавайте новые .md файлы
-   - ❌ Не обновляйте CHANGELOG.md
    - ✅ Только код в коммитах
 
 ---

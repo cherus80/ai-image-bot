@@ -1,0 +1,26 @@
+{
+  "name": "ai-image-bot",
+  "version": "1.0.0",
+  "description": "AI Image Generator Bot - Telegram Web App (Root Package)",
+  "private": true,
+  "scripts": {
+    "mcp:playwright": "npx -y @playwright/mcp-server",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+    "dev": "./start-dev.sh",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend && pytest tests/ -v"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  },
+  "keywords": [
+    "telegram",
+    "webapp",
+    "ai",
+    "image-generation",
+    "fastapi",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -14,8 +14,8 @@ interface ErrorPageProps {
 }
 
 export const ErrorPage: React.FC<ErrorPageProps> = ({
-  title = 'Something went wrong',
-  message = 'An unexpected error occurred. Please try again.',
+  title = 'Что-то пошло не так',
+  message = 'Произошла непредвиденная ошибка. Пожалуйста, попробуйте еще раз.',
   icon = '⚠️',
   onRetry,
 }) => {
@@ -37,7 +37,7 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
             onClick={onRetry}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            Try Again
+            Попробовать снова
           </button>
         )}
       </div>

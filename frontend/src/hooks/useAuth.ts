@@ -21,7 +21,7 @@ export const useAuth = () => {
     clearError,
   } = useAuthStore();
 
-  // Auto-login on mount if not authenticated and in Telegram
+  // Auto-login on mount if not authenticated
   useEffect(() => {
     const attemptAutoLogin = async () => {
       // Skip if already authenticated or loading
@@ -29,17 +29,20 @@ export const useAuth = () => {
         return;
       }
 
-      // Skip if not in Telegram
-      if (!isTelegramWebApp()) {
-        console.warn('Not running in Telegram WebApp');
+      const isDev = import.meta.env.DEV;
+      const inTelegram = isTelegramWebApp();
+
+      // Skip if not in Telegram AND not in dev mode
+      if (!inTelegram && !isDev) {
+        console.warn('Не запущено в Telegram WebApp');
         return;
       }
 
-      // Attempt login
+      // Attempt login (works in both Telegram and DEV mode)
       try {
         await login();
       } catch (error) {
-        console.error('Auto-login failed:', error);
+        console.error('Ошибка автоматической авторизации:', error);
         // Error is already stored in state
       }
     };

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Очистка LocalStorage</title>
+</head>
+<body>
+    <h1>Очистка localStorage</h1>
+    <button onclick="clearStorage()">Очистить и перейти к приложению</button>
+    <p id="status"></p>
+
+    <script>
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('status').textContent = 'Очищено! Перенаправление...';
+            setTimeout(() => {
+                window.location.href = 'http://localhost:5173/';
+            }, 1000);
+        }
+
+        // Автоматическая очистка при загрузке страницы
+        window.onload = () => {
+            clearStorage();
+        };
+    </script>
+</body>
+</html>
