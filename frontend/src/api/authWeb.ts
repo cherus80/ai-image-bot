@@ -1,0 +1,63 @@
+/**
+ * Web Authentication API Client
+ *
+ * Handles Email/Password and Google OAuth authentication
+ */
+
+import client from './client';
+import type {
+  RegisterRequest,
+  LoginRequest,
+  GoogleOAuthRequest,
+  LoginResponse,
+  GoogleOAuthResponse,
+  UserProfileResponse,
+} from '../types/auth';
+
+/**
+ * Register a new user with email and password
+ */
+export async function registerWithEmail(data: RegisterRequest): Promise<LoginResponse> {
+  const response = await client.post<LoginResponse>('/api/v1/auth-web/register', data);
+  return response.data;
+}
+
+/**
+ * Login with email and password
+ */
+export async function loginWithEmail(data: LoginRequest): Promise<LoginResponse> {
+  const response = await client.post<LoginResponse>('/api/v1/auth-web/login', data);
+  return response.data;
+}
+
+/**
+ * Login or register with Google OAuth
+ */
+export async function loginWithGoogle(idToken: string): Promise<GoogleOAuthResponse> {
+  const data: GoogleOAuthRequest = { id_token: idToken };
+  const response = await client.post<GoogleOAuthResponse>('/api/v1/auth-web/google', data);
+  return response.data;
+}
+
+/**
+ * Get current user profile
+ */
+export async function getCurrentUser(): Promise<UserProfileResponse> {
+  const response = await client.get<UserProfileResponse>('/api/v1/auth-web/me');
+  return response.data;
+}
+
+/**
+ * Refresh user profile (fetch latest data from server)
+ */
+export async function refreshUserProfile(): Promise<UserProfileResponse> {
+  return getCurrentUser();
+}
+
+/**
+ * Logout (client-side only - clears token)
+ */
+export function logout(): void {
+  // Token is cleared in authStore
+  // Could add server-side logout endpoint in the future (e.g., token blacklist)
+}

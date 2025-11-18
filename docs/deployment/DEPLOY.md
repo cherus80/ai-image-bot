@@ -1,6 +1,6 @@
-# Инструкция по деплою AI Image Generator Bot на Beget VPS
+# Инструкция по деплою AI Image Generator на Beget VPS
 
-Полное руководство по развёртыванию Telegram Web App для генерации изображений на VPS сервере Beget.
+Полное руководство по развёртыванию веб-приложения AI Image Generator на VPS сервере Beget.
 
 ---
 
@@ -12,11 +12,10 @@
 4. [Подготовка приложения](#подготовка-приложения)
 5. [Настройка nginx](#настройка-nginx)
 6. [Деплой через Docker](#деплой-через-docker)
-7. [Настройка Telegram Bot](#настройка-telegram-bot)
-8. [Настройка ЮKassa Webhook](#настройка-юkassa-webhook)
-9. [Мониторинг и логи](#мониторинг-и-логи)
-10. [Backup и восстановление](#backup-и-восстановление)
-11. [Troubleshooting](#troubleshooting)
+7. [Настройка ЮKassa Webhook](#настройка-юkassa-webhook)
+8. [Мониторинг и логи](#мониторинг-и-логи)
+9. [Backup и восстановление](#backup-и-восстановление)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -30,10 +29,10 @@
 - ✅ nginx установлен
 - ✅ Доменное имя (например: `your-domain.com`)
 - ✅ API ключи:
-  - Telegram Bot Token (от @BotFather)
   - kie.ai API Key
   - OpenRouter API Key
   - ЮKassa Shop ID и Secret Key
+  - JWT/SECRET ключи, параметры антиабуза
 
 ### Технические требования:
 
@@ -165,12 +164,6 @@ OPENROUTER_API_KEY=<ВАШ_OPENROUTER_КЛЮЧ>
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_MODEL=anthropic/claude-3-haiku-20240307
 
-# Telegram
-TELEGRAM_BOT_TOKEN=<ВАШ_TELEGRAM_BOT_TOKEN>
-TELEGRAM_BOT_SECRET=<ВАШ_TELEGRAM_BOT_TOKEN>
-BOT_USERNAME=YourBotUsername
-WEB_APP_URL=https://your-domain.com
-
 # YooKassa
 YUKASSA_SHOP_ID=<ВАШ_SHOP_ID>
 YUKASSA_SECRET_KEY=<ВАШ_SECRET_KEY>
@@ -193,12 +186,16 @@ CHAT_HISTORY_RETENTION_DAYS=30
 
 # Monetization
 FREEMIUM_ACTIONS_PER_MONTH=10
-FREEMIUM_WATERMARK_TEXT=AI Image Generator Bot
+FREEMIUM_WATERMARK_TEXT=AI Image Generator
 NPD_TAX_RATE=0.04
 YUKASSA_COMMISSION_RATE=0.028
 
 # Rate Limiting
 RATE_LIMIT_PER_MINUTE=10
+REGISTRATION_LIMIT_PER_IP_PER_DAY=3
+FREE_ACTIONS_PER_MONTH=10
+REQUIRE_PHONE_VERIFICATION=true
+ENABLE_DEVICE_FINGERPRINT=true
 
 # Sentry (опционально)
 SENTRY_DSN=
@@ -230,22 +227,12 @@ VITE_APP_NAME=AI Image Generator
 VITE_ENV=production
 ```
 
-#### Telegram Bot (.env.production)
-
-```bash
-# Создастся автоматически через deploy.sh, или создайте вручную:
-echo "TELEGRAM_BOT_TOKEN=<ВАШ_TELEGRAM_BOT_TOKEN>" > telegram_bot/.env.production
-echo "WEB_APP_URL=https://your-domain.com" >> telegram_bot/.env.production
-echo "FRONTEND_URL=https://your-domain.com" >> telegram_bot/.env.production
-```
-
 ### 2. Проверка файлов
 
 ```bash
 # Убедитесь, что все .env.production файлы созданы
 ls -la backend/.env.production
 ls -la frontend/.env.production
-ls -la telegram_bot/.env.production
 ```
 
 ---
@@ -319,7 +306,7 @@ cd /var/www/ai-image-bot
 
 Эта команда:
 - Проверит наличие .env файлов
-- Соберёт Docker образы для backend, frontend, telegram_bot
+- Соберёт Docker образы для backend, frontend, worker/beat
 - Это может занять 5-10 минут
 
 ### 2. Запуск production окружения
@@ -332,9 +319,8 @@ cd /var/www/ai-image-bot
 - Запустит PostgreSQL и Redis
 - Дождётся их готовности (healthcheck)
 - Запустит Backend (FastAPI)
-- Запустит Celery Worker и Celery Beat
-- Запустит Frontend (nginx + React)
-- Запустит Telegram Bot
+    - Запустит Celery Worker и Celery Beat
+    - Запустит Frontend (nginx + React)
 
 ### 3. Проверка статуса
 
@@ -352,7 +338,6 @@ ai_image_bot_celery_worker_prod      Up
 ai_image_bot_frontend_prod           Up       127.0.0.1:3000->80/tcp
 ai_image_bot_postgres_prod           Up       127.0.0.1:5432->5432/tcp
 ai_image_bot_redis_prod              Up       127.0.0.1:6379->6379/tcp
-ai_image_bot_telegram_prod           Up
 ```
 
 ### 4. Запуск миграций БД
@@ -385,52 +370,7 @@ ai_image_bot_telegram_prod           Up
 # Конкретный сервис
 ./deploy.sh logs backend
 ./deploy.sh logs celery_worker
-./deploy.sh logs telegram_bot
 ```
-
----
-
-## Настройка Telegram Bot
-
-### 1. Открыть @BotFather в Telegram
-
-### 2. Настроить Web App
-
-```
-/setmenubutton
-[Выберите вашего бота]
-Введите текст кнопки: 🎨 Открыть App
-Введите URL: https://your-domain.com
-```
-
-### 3. Настроить команды
-
-```
-/setcommands
-[Выберите вашего бота]
-Введите команды:
-
-start - 🚀 Запустить бота
-help - ❓ Справка
-```
-
-### 4. Настроить описание
-
-```
-/setdescription
-[Выберите вашего бота]
-Введите описание:
-
-AI Image Generator Bot — виртуальная примерка одежды и редактирование изображений с помощью AI.
-
-✨ Примерка одежды и аксессуаров
-🎨 Редактирование изображений через чат
-💎 Freemium + подписки + кредиты
-```
-
-### 5. Проверка бота
-
-Откройте бота в Telegram и нажмите `/start`. Должна появиться кнопка "🎨 Открыть App" которая откроет ваше приложение.
 
 ---
 
@@ -734,7 +674,6 @@ git pull
 - **Backend API**: https://your-domain.com/api/v1
 - **Swagger UI**: https://your-domain.com/docs (отключите в production!)
 - **Админка**: https://your-domain.com/admin (требует ADMIN_SECRET_KEY)
-- **Telegram Bot**: https://t.me/YourBotUsername
 
 ---
 
@@ -749,7 +688,6 @@ git pull
 - [ ] Все сервисы запущены (`./deploy.sh status`)
 - [ ] Health check пройден (`./deploy.sh health`)
 - [ ] Миграции БД выполнены (`./deploy.sh migrate`)
-- [ ] Telegram Bot настроен через @BotFather
 - [ ] ЮKassa webhook настроен
 - [ ] Backup настроен (cron job)
 - [ ] Логи проверены на ошибки (`./deploy.sh logs`)
@@ -759,6 +697,6 @@ git pull
 
 ---
 
-**Поздравляем! Ваш AI Image Generator Bot развёрнут на production! 🎉**
+**Поздравляем! Ваш AI Image Generator развёрнут на production! 🎉**
 
 По вопросам и проблемам создавайте issue в репозитории проекта.

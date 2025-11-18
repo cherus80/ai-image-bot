@@ -15,7 +15,10 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     error,
-    login,
+    registerWithEmail,
+    loginWithEmail,
+    loginWithGoogle,
+    loginWithTelegram,
     logout,
     refreshProfile,
     clearError,
@@ -38,12 +41,21 @@ export const useAuth = () => {
         return;
       }
 
-      // Attempt login (works in both Telegram and DEV mode)
-      try {
-        await login();
-      } catch (error) {
-        console.error('Ошибка автоматической авторизации:', error);
-        // Error is already stored in state
+      // In dev mode without Telegram, skip auto-login
+      // User will need to manually login via /login or /register
+      if (isDev && !inTelegram) {
+        console.log('🔧 DEV режим: автоматическая авторизация пропущена');
+        return;
+      }
+
+      // Attempt Telegram login only if in Telegram
+      if (inTelegram) {
+        try {
+          await loginWithTelegram();
+        } catch (error) {
+          console.error('Ошибка автоматической авторизации Telegram:', error);
+          // Error is already stored in state
+        }
       }
     };
 
@@ -59,7 +71,10 @@ export const useAuth = () => {
     error,
 
     // Actions
-    login,
+    registerWithEmail,
+    loginWithEmail,
+    loginWithGoogle,
+    loginWithTelegram,
     logout,
     refreshProfile,
     clearError,

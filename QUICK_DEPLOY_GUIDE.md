@@ -72,13 +72,11 @@ nano vps-deploy-script.sh
 
 Найдите секцию **"КОНФИГУРАЦИЯ"** и заполните:
 ```bash
-# Telegram Bot (получить у @BotFather)
-TELEGRAM_BOT_TOKEN="6281234567:AAHdqTcvbXyz1234567890abcdefGHIJKL"
-BOT_USERNAME="your_bot_name"
-
 # API Keys
 KIE_AI_API_KEY="ваш_ключ_от_kie_ai"
 OPENROUTER_API_KEY="ваш_ключ_от_openrouter"
+YUKASSA_SHOP_ID="ваш_shop_id"
+YUKASSA_SECRET_KEY="ваш_secret_key"
 ```
 
 **Сохраните:** `Ctrl+X` → `Y` → `Enter`
@@ -185,37 +183,6 @@ certbot --nginx -d ai-bot-media.mix4.ru
 
 ---
 
-## Шаг 7: Настройте Telegram бота ⏱️ 2 минуты
-
-### 7.1 Откройте Telegram и найдите @BotFather
-
-### 7.2 Настройте Menu Button
-```
-/mybots
-→ Выберите вашего бота
-→ Bot Settings
-→ Menu Button
-→ Edit menu button URL
-→ https://ai-bot-media.mix4.ru
-```
-
-### 7.3 Настройте команды (опционально)
-```
-/mybots
-→ Выберите вашего бота
-→ Edit Bot
-→ Edit Commands
-
-Введите:
-start - Запустить бота
-fitting - Примерка одежды
-editing - Редактирование изображений
-profile - Мой профиль
-help - Помощь
-```
-
----
-
 ## Шаг 8: Проверка работы ✅
 
 ### 8.1 Проверьте Backend API
@@ -227,12 +194,7 @@ curl https://ai-bot-media.mix4.ru/api/v1/health
 ### 8.2 Откройте Frontend
 Перейдите в браузере: https://ai-bot-media.mix4.ru
 
-### 8.3 Проверьте бота в Telegram
-1. Найдите вашего бота в Telegram
-2. Нажмите `/start`
-3. Должна открыться Web App
-
-### 8.4 Проверьте все контейнеры
+### 8.3 Проверьте все контейнеры
 ```bash
 docker ps
 # Все контейнеры должны быть "Up"

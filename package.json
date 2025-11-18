@@ -1,7 +1,7 @@
 {
   "name": "ai-image-bot",
   "version": "1.0.0",
-  "description": "AI Image Generator Bot - Telegram Web App (Root Package)",
+  "description": "AI Image Generator - Telegram Web App (Root Package)",
   "private": true,
   "scripts": {
     "mcp:playwright": "npx -y @playwright/mcp-server",

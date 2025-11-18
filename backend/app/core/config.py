@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # FastAPI
     API_V1_PREFIX: str = Field(default="/api/v1")
-    PROJECT_NAME: str = Field(default="AI Image Generator Bot")
+    PROJECT_NAME: str = Field(default="AI Image Generator")
     SECRET_KEY: str = Field(..., description="Secret key for JWT and other crypto operations")
     FRONTEND_URL: str = Field(default="http://localhost:5173", description="Frontend URL for redirects")
 
@@ -47,37 +47,41 @@ class Settings(BaseSettings):
     # Redis для Celery
     REDIS_URL: str = Field(default="redis://localhost:6379/0")
 
-    # Telegram Bot
-    TELEGRAM_BOT_TOKEN: str = Field(..., description="Telegram Bot API token")
-    TELEGRAM_BOT_SECRET: str = Field(..., description="Secret for Telegram WebApp validation")
-    BOT_USERNAME: str = Field(default="YourBotUsername", description="Telegram Bot username for referral links")
+    # Telegram Bot (Legacy, опционально для обратной совместимости)
+    TELEGRAM_BOT_TOKEN: Optional[str] = Field(default=None, description="Telegram Bot API token (optional)")
+    TELEGRAM_BOT_SECRET: Optional[str] = Field(default=None, description="Secret for Telegram WebApp validation (optional)")
+    BOT_USERNAME: Optional[str] = Field(default=None, description="Telegram Bot username for referral links (optional)")
+
+    # Google OAuth (опционально для локального тестирования)
+    GOOGLE_CLIENT_ID: Optional[str] = Field(default=None, description="Google OAuth Client ID (optional)")
+    GOOGLE_CLIENT_SECRET: Optional[str] = Field(default=None, description="Google OAuth Client Secret (optional)")
 
     # JWT настройки
     JWT_SECRET_KEY: str = Field(..., description="Secret key for JWT tokens")
     JWT_ALGORITHM: str = Field(default="HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60)
 
-    # kie.ai API
-    KIE_AI_API_KEY: str = Field(..., description="API key for kie.ai")
+    # kie.ai API (опционально - только для генерации изображений)
+    KIE_AI_API_KEY: Optional[str] = Field(default=None, description="API key for kie.ai (optional)")
     KIE_AI_BASE_URL: str = Field(default="https://api.kie.ai")
     KIE_AI_MODEL: str = Field(default="nano-banana")
 
-    # OpenRouter API (Claude Haiku)
-    OPENROUTER_API_KEY: str = Field(..., description="API key for OpenRouter")
+    # OpenRouter API (Claude Haiku) (опционально - только для AI промптов)
+    OPENROUTER_API_KEY: Optional[str] = Field(default=None, description="API key for OpenRouter (optional)")
     OPENROUTER_BASE_URL: str = Field(default="https://openrouter.ai/api/v1")
     OPENROUTER_MODEL: str = Field(default="anthropic/claude-3-haiku-20240307")
 
-    # ЮKassa
-    YUKASSA_SHOP_ID: str = Field(..., description="ЮKassa shop ID")
-    YUKASSA_SECRET_KEY: str = Field(..., description="ЮKassa secret key")
-    YUKASSA_WEBHOOK_SECRET: str = Field(..., description="ЮKassa webhook secret")
+    # ЮKassa (опционально - только для платежей)
+    YUKASSA_SHOP_ID: Optional[str] = Field(default=None, description="ЮKassa shop ID (optional)")
+    YUKASSA_SECRET_KEY: Optional[str] = Field(default=None, description="ЮKassa secret key (optional)")
+    YUKASSA_WEBHOOK_SECRET: Optional[str] = Field(default=None, description="ЮKassa webhook secret (optional)")
 
     # Mock режим для платежей (локальное тестирование)
     PAYMENT_MOCK_MODE: bool = Field(default=False, description="Enable payment mock mode for local testing")
 
     # Монетизация
     FREEMIUM_ACTIONS_PER_MONTH: int = Field(default=10)
-    FREEMIUM_WATERMARK_TEXT: str = Field(default="AI Image Generator Bot")
+    FREEMIUM_WATERMARK_TEXT: str = Field(default="AI Image Generator")
 
     # Налоги и комиссии
     NPD_TAX_RATE: float = Field(default=0.04, description="НПД налог 4%")
@@ -107,7 +111,7 @@ class Settings(BaseSettings):
     SENTRY_DSN: Optional[str] = Field(default=None)
 
     # Admin
-    ADMIN_SECRET_KEY: str = Field(..., description="Secret key for admin access")
+    ADMIN_SECRET_KEY: Optional[str] = Field(default=None, description="Secret key for admin access (optional)")
 
     @field_validator("ENVIRONMENT")
     @classmethod

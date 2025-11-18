@@ -120,7 +120,7 @@ export const copyReferralLink = async (link: string): Promise<boolean> => {
  * @param text - Текст сообщения
  */
 export const shareReferralLink = (link: string, text?: string): void => {
-  const message = text || `Присоединяйся к AI Image Generator Bot!\n${link}`;
+  const message = text || `Присоединяйся к AI Image Generator!\n${link}`;
 
   // Используем Telegram Share API
   if (window.Telegram?.WebApp) {

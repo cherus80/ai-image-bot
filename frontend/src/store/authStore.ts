@@ -1,11 +1,22 @@
 /**
  * Zustand store for authentication state
+ *
+ * Supports:
+ * - Email/Password authentication
+ * - Google OAuth authentication
+ * - Legacy Telegram authentication (for backwards compatibility)
  */
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { UserProfile } from '../types/auth';
-import { loginWithTelegram, getCurrentUser } from '../api/auth';
+import type { UserProfile, RegisterRequest, LoginRequest } from '../types/auth';
+import {
+  registerWithEmail as registerEmailAPI,
+  loginWithEmail as loginEmailAPI,
+  loginWithGoogle as loginGoogleAPI,
+  getCurrentUser,
+} from '../api/authWeb';
+import { loginWithTelegram } from '../api/auth'; // Legacy Telegram auth
 import { getTelegramInitData } from '../utils/telegram';
 
 interface AuthState {
@@ -17,12 +28,20 @@ interface AuthState {
   error: string | null;
 
   // Actions
-  login: () => Promise<void>;
+  registerWithEmail: (data: RegisterRequest) => Promise<void>;
+  loginWithEmail: (data: LoginRequest) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
+  loginWithTelegram: () => Promise<void>; // Legacy
   logout: () => void;
   refreshProfile: () => Promise<void>;
   setUser: (user: UserProfile) => void;
   setToken: (token: string) => void;
   clearError: () => void;
+
+  // Computed values
+  hasCredits: boolean;
+  canUseFreemium: boolean;
+  hasActiveSubscription: boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -35,75 +54,13 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      // Login action
-      login: async () => {
+      // Register with Email/Password
+      registerWithEmail: async (data: RegisterRequest) => {
         set({ isLoading: true, error: null });
 
         try {
-          // DEV MODE: Check first before trying to get Telegram data
-          const isDev = import.meta.env.DEV;
+          const response = await registerEmailAPI(data);
 
-          // Try to get Telegram initData
-          let initData: string | null = null;
-
-          try {
-            initData = getTelegramInitData();
-          } catch (error) {
-            // If not in Telegram and in DEV mode, use mock data
-            if (isDev) {
-              console.warn('🔧 DEV MODE: Using mock user data (no Telegram data available)');
-
-              // Mock user data for local development
-              const mockUser: UserProfile = {
-                id: 1,
-                telegram_id: 123456789,
-                username: 'dev_user',
-                first_name: 'Dev',
-                last_name: 'User',
-                language_code: 'ru',
-                balance_credits: 10,
-                subscription_type: 'PRO',
-                subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                freemium_actions_used: 0,
-                freemium_actions_remaining: 10,
-                freemium_actions_limit: 10,
-                freemium_reset_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                freemium_last_reset: new Date().toISOString(),
-                can_use_freemium: true,
-                is_premium: true,
-                is_blocked: false,
-                created_at: new Date().toISOString(),
-                last_activity_at: new Date().toISOString(),
-                referral_code: 'DEV123',
-                referred_by_id: null,
-              };
-
-              set({
-                token: 'mock_jwt_token_for_development',
-                user: mockUser,
-                isAuthenticated: true,
-                isLoading: false,
-                error: null,
-              });
-
-              return;
-            }
-
-            // Not in DEV mode and no Telegram data - throw error
-            throw error;
-          }
-
-          // Got Telegram initData
-
-          if (!initData) {
-            throw new Error('Данные Telegram недоступны. Пожалуйста, откройте это приложение в Telegram.');
-          }
-
-          // Call backend auth API
-          const response = await loginWithTelegram(initData);
-
-          // Save token and user
-          // Note: Zustand persist middleware automatically saves to localStorage (see line 148-156)
           set({
             token: response.access_token,
             user: response.user,
@@ -112,7 +69,8 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
         } catch (error: any) {
-          const errorMessage = error.detail || 'Ошибка авторизации';
+          const errorMessage =
+            error.response?.data?.detail || error.message || 'Registration failed';
           set({
             token: null,
             user: null,
@@ -121,7 +79,99 @@ export const useAuthStore = create<AuthState>()(
             error: errorMessage,
           });
 
-          // Zustand persist will automatically clear localStorage when state is null
+          throw error;
+        }
+      },
+
+      // Login with Email/Password
+      loginWithEmail: async (data: LoginRequest) => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const response = await loginEmailAPI(data);
+
+          set({
+            token: response.access_token,
+            user: response.user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error: any) {
+          const errorMessage = error.response?.data?.detail || error.message || 'Login failed';
+          set({
+            token: null,
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: errorMessage,
+          });
+
+          throw error;
+        }
+      },
+
+      // Login with Google OAuth
+      loginWithGoogle: async (idToken: string) => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const response = await loginGoogleAPI(idToken);
+
+          set({
+            token: response.access_token,
+            user: response.user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error: any) {
+          const errorMessage =
+            error.response?.data?.detail || error.message || 'Google login failed';
+          set({
+            token: null,
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: errorMessage,
+          });
+
+          throw error;
+        }
+      },
+
+      // Legacy Telegram login
+      loginWithTelegram: async () => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const initData = getTelegramInitData();
+
+          if (!initData) {
+            throw new Error(
+              'Telegram data not available. Please open this app in Telegram.'
+            );
+          }
+
+          const response = await loginWithTelegram(initData);
+
+          set({
+            token: response.access_token,
+            user: response.user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error: any) {
+          const errorMessage =
+            error.response?.data?.detail || error.message || 'Telegram login failed';
+          set({
+            token: null,
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: errorMessage,
+          });
 
           throw error;
         }
@@ -187,6 +237,25 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => {
         set({ error: null });
       },
+
+      // Computed values
+      get hasCredits() {
+        const { user } = get();
+        return (user?.balance_credits ?? 0) > 0;
+      },
+
+      get canUseFreemium() {
+        const { user } = get();
+        return user?.can_use_freemium ?? false;
+      },
+
+      get hasActiveSubscription() {
+        const { user } = get();
+        if (!user?.subscription_type || !user?.subscription_expires_at) {
+          return false;
+        }
+        return new Date(user.subscription_expires_at) > new Date();
+      },
     }),
     {
       name: 'auth-storage', // unique name for localStorage key
@@ -200,3 +269,8 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Export hook for convenience
+export function useAuth() {
+  return useAuthStore();
+}

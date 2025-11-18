@@ -1,7 +1,7 @@
 """
 FastAPI Main Application.
 
-Точка входа для AI Image Generator Bot backend.
+Точка входа для AI Image Generator backend.
 """
 
 from contextlib import asynccontextmanager
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     - Закрытие HTTP клиентов
     """
     # Startup
-    print("🚀 Starting AI Image Generator Bot backend...")
+    print("🚀 Starting AI Image Generator backend...")
 
     # Инициализация БД
     if not settings.is_production:
@@ -70,8 +70,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 # Создание FastAPI приложения
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    version="0.11.0",
-    description="AI Image Generator Bot — Telegram Web App",
+    version="0.12.0",
+    description="AI Image Generator — Web App с Email/Password и Google OAuth авторизацией",
     docs_url="/docs" if settings.is_debug else None,
     redoc_url="/redoc" if settings.is_debug else None,
     openapi_url="/openapi.json" if settings.is_debug else None,
@@ -105,9 +105,10 @@ async def root():
     """Root endpoint — health check"""
     return {
         "status": "ok",
-        "service": "AI Image Generator Bot API",
-        "version": "0.11.0",
+        "service": "AI Image Generator API",
+        "version": "0.12.0",
         "environment": settings.ENVIRONMENT,
+        "auth_methods": ["email", "google", "telegram_legacy"],
     }
 
 
@@ -116,17 +117,24 @@ async def health_check():
     """Health check endpoint для мониторинга"""
     return {
         "status": "healthy",
-        "version": "0.11.0",
+        "version": "0.12.0",
         "database": "connected",  # TODO: добавить реальную проверку
         "redis": "connected",      # TODO: добавить реальную проверку
     }
 
 
 # Подключение API роутеров
-from app.api.v1.endpoints import auth, fitting, editing, payments, referrals, admin
+from app.api.v1.endpoints import auth, auth_web, fitting, editing, payments, referrals, admin
 
+# Legacy Telegram auth (для обратной совместимости)
 app.include_router(
     auth.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+# Web auth (Email/Password + Google OAuth)
+app.include_router(
+    auth_web.router,
     prefix=settings.API_V1_PREFIX,
 )
 

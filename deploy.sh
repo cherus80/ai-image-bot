@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Production deployment script для AI Image Generator Bot на Beget VPS
+# Production deployment script для AI Image Generator на Beget VPS
 # Использование: ./deploy.sh [start|stop|restart|logs|status|build|update]
 
 set -e
@@ -191,7 +191,7 @@ cleanup() {
 # Помощь
 usage() {
     cat << EOF
-Production deployment script для AI Image Generator Bot
+Production deployment script для AI Image Generator
 
 Использование: ./deploy.sh [команда]
 

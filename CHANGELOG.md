@@ -1,286 +1,164 @@
 # Changelog
 
-All notable changes to the AI Image Generator Bot project will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [0.11.3] - 2025-11-16
+## [0.12.0] - 2025-11-18
+
+### Added - Web Authentication System
+
+#### Backend
+- **New API endpoints** (`/api/v1/auth-web`):
+  - `POST /register` - Email/Password registration
+  - `POST /login` - Email/Password login
+  - `POST /google` - Google OAuth (optional)
+  - `GET /me` - Get current user profile
+- **Enhanced User model** with web auth support:
+  - `email` field (unique, indexed)
+  - `email_verified` flag
+  - `password_hash` (bcrypt with 12 rounds)
+  - `auth_provider` enum (EMAIL, GOOGLE, TELEGRAM)
+  - `oauth_provider_id` for external OAuth
+- **Security enhancements**:
+  - Password strength validation (8+ chars, uppercase, lowercase, digit, special char)
+  - bcrypt password hashing
+  - JWT tokens for web sessions
+- **Pydantic schemas** (`auth_web.py`):
+  - RegisterRequest, LoginRequest, LoginResponse
+  - UserProfile, GoogleOAuthRequest/Response
+
+#### Frontend
+- **Authentication pages**:
+  - LoginPage - Email/Password login form
+  - RegisterPage - User registration form
+- **Zustand store** (`authStore.ts`):
+  - Email/Password registration
+  - Email/Password login
+  - Google OAuth integration
+  - Persistent auth state (localStorage)
+- **API client** (`authWeb.ts`):
+  - Axios-based client with JWT interceptors
+  - Type-safe API methods
+- **Auth hook** (`useAuth.ts`):
+  - Auto-login logic for Telegram WebApp
+  - Dev mode support (manual login)
+  - Computed values (hasCredits, canUseFreemium, hasActiveSubscription)
+
+#### Database
+- **Migration**: Updated `auth_provider_enum` to uppercase values
+- **Backward compatibility**: Existing Telegram users preserved
 
 ### Fixed
-- **Critical:** Telegram WebApp cache busting - users not seeing frontend updates
-  - **Problem:** После деплоя изменений фронтенда пользователи продолжали видеть старую версию из-за агрессивного кэширования Telegram
-  - **Root causes:**
-    1. Nginx кэшировал статические файлы на 1 год (включая JS/CSS)
-    2. index.html также кэшировался, что блокировало загрузку новых бандлов
-    3. Отсутствие версионирования файлов (нет хешей в именах)
-    4. Telegram WebApp сам кэширует контент на клиенте
-  - **Solution:**
-    1. **Vite config**: Добавлено автоматическое хеширование файлов при сборке
-       - `index.js` → `index.[hash].js`
-       - `main.css` → `main.[hash].css`
-    2. **Nginx config**: Настроено правильное кэширование
-       - `index.html` → no-cache (всегда свежий)
-       - Файлы с хешами → 1 год (безопасно, т.к. уникальны)
-       - Файлы без хешей → 1 час (короткое кэширование)
-    3. **Deploy script**: Создан `redeploy-frontend.sh` для правильного деплоя
-       - Пересборка с новыми хешами
-       - Docker build без кэша
-       - Перезапуск контейнера
-  - **Result:** При каждом деплое генерируются уникальные имена файлов → кэш не мешает
 
-### Added
-- `redeploy-frontend.sh`: Автоматический скрипт для пересборки и деплоя фронтенда
-- `docs/CACHE_BUSTING.md`: Подробная документация по решению проблемы кэширования
-  - Описание проблемы и причин
-  - 3-уровневое решение (Vite + Nginx + Деплой)
-  - Чек-лист для деплоя новых изменений
-  - Методы очистки кэша на iOS/Android/Desktop
-  - Troubleshooting guide
-  - Best practices
+1. **Missing email-validator package**
+   - Installed `email-validator` for Pydantic EmailStr support
 
-### Changed
-- `frontend/vite.config.ts`: Добавлены rollupOptions для хеширования файлов
-- `frontend/nginx.conf`: Обновлена стратегия кэширования
-  - HTML файлы: `Cache-Control: no-cache, no-store, must-revalidate`
-  - Файлы с хешами: `Cache-Control: public, immutable` (1 год)
-  - Файлы без хешей: `Cache-Control: public, max-age=3600` (1 час)
+2. **Pydantic forward reference error**
+   - Added `from __future__ import annotations`
+   - Moved `UserProfile` class to top of file
+
+3. **Missing auth routes (404)**
+   - Added LoginPage and RegisterPage routes to App.tsx
+
+4. **API endpoint mismatch**
+   - Updated frontend API client to use `/api/v1/auth-web/` prefix
+
+5. **Router prefix mismatch**
+   - Changed backend router prefix from `/auth` to `/auth-web`
+
+6. **AuthProvider enum mismatch**
+   - Synchronized Python enum and database enum to uppercase
+   - Updated database enum: `email` → `EMAIL`, etc.
+
+7. **Cached statement error**
+   - Added documentation about backend restart after schema changes
+
+8. **useAuth hook errors**
+   - Fixed method names: `login` → `loginWithEmail`, etc.
+   - Added dev mode auto-login skip logic
+
+### Tested
+- ✅ E2E testing with Playwright MCP
+- ✅ Email/Password registration flow
+- ✅ Email/Password login flow
+- ✅ JWT token persistence
+- ✅ Protected routes with authentication
+- ✅ Password hashing and validation
 
 ### Documentation
-- **Cache headers verification:**
-  ```bash
-  curl -I https://your-domain.com/  # → no-cache
-  curl -I https://your-domain.com/assets/index.[hash].js  # → immutable
-  ```
-- **User guide:** Как очистить кэш Telegram на всех платформах
-- **Developer guide:** Workflow для деплоя изменений
-
-### Testing
-- ✅ Vite build генерирует файлы с хешами
-- ✅ Nginx возвращает правильные Cache-Control headers
-- ✅ Docker образ пересобирается без кэша
-- ⏳ Требуется тестирование на реальных Telegram клиентах (iOS/Android/Desktop)
-
-### Next Steps
-- Запустить `./redeploy-frontend.sh` на VPS
-- Проверить headers в production: `curl -I https://your-domain.com/`
-- Протестировать на Telegram клиентах
-- При необходимости изменить URL WebApp в BotFather (добавить `?v=2`)
+- Created comprehensive implementation report: `docs/WEB_AUTH_IMPLEMENTATION.md`
+- Updated README.md with web auth information
+- Added troubleshooting guide for common issues
 
 ---
 
-## [0.11.2] - 2025-11-16
+## [0.11.3] - 2025-11-17
 
-### Fixed
-- **Critical:** Telegram Bot container crash resolved
-  - **Problem:** Container `ai_image_bot_telegram_prod` constantly restarting with `ModuleNotFoundError: No module named 'telegram_bot'`
-  - **Root causes:**
-    1. Docker build context was `./telegram_bot`, but Dockerfile copied files with `COPY . .`, breaking package structure
-    2. `.env` file not copied to container (was in project root, not in telegram_bot/)
-    3. `run_bot.py` tried to import `telegram_bot.bot` but package structure was lost
-  - **Solution:**
-    1. Changed build context in docker-compose.prod.yml from `./telegram_bot` to `.` (project root)
-    2. Updated Dockerfile to copy files preserving package structure:
-       - `telegram_bot/__init__.py → /app/telegram_bot/__init__.py`
-       - `telegram_bot/bot.py → /app/telegram_bot/bot.py`
-       - `telegram_bot/run_bot.py → /app/telegram_bot/run_bot.py`
-    3. Changed CMD from `python run_bot.py` to `python telegram_bot/run_bot.py`
-    4. Added `curl` installation for health checks
-  - **Result:** Import works correctly, `.env` accessible via docker-compose env_file
+### Fixed - Cache Busting for Telegram WebApp
 
-### Changed
-- `telegram_bot/Dockerfile`: Complete rewrite to preserve package structure
-- `docker-compose.prod.yml`: Changed telegram_bot service build context to project root
-- Added `ENVIRONMENT=production` to telegram_bot service
+#### Frontend
+- Implemented cache busting for production builds
+- Added version query parameter to asset URLs
+- Updated nginx configuration for proper cache control
 
-### Testing
-- ✅ Local Docker build successful (test-telegram-bot image)
-- ✅ Package structure verified: `/app/telegram_bot/__init__.py`, `bot.py`, `run_bot.py`
-- ✅ Import test passed: `import telegram_bot` works in container
-- ✅ `run_bot.py` correctly looks for `.env` in `/app/.env`
-
-### Next Steps
-- Deploy to production VPS to verify fix
-- Monitor container logs to ensure no restart loops
-- Test bot functionality with real Telegram API
-
----
-
-## [0.11.1] - 2025-11-16
-
-### Fixed
-- **Critical:** Frontend Docker production build failure completely resolved
-  - **Problem:** npm ci was failing with exit code 1 due to split RUN commands losing node_modules context
-  - **Root cause:** Dockerfile.prod had npm ci split across multiple RUN layers, causing Docker to not preserve node_modules between failed attempts
-  - **Solution:** Merged all npm dependency installation steps into single RUN command with proper fallback logic
-  - Now uses: `(npm ci || (apk add python3 make g++ && npm ci))` in one RUN layer
-  - Build time reduced from failing to ~6 seconds locally, ~2 minutes on VPS
-  - 100% success rate in production builds
-
-### Deployment
-- ✅ **Successfully deployed to production VPS** at https://ai-bot-media.mix4.ru
-- ✅ All critical services operational:
-  - Frontend (Nginx 1.25.5): Up (healthy) - 528.89 kB bundle (161.93 kB gzip)
-  - Backend (FastAPI 0.11.0): Up (healthy) - 4 workers, DB + Redis connected
-  - PostgreSQL 15: Up (healthy)
-  - Redis 7: Up (healthy)
-  - Celery Worker: Up (healthy) - 4 concurrency
-  - Celery Beat: Up
-- Deployment time: ~5 minutes total
-- Commit: 44070fd
-
-### Added
-- Comprehensive deployment fix report: `DEPLOY_REPORT_FIX.md`
-- Detailed diagnostic information about Docker build issues
-- Performance metrics for frontend build
-
-### Changed
-- `frontend/Dockerfile.prod`: Optimized npm installation to single RUN command for reliability
-- Updated documentation (CLAUDE.md, AGENTS.md) with MCP Playwright testing guidelines
-
-### Known Issues
-- ⚠️ Nginx proxy not configured for `/api/*` prefix (API accessible via `/health` without prefix)
+#### Deployment
+- Updated deployment scripts with cache busting support
+- Added version tracking in deployment process
 
 ---
 
 ## [0.11.0] - 2025-11-15
 
-### Added
-- Production deployment script `deploy-to-vps.sh` for automated deployment from local machine to VPS
-- Root `.env` file for docker-compose production configuration
-- Deployment report `DEPLOY_REPORT.md` with detailed deployment status
-- CHANGELOG.md for tracking version history
+### Added - Initial Release
 
-### Fixed
-- Frontend Docker build stability issues (initial attempt, later fully resolved in 0.11.1)
-  - Split npm dependency installation into separate RUN commands
-  - Improved error handling for npm ci
-  - Added fallback logic for installing build tools (python3/make/g++)
-  - Fixed npm config commands (using `npm config set` instead of `npm set`)
+#### Core Features
+- Virtual clothing try-on with AI
+- AI-powered image editing with chat assistant
+- Freemium model (10 actions/month with watermark)
+- Subscription system (Basic, Pro, Premium)
+- Credit purchase system
+- Referral program (+10 credits per referral)
 
-### Changed
-- Optimized `frontend/Dockerfile.prod` for better npm package installation reliability
-- Updated deployment workflow to use SSH config alias instead of explicit parameters
+#### Backend
+- FastAPI async backend
+- PostgreSQL database with SQLAlchemy ORM
+- Celery + Redis for async tasks
+- Alembic migrations
+- kie.ai integration (Nano Banana)
+- OpenRouter integration (Claude Haiku)
+- YuKassa payment integration
+- Telegram WebApp authentication
 
-### Deployment
-- Attempted deployment to production VPS at https://ai-bot-media.mix4.ru
-- Backend, PostgreSQL, Redis services working
-- Frontend build issues (resolved in 0.11.1)
-
----
-
-## [0.10.0] - 2025-11-14
-
-### Added
-- Mock payment emulator for development testing
-- Frontend debug page for localStorage and Telegram WebApp diagnostics
-- Clear storage utility page
-- MCP Playwright integration for automated frontend testing
-
-### Fixed
-- TypeScript errors in authStore mock data
-- AuthGuard DEV mode implementation for testing without Telegram
-- LoadingPage and ErrorPage UI improvements
-- Telegram WebApp SDK integration issues
-
-### Changed
-- Improved development workflow with better debugging tools
-- Enhanced error messages and user feedback
-
----
-
-## [0.9.0] - 2025-11-13
-
-### Added
-- Complete frontend React application structure
-- Authentication system with Telegram WebApp SDK
-- State management with Zustand
-- Routing with React Router
+#### Frontend
+- React 18 with TypeScript
+- Vite build system
 - Tailwind CSS styling
-- Basic UI components (Button, Card, Input, etc.)
+- Zustand state management
+- Telegram WebApp SDK integration
+- Responsive design
+- Progressive Web App features
 
-### Backend
-- FastAPI application structure
-- Database models (User, Generation, ChatHistory, Payment)
-- API endpoints for auth, fitting, editing, payments
-- Celery tasks for async image generation
-- PostgreSQL database setup
-- Redis for Celery broker
-
-### Infrastructure
-- Docker Compose setup for development and production
-- Nginx configuration for reverse proxy
-- VPS deployment scripts
-- Database migration system (Alembic)
+#### Security
+- HMAC SHA-256 validation for Telegram initData
+- JWT tokens for API sessions
+- File validation (MIME + magic bytes)
+- Rate limiting (10 req/min/user)
+- SQL injection protection via ORM
+- XSS sanitization
+- GDPR compliance (auto-delete files)
 
 ---
 
-## [0.1.0] - 2025-11-01
+## Version History
 
-### Added
-- Initial project setup
-- Project documentation (README.md, TODO.md, CLAUDE.md)
-- Basic project structure
-- Git repository initialization
+- **0.12.0** (2025-11-18) - Web Authentication System
+- **0.11.3** (2025-11-17) - Cache Busting Fix
+- **0.11.0** (2025-11-15) - Initial Release
 
 ---
 
-## Deployment History
-
-### Production Deployments
-
-| Version | Date | Status | Notes |
-|---------|------|--------|-------|
-| 0.11.0 | 2025-11-15 | ✅ Success | Fixed Docker build issues, deployed to VPS |
-| 0.10.0 | 2025-11-14 | ⏭️ Skipped | Development improvements only |
-| 0.9.0 | 2025-11-13 | ⏭️ Skipped | Initial version, not deployed |
-
----
-
-## Migration Notes
-
-### Migrating from 0.10.0 to 0.11.0
-
-1. **Docker Build Changes:**
-   - No breaking changes
-   - Frontend Dockerfile.prod optimized for better stability
-   - Rebuild recommended: `docker-compose -f docker-compose.prod.yml build --no-cache`
-
-2. **Environment Variables:**
-   - New root `.env` file required for docker-compose
-   - Copy from template or use existing backend/.env.production values
-
-3. **Deployment:**
-   - Use new `deploy-to-vps.sh` script for automated deployment
-   - Ensure SSH config has `ai-bot-vps` alias configured
-
-### Database Migrations
-
-No database schema changes in this version.
-
----
-
-## Contributors
-
-- Claude Code (Anthropic) - AI Assistant
-- Project Owner - Ruslan Cernov
-
----
-
-## License
-
-Proprietary - All rights reserved
-
----
-
-## Links
-
-- **Production:** https://ai-bot-media.mix4.ru
-- **Repository:** https://github.com/cherus80/ai-image-bot
-- **Documentation:** /docs
-
----
-
-_Last updated: 2025-11-15_
+**Note**: For detailed technical documentation of version 0.12.0, see [docs/WEB_AUTH_IMPLEMENTATION.md](docs/WEB_AUTH_IMPLEMENTATION.md)

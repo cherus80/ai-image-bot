@@ -7,7 +7,6 @@
 # 1. Docker (PostgreSQL + Redis)
 # 2. Backend (FastAPI + Celery)
 # 3. Frontend (React + Vite)
-# 4. Telegram Bot
 #
 # Использование:
 #   ./start-dev.sh              # Запустить все сервисы
@@ -207,23 +206,6 @@ start_frontend() {
     cd ..
 }
 
-# Запуск Telegram бота
-start_telegram_bot() {
-    info "Starting Telegram bot..."
-
-    cd telegram_bot
-    source ../backend/venv/bin/activate
-
-    # Запуск в фоне
-    nohup python bot.py > ../logs/telegram_bot.log 2>&1 &
-    BOT_PID=$!
-    echo $BOT_PID > ../logs/telegram_bot.pid
-
-    success "Telegram bot started (PID: $BOT_PID)"
-    info "Bot logs: logs/telegram_bot.log"
-
-    cd ..
-}
 
 # Включение mock-режима платежей
 enable_mock_mode() {
@@ -248,7 +230,7 @@ mkdir -p logs
 # Основная логика
 echo ""
 echo "======================================"
-echo "  AI Image Generator Bot - Dev Start"
+echo "  AI Image Generator - Dev Start"
 echo "======================================"
 echo ""
 
@@ -289,7 +271,6 @@ sleep 2
 start_frontend
 sleep 2
 
-start_telegram_bot
 
 echo ""
 echo "======================================"
@@ -312,7 +293,6 @@ echo "Logs:"
 echo "  • Backend:       logs/backend.log"
 echo "  • Celery:        logs/celery.log"
 echo "  • Frontend:      logs/frontend.log"
-echo "  • Telegram Bot:  logs/telegram_bot.log"
 echo ""
 echo "To stop all services, run: ./stop-dev.sh"
 echo ""

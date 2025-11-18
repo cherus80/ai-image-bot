@@ -56,7 +56,6 @@ echo ""
 stop_process "Backend" "logs/backend.pid"
 stop_process "Celery" "logs/celery.pid"
 stop_process "Frontend" "logs/frontend.pid"
-stop_process "Telegram Bot" "logs/telegram_bot.pid"
 
 echo ""
 

@@ -1,5 +1,5 @@
 """
-Pytest fixtures для тестов AI Image Generator Bot.
+Pytest fixtures для тестов AI Image Generator.
 
 Содержит общие фикстуры для:
 - Mock объектов (DB, Redis, API clients)

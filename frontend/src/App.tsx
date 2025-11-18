@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { FittingPage } from './pages/FittingPage';
 import { EditingPage } from './pages/EditingPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -11,6 +13,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Auth pages */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
         {/* Главная страница - выбор функции */}
         <Route path="/" element={<HomePage />} />
 

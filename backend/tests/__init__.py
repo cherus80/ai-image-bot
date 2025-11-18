@@ -1,1 +1,1 @@
-"""Tests for AI Image Generator Bot Backend"""
+"""Tests for AI Image Generator Backend"""

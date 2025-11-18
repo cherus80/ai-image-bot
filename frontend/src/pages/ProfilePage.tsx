@@ -506,7 +506,7 @@ export const ProfilePage: React.FC = () => {
                     onClick={() => {
                       shareReferralLink(
                         referralStats.referral_link,
-                        'Присоединяйся к AI Image Generator Bot и получай бонусы за создание изображений!'
+                        'Присоединяйся к AI Image Generator и получай бонусы за создание изображений!'
                       );
                     }}
                     icon={

@@ -184,28 +184,6 @@ services:
         max-file: "3"
 
   # Telegram Bot
-  telegram_bot:
-    build:
-      context: .
-      dockerfile: telegram_bot/Dockerfile
-    container_name: ai_image_bot_telegram_prod
-    restart: always
-    env_file:
-      - .env
-    environment:
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - WEB_APP_URL=${WEB_APP_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
-      - ENVIRONMENT=production
-    depends_on:
-      - backend
-    networks:
-      - ai_image_bot_network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 volumes:
   postgres_data:

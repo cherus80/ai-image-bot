@@ -1,4 +1,4 @@
-# Frontend — AI Image Generator Bot
+# Frontend — AI Image Generator
 
 ## Назначение
 Telegram Web App интерфейс для виртуальной примерки одежды/аксессуаров и редактирования изображений с помощью AI.

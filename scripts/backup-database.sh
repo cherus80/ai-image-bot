@@ -133,7 +133,7 @@ echo -e "${GREEN}✅ Database backup completed successfully!${NC}"
 echo "Latest backup: ${BACKUP_FILE}"
 
 # Отправка уведомления (опционально, требует настройки)
-# Можно добавить отправку уведомления в Telegram или email
+# Можно отправить уведомление в Slack/email/webhook
 # if [ ! -z "${BACKUP_NOTIFICATION_CHAT_ID}" ]; then
 #     curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
 #         -d chat_id="${BACKUP_NOTIFICATION_CHAT_ID}" \

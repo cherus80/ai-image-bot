@@ -104,21 +104,33 @@ def get_user_id_from_token(token: str) -> Optional[int]:
         return None
 
 
-def create_user_access_token(user_id: int, telegram_id: int) -> str:
+def create_user_access_token(
+    user_id: int,
+    telegram_id: Optional[int] = None,
+    email: Optional[str] = None
+) -> str:
     """
     Создание access токена для пользователя.
 
     Args:
         user_id: ID пользователя в БД
-        telegram_id: Telegram ID пользователя
+        telegram_id: Telegram ID пользователя (опционально для веб-пользователей)
+        email: Email пользователя (опционально)
 
     Returns:
         str: JWT токен
     """
-    return create_access_token(
-        data={
-            "user_id": user_id,
-            "telegram_id": telegram_id,
-            "type": "access",
-        }
-    )
+    data = {
+        "user_id": user_id,
+        "type": "access",
+    }
+
+    # Добавляем telegram_id только если он есть (legacy пользователи)
+    if telegram_id is not None:
+        data["telegram_id"] = telegram_id
+
+    # Добавляем email если он есть (веб-пользователи)
+    if email is not None:
+        data["email"] = email
+
+    return create_access_token(data=data)

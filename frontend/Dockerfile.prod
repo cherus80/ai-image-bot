@@ -1,4 +1,4 @@
-# Frontend Dockerfile.prod для AI Image Generator Bot (Production с оптимизациями)
+# Frontend Dockerfile.prod для AI Image Generator (Production с оптимизациями)
 
 # Stage 1: Build
 FROM node:20-alpine AS build

@@ -39,10 +39,6 @@ DOMAIN="ai-bot-media.mix4.ru"
 GITHUB_REPO="https://github.com/cherus80/ai-image-bot.git"
 INSTALL_DIR="/opt/ai-image-bot"
 
-# Telegram Bot (получить у @BotFather)
-TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
-BOT_USERNAME="YOUR_BOT_USERNAME"
-
 # API Keys
 KIE_AI_API_KEY="YOUR_KIE_AI_API_KEY"
 OPENROUTER_API_KEY="YOUR_OPENROUTER_API_KEY"
@@ -156,7 +152,7 @@ info "Шаг 7/10: Создание .env файла..."
 
 cat > "$INSTALL_DIR/.env" << EOF
 # =============================================================================
-# AI Image Generator Bot - Production Environment
+# AI Image Generator - Production Environment
 # Сгенерировано: $(date)
 # =============================================================================
 
@@ -171,7 +167,7 @@ DEBUG=False
 # -----------------------------------------------------------------------------
 SECRET_KEY=${SECRET_KEY}
 API_V1_PREFIX=/api/v1
-PROJECT_NAME=AI Image Generator Bot
+PROJECT_NAME=AI Image Generator
 
 # -----------------------------------------------------------------------------
 # База данных PostgreSQL
@@ -198,13 +194,6 @@ KIE_AI_MODEL=nano-banana
 OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_MODEL=anthropic/claude-3-haiku-20240307
-
-# -----------------------------------------------------------------------------
-# Telegram Bot
-# -----------------------------------------------------------------------------
-TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-TELEGRAM_BOT_SECRET=${TELEGRAM_BOT_TOKEN}
-BOT_USERNAME=${BOT_USERNAME}
 
 # -----------------------------------------------------------------------------
 # URLs
@@ -245,7 +234,7 @@ CHAT_HISTORY_RETENTION_DAYS=30
 # Monetization
 # -----------------------------------------------------------------------------
 FREEMIUM_ACTIONS_PER_MONTH=10
-FREEMIUM_WATERMARK_TEXT=AI Image Generator Bot
+FREEMIUM_WATERMARK_TEXT=AI Image Generator
 NPD_TAX_RATE=0.04
 YUKASSA_COMMISSION_RATE=0.028
 
@@ -263,7 +252,7 @@ SENTRY_DSN=
 # Vite Frontend
 # -----------------------------------------------------------------------------
 VITE_API_BASE_URL=https://${DOMAIN}
-VITE_APP_NAME=AI Image Generator Bot
+VITE_APP_NAME=AI Image Generator
 VITE_ENV=production
 EOF
 

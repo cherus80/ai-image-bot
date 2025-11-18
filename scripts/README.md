@@ -188,10 +188,10 @@ aws s3 cp "${BACKUP_FILE}" "${S3_BUCKET}" \
 echo "Backup uploaded to S3: ${S3_BUCKET}$(basename ${BACKUP_FILE})"
 ```
 
-### Telegram уведомления о backup
-Раскомментируйте секцию в конце `backup-database.sh` и добавьте в .env:
+### Уведомления о backup
+Раскомментируйте секцию в конце `backup-database.sh` и настройте отправку в любой канал (email, Slack, webhook). Пример переменных:
 ```bash
-BACKUP_NOTIFICATION_CHAT_ID=your_telegram_chat_id
+BACKUP_NOTIFICATION_WEBHOOK=https://hooks.slack.com/services/...
 ```
 
 ## Мониторинг backup'ов

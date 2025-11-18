@@ -1,4 +1,4 @@
-# Настройка nginx для AI Image Generator Bot
+# Настройка nginx для AI Image Generator
 
 Пошаговая инструкция по настройке nginx как reverse proxy для вашего приложения.
 

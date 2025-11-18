@@ -2,6 +2,7 @@
 User Model — Модель пользователя.
 
 Хранит информацию о пользователях, балансе кредитов и подписках.
+Поддерживает как веб-авторизацию (email/password, OAuth), так и legacy Telegram авторизацию.
 """
 
 from datetime import datetime
@@ -15,6 +16,7 @@ from sqlalchemy import (
     Enum,
     DateTime,
     Index,
+    Boolean,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,11 +30,18 @@ class SubscriptionType(str, enum.Enum):
     PREMIUM = "premium"  # 899₽/месяц — 500 действий
 
 
+class AuthProvider(str, enum.Enum):
+    """Способы авторизации"""
+    EMAIL = "EMAIL"       # Email/Password
+    GOOGLE = "GOOGLE"     # Google OAuth
+    TELEGRAM = "TELEGRAM" # Legacy Telegram (для обратной совместимости)
+
+
 class User(Base, TimestampMixin):
     """
     Модель пользователя.
 
-    Хранит данные о пользователе Telegram, балансе кредитов,
+    Хранит данные о пользователе (веб или Telegram), балансе кредитов,
     подписке и использовании Freemium.
     """
 
@@ -46,32 +55,77 @@ class User(Base, TimestampMixin):
         index=True,
     )
 
-    # Telegram ID (уникальный идентификатор пользователя)
-    telegram_id: Mapped[int] = mapped_column(
-        BigInteger,
+    # === Веб-авторизация (новое) ===
+
+    # Email (для Email/Password и OAuth)
+    email: Mapped[Optional[str]] = mapped_column(
+        String(255),
         unique=True,
-        nullable=False,
+        nullable=True,
         index=True,
-        comment="Telegram user ID",
+        comment="Email address (unique, for web auth)",
     )
 
-    # Профиль пользователя
+    # Email verification
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Is email verified",
+    )
+
+    # Password hash (для Email/Password авторизации)
+    password_hash: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Bcrypt password hash (null for OAuth users)",
+    )
+
+    # OAuth provider
+    auth_provider: Mapped[AuthProvider] = mapped_column(
+        Enum(AuthProvider, name="auth_provider_enum"),
+        default=AuthProvider.EMAIL,
+        nullable=False,
+        comment="Authentication provider (email, google, telegram)",
+    )
+
+    # OAuth provider ID (Google sub, etc.)
+    oauth_provider_id: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True,
+        index=True,
+        comment="OAuth provider user ID (Google sub, etc.)",
+    )
+
+    # === Telegram авторизация (legacy, для обратной совместимости) ===
+
+    # Telegram ID (опционально для веб-пользователей)
+    telegram_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        unique=True,
+        nullable=True,
+        index=True,
+        comment="Telegram user ID (optional, for legacy users)",
+    )
+
+    # === Профиль пользователя ===
+
     username: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,
-        comment="Telegram username",
+        comment="Username (Telegram username or custom)",
     )
 
     first_name: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,
-        comment="Telegram first name",
+        comment="First name",
     )
 
     last_name: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,
-        comment="Telegram last name",
+        comment="Last name",
     )
 
     # Баланс кредитов
@@ -159,15 +213,19 @@ class User(Base, TimestampMixin):
 
     # Индексы
     __table_args__ = (
+        Index("idx_email", "email"),
         Index("idx_telegram_id", "telegram_id"),
+        Index("idx_oauth_provider_id", "oauth_provider_id"),
         Index("idx_subscription_end", "subscription_end"),
         Index("idx_is_active", "is_active"),
+        Index("idx_auth_provider", "auth_provider"),
     )
 
     def __repr__(self) -> str:
+        identifier = self.email or self.telegram_id or self.username or self.id
         return (
-            f"<User(id={self.id}, telegram_id={self.telegram_id}, "
-            f"username={self.username}, balance={self.balance_credits})>"
+            f"<User(id={self.id}, identifier={identifier}, "
+            f"auth={self.auth_provider.value}, balance={self.balance_credits})>"
         )
 
     @property
