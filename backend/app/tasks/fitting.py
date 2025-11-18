@@ -177,20 +177,41 @@ def generate_fitting_task(
                     progress=50
                 )
 
-                # Генерация изображения
+                # Генерация изображения с виртуальной примеркой
+                # Важно: передаём оба изображения (пользователь + одежда) для try-on
+                # Формируем полные URL для доступа к файлам
+                user_photo_full_url = f"{settings.BACKEND_URL}{user_photo_url}"
+                item_photo_full_url = f"{settings.BACKEND_URL}{item_photo_url}"
+
+                image_urls = [user_photo_full_url, item_photo_full_url]
+
                 result = await kie_client.generate_image(
                     prompt=prompt,
-                    model=settings.KIE_AI_MODEL,
-                    num_images=1,
-                    width=1024,
-                    height=1024,
+                    image_urls=image_urls,  # ← Передаём изображения для virtual try-on
+                    output_format="png",
+                    aspect_ratio="1:1",
                 )
 
-                if not result or "images" not in result or not result["images"]:
-                    raise ValueError("No images generated")
-
                 # Получение URL сгенерированного изображения
-                generated_image_url = result["images"][0]
+                # Если результат сразу готов - берём image_url
+                if result.get("status") == "completed" and result.get("image_url"):
+                    generated_image_url = result["image_url"]
+                else:
+                    # Иначе ждём выполнения задачи через task_id
+                    task_id = result.get("task_id")
+                    if not task_id:
+                        raise ValueError("No task_id or image_url in kie.ai response")
+
+                    # Ждём завершения задачи
+                    final_result = await kie_client.wait_for_completion(
+                        task_id=task_id,
+                        max_wait_time=120,  # 2 минуты максимум
+                        poll_interval=2,
+                    )
+
+                    generated_image_url = final_result.get("image_url")
+                    if not generated_image_url:
+                        raise ValueError("No image_url in completed kie.ai task")
 
                 # Обновление прогресса
                 await _update_generation_status(

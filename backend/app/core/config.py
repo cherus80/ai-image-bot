@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = Field(default="/api/v1")
     PROJECT_NAME: str = Field(default="AI Image Generator")
     SECRET_KEY: str = Field(..., description="Secret key for JWT and other crypto operations")
+    BACKEND_URL: str = Field(default="http://localhost:8000", description="Backend URL for file access")
     FRONTEND_URL: str = Field(default="http://localhost:5173", description="Frontend URL for redirects")
 
     # База данных PostgreSQL

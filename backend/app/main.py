@@ -10,6 +10,8 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.core.config import settings
 from app.db import init_db, close_db
@@ -70,8 +72,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 # Создание FastAPI приложения
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    version="0.12.0",
-    description="AI Image Generator — Web App с Email/Password и Google OAuth авторизацией",
+    version="0.12.2",
+    description="AI Image Generator — Web App с Email/Password, Google OAuth и виртуальной примеркой",
     docs_url="/docs" if settings.is_debug else None,
     redoc_url="/redoc" if settings.is_debug else None,
     openapi_url="/openapi.json" if settings.is_debug else None,
@@ -97,6 +99,14 @@ app.add_middleware(
 
 # GZip Compression
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+# Static files для uploads (необходимо для виртуальной примерки)
+# Создаём директорию uploads если её нет
+uploads_path = Path(settings.UPLOAD_DIR)
+uploads_path.mkdir(parents=True, exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
 
 
 # Health check endpoint

@@ -140,7 +140,7 @@ async def register_with_email(
         first_name=request.first_name,
         last_name=request.last_name,
         username=request.email.split('@')[0],  # Временный username из email
-        balance_credits=0,
+        balance_credits=10,  # 10 тестовых кредитов при регистрации
         freemium_actions_used=0,
         freemium_reset_at=datetime.utcnow(),
         is_active=True,
@@ -331,7 +331,7 @@ async def login_with_google(
             first_name=first_name,
             last_name=last_name,
             username=email.split('@')[0],  # Временный username из email
-            balance_credits=0,
+            balance_credits=10,  # 10 тестовых кредитов при регистрации
             freemium_actions_used=0,
             freemium_reset_at=datetime.utcnow(),
             is_active=True,

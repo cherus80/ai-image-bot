@@ -46,7 +46,8 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
   };
 
   const handleSkipZone = () => {
-    setAccessoryZone(null);
+    // При пропуске зоны устанавливаем 'body' (всё тело) по умолчанию
+    setAccessoryZone('body');
     handleGenerate();
   };
 
@@ -157,9 +158,9 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
           Когда указывать зону?
         </h3>
         <ul className="text-sm text-yellow-800 space-y-1">
-          <li>• Для одежды (футболки, платья) — зону можно не указывать</li>
+          <li>• Для одежды (футболки, платья) — выберите "Всё тело" или нажмите "Пропустить"</li>
           <li>• Для аксессуаров (очки, украшения) — укажите зону для точности</li>
-          <li>• Если не уверены — нажмите "Пропустить", AI определит автоматически</li>
+          <li>• При нажатии "Пропустить" примерка применится на всё тело</li>
         </ul>
       </div>
     </div>

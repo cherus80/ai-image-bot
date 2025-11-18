@@ -146,6 +146,7 @@ async def generate_fitting(
         user_photo_url=f"/uploads/{request.user_photo_id}",
         item_photo_url=f"/uploads/{request.item_photo_id}",
         accessory_zone=request.accessory_zone,
+        prompt="Virtual try-on generation",  # Placeholder prompt for database
         status="pending",
         credits_spent=credits_cost,
     )

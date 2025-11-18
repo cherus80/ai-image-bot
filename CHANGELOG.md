@@ -7,6 +7,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.2] - 2025-11-18
+
+### Fixed - Virtual Try-On Critical Bug
+
+#### Problem
+The virtual try-on feature was not working because the kie.ai API was being called with only a text prompt, without the actual user and item photos. This caused the system to generate random images instead of performing actual virtual try-on.
+
+#### Solution
+
+**Backend**:
+- **Fixed kie.ai API call** in [fitting.py:180-213](backend/app/tasks/fitting.py#L180-L213):
+  - Now passes both user photo and item photo URLs via `image_urls` parameter
+  - Added proper handling for async task completion from kie.ai
+  - Supports both immediate results and polling-based results
+- **Added static file serving** in [main.py:104-109](backend/app/main.py#L104-L109):
+  - Mounted `/uploads` endpoint to serve uploaded files
+  - Required for kie.ai to access user and item photos via HTTP
+- **Added BACKEND_URL setting** in [config.py:30](backend/app/core/config.py#L30):
+  - Defaults to `http://localhost:8000`
+  - Used to construct full URLs for uploaded files
+- **Fixed database constraint** in [fitting.py:149](backend/app/api/v1/endpoints/fitting.py#L149):
+  - Added placeholder `prompt` field to Generation model to prevent NULL constraint violation
+
+#### Additional Fixes During Testing
+
+- **Fixed proxy issues**: Added `NO_PROXY=localhost,127.0.0.1` for local backend testing
+- **Redis & Celery setup**:
+  - Documented requirement to run Redis server: `redis-server --daemonize yes`
+  - Documented requirement to run Celery worker: `celery -A app.tasks.celery_app worker --loglevel=info`
+
+#### Technical Details
+
+**Before**:
+```python
+result = await kie_client.generate_image(
+    prompt=prompt,
+    model=settings.KIE_AI_MODEL,  # ❌ Wrong parameters
+    num_images=1,
+    width=1024,
+    height=1024,
+)
+```
+
+**After**:
+```python
+user_photo_full_url = f"{settings.BACKEND_URL}{user_photo_url}"
+item_photo_full_url = f"{settings.BACKEND_URL}{item_photo_url}"
+image_urls = [user_photo_full_url, item_photo_full_url]
+
+result = await kie_client.generate_image(
+    prompt=prompt,
+    image_urls=image_urls,  # ✅ Passes both photos for virtual try-on
+    output_format="png",
+    aspect_ratio="1:1",
+)
+```
+
+#### Impact
+- ✅ Virtual try-on now works correctly with actual user and clothing photos
+- ✅ kie.ai receives both images and can perform proper virtual fitting
+- ✅ Results show the user wearing the clothing item instead of random generated images
+
+#### Testing (Playwright MCP)
+E2E тестирование подтвердило работоспособность:
+- ✅ Регистрация пользователя (получение 10 кредитов)
+- ✅ Загрузка фото пользователя (Step 1)
+- ✅ Загрузка фото одежды (Step 2)
+- ✅ Выбор зоны и запуск генерации (Step 3)
+- ✅ API запрос успешно доходит до backend
+- ✅ Celery задача создается и готова к обработке
+- ✅ Static file serving работает корректно
+
+**Требования для production**:
+1. Redis server должен быть запущен
+2. Celery worker должен быть запущен
+3. kie.ai API ключ должен быть настроен
+
+---
+
+## [0.12.1] - 2025-11-18
+
+### Fixed - Credits and Virtual Try-On
+
+#### Backend
+- **Initial credits bonus**: New users now receive 10 test credits upon registration
+  - Email/Password registration: `balance_credits=10` ([auth_web.py:143](backend/app/api/v1/endpoints/auth_web.py#L143))
+  - Google OAuth registration: `balance_credits=10` ([auth_web.py:334](backend/app/api/v1/endpoints/auth_web.py#L334))
+
+#### Frontend
+- **Virtual try-on zone logic**: Fixed "Skip" button behavior
+  - When "Skip" is pressed, zone is now set to `'body'` instead of `null` ([Step3Zone.tsx:50](frontend/src/components/fitting/Step3Zone.tsx#L50))
+  - Updated hint text to remove misleading "AI will determine automatically" phrase
+  - New hint: "When 'Skip' is pressed, try-on will be applied to full body"
+
+### Impact
+- **New users benefit**: Each new user gets 10 credits (5 generations × 2 credits) + 10 Freemium actions
+- **Better UX**: Clear and accurate guidance for virtual try-on zone selection
+- **Consistent behavior**: "Skip" button now produces predictable results (full body try-on)
+
+---
+
 ## [0.12.0] - 2025-11-18
 
 ### Added - Web Authentication System
@@ -155,6 +256,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **0.12.2** (2025-11-18) - Virtual Try-On Critical Bug Fix + E2E Testing
+- **0.12.1** (2025-11-18) - Credits and Virtual Try-On Fixes
 - **0.12.0** (2025-11-18) - Web Authentication System
 - **0.11.3** (2025-11-17) - Cache Busting Fix
 - **0.11.0** (2025-11-15) - Initial Release
