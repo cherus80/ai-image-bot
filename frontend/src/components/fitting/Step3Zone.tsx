@@ -129,23 +129,23 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
       </div>
 
       {/* Navigation buttons */}
-      <div className="flex justify-between gap-4">
+      <div className="flex justify-between gap-4 max-[450px]:flex-col">
         <button
           onClick={onBack}
-          className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+          className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors max-[450px]:w-full"
         >
           ← Назад
         </button>
-        <div className="flex gap-3">
+        <div className="flex gap-3 max-[450px]:flex-col max-[450px]:w-full">
           <button
             onClick={handleSkipZone}
-            className="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 border-2 border-gray-300 transition-colors"
+            className="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 border-2 border-gray-300 transition-colors max-[450px]:w-full"
           >
             Пропустить
           </button>
           <button
             onClick={handleGenerate}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg max-[450px]:w-full"
           >
             Примерить ✨
           </button>

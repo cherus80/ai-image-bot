@@ -102,16 +102,18 @@ async def save_upload_file(
 
 async def save_upload_file_by_content(
     content: bytes,
-    content_type: str,
-    user_id: int
+    user_id: int,
+    content_type: Optional[str] = None,
+    filename: Optional[str] = None
 ) -> tuple[UUID, str, int]:
     """
     Сохранить файл из байтов (например, для результата генерации).
 
     Args:
         content: Содержимое файла
-        content_type: MIME-тип
         user_id: ID пользователя
+        content_type: MIME-тип (опционально, определится из filename)
+        filename: Имя файла (для определения расширения)
 
     Returns:
         tuple[UUID, str, int]: (file_id, file_url, file_size)
@@ -123,10 +125,29 @@ async def save_upload_file_by_content(
         # Генерация UUID для файла
         file_id = uuid4()
 
-        # Получение расширения файла
-        extension = get_file_extension(content_type)
+        # Определение расширения файла
+        extension = None
+
+        # Сначала пытаемся получить расширение из filename
+        if filename:
+            import os
+            ext = os.path.splitext(filename)[1].lstrip('.')
+            if ext:
+                extension = ext.lower()
+
+        # Если не удалось из filename, пытаемся из content_type
+        if not extension and content_type:
+            extension = get_file_extension(content_type)
+
+        # Если и так не удалось, используем дефолтное значение
         if not extension:
-            raise FileStorageError(f"Unknown content type: {content_type}")
+            # Попытка определить тип по первым байтам (magic bytes)
+            if content.startswith(b'\x89PNG'):
+                extension = 'png'
+            elif content.startswith(b'\xFF\xD8\xFF'):
+                extension = 'jpg'
+            else:
+                extension = 'png'  # Дефолт для изображений
 
         # Получение пути для сохранения
         file_path = _get_file_path(file_id, extension)

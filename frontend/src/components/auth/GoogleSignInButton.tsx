@@ -32,44 +32,76 @@ export function GoogleSignInButton({
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
-    // Check if Google Identity Services script is loaded
-    if (!window.google) {
-      console.error('Google Identity Services not loaded. Add script to index.html');
-      onError?.('Google Sign-In not available');
-      return;
-    }
-
+    // Check if client ID is configured
     if (!clientId) {
       console.error('Google Client ID not configured. Set VITE_GOOGLE_CLIENT_ID in .env');
       onError?.('Google Sign-In not configured');
       return;
     }
 
-    // Initialize Google Sign-In
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: handleCredentialResponse,
-      auto_select: false,
-      cancel_on_tap_outside: true,
-    });
-
-    // Render the button
-    if (buttonRef.current) {
-      const config: GoogleSignInButtonConfig = {
-        type: 'standard',
-        theme,
-        size,
-        text,
-        shape: 'rectangular',
-        logo_alignment: 'left',
-      };
-
-      if (width) {
-        config.width = width;
+    // Wait for Google Identity Services script to load
+    const initializeGoogle = () => {
+      if (!window.google?.accounts?.id) {
+        console.warn('Google Identity Services not loaded yet, retrying...');
+        return false;
       }
 
-      window.google.accounts.id.renderButton(buttonRef.current, config);
+      try {
+        // Initialize Google Sign-In
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleCredentialResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        // Render the button
+        if (buttonRef.current) {
+          const config: GoogleSignInButtonConfig = {
+            type: 'standard',
+            theme,
+            size,
+            text,
+            shape: 'rectangular',
+            logo_alignment: 'left',
+          };
+
+          if (width) {
+            config.width = width;
+          }
+
+          window.google.accounts.id.renderButton(buttonRef.current, config);
+        }
+        return true;
+      } catch (error) {
+        console.error('Error initializing Google Sign-In:', error);
+        return false;
+      }
+    };
+
+    // Try to initialize immediately
+    if (initializeGoogle()) {
+      return;
     }
+
+    // If not loaded, retry with intervals
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryInterval = 500; // 500ms
+
+    const intervalId = setInterval(() => {
+      retryCount++;
+
+      if (initializeGoogle()) {
+        clearInterval(intervalId);
+      } else if (retryCount >= maxRetries) {
+        clearInterval(intervalId);
+        console.error('Google Identity Services failed to load after multiple retries');
+        onError?.('Google Sign-In not available');
+      }
+    }, retryInterval);
+
+    return () => clearInterval(intervalId);
   }, [clientId, theme, size, text, width]);
 
   const handleCredentialResponse = async (response: GoogleSignInResponse) => {
@@ -91,8 +123,16 @@ export function GoogleSignInButton({
     }
   };
 
-  // Show loading state or placeholder
-  if (!window.google || !clientId) {
+  // Show loading state or placeholder if Google not loaded or no client ID
+  if (!clientId) {
+    return (
+      <div className="flex items-center justify-center p-3 border border-gray-300 rounded-md bg-gray-50">
+        <span className="text-sm text-gray-500">Google Sign-In not configured</span>
+      </div>
+    );
+  }
+
+  if (!window.google?.accounts?.id) {
     return (
       <div className="flex items-center justify-center p-3 border border-gray-300 rounded-md bg-gray-50">
         <span className="text-sm text-gray-500">Loading Google Sign-In...</span>

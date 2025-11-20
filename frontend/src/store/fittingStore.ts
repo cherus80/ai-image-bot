@@ -96,10 +96,10 @@ export const useFittingStore = create<FittingState>((set, get) => ({
       set({
         userPhoto: {
           file_id: uploadResponse.file_id,
-          url: uploadResponse.url,
+          url: uploadResponse.file_url, // Исправлено: file_url вместо url
           preview,
           file,
-          size: uploadResponse.size,
+          size: uploadResponse.file_size, // Исправлено: file_size вместо size
           mime_type: uploadResponse.mime_type,
         },
         uploadError: null,
@@ -135,10 +135,10 @@ export const useFittingStore = create<FittingState>((set, get) => ({
       set({
         itemPhoto: {
           file_id: uploadResponse.file_id,
-          url: uploadResponse.url,
+          url: uploadResponse.file_url, // Исправлено: file_url вместо url
           preview,
           file,
-          size: uploadResponse.size,
+          size: uploadResponse.file_size, // Исправлено: file_size вместо size
           mime_type: uploadResponse.mime_type,
         },
         uploadError: null,

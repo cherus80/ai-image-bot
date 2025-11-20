@@ -55,6 +55,9 @@ class OpenRouterClient:
     BASE_URL = "https://openrouter.ai/api/v1"
     CHAT_ENDPOINT = "/chat/completions"
 
+    # Модель Nano Banana для генерации изображений
+    NANO_BANANA_MODEL = "google/gemini-2.5-flash-image-preview"
+
     # Системный промпт для генерации вариантов промптов
     SYSTEM_PROMPT = """You are an expert image editing prompt generator.
 
@@ -256,6 +259,149 @@ Do not include any additional text, explanations, or markdown formatting. Return
             raise OpenRouterError(f"Network error: {e}")
         except Exception as e:
             logger.error(f"Unexpected error in OpenRouter client: {e}")
+            raise OpenRouterError(f"Unexpected error: {e}")
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
+        reraise=True,
+    )
+    async def generate_virtual_tryon(
+        self,
+        user_photo_data: str,
+        item_photo_data: str,
+        prompt: str,
+        aspect_ratio: str = "1:1",
+    ) -> str:
+        """
+        Генерация виртуальной примерки через Gemini 2.5 Flash Image (Nano Banana).
+
+        Args:
+            user_photo_data: Base64-encoded данные фото пользователя (data:image/jpeg;base64,...)
+            item_photo_data: Base64-encoded данные фото одежды/аксессуара
+            prompt: Промпт для виртуальной примерки
+            aspect_ratio: Соотношение сторон (1:1, 16:9, 9:16, 4:3, 3:4)
+
+        Returns:
+            Base64-encoded URL сгенерированного изображения (data:image/png;base64,...)
+
+        Raises:
+            OpenRouterAuthError: Ошибка авторизации
+            OpenRouterRateLimitError: Превышен rate limit
+            OpenRouterError: Другие ошибки API
+        """
+        try:
+            # Формируем сообщение с двумя изображениями
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt,
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": user_photo_data,
+                            },
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": item_photo_data,
+                            },
+                        },
+                    ],
+                }
+            ]
+
+            # Формируем запрос с modalities для генерации изображения
+            payload = {
+                "model": self.NANO_BANANA_MODEL,
+                "messages": messages,
+                "modalities": ["image", "text"],  # Важно для генерации изображений
+                "image_config": {
+                    "aspect_ratio": aspect_ratio,
+                },
+            }
+
+            logger.info(
+                f"Sending virtual try-on request to OpenRouter (model: {self.NANO_BANANA_MODEL}, "
+                f"aspect_ratio: {aspect_ratio}, prompt_length: {len(prompt)})"
+            )
+
+            # Отправляем запрос
+            response = await self.client.post(
+                f"{self.base_url}{self.CHAT_ENDPOINT}",
+                json=payload,
+            )
+
+            # Обработка ошибок
+            if response.status_code == 401:
+                raise OpenRouterAuthError("Invalid API key")
+            elif response.status_code == 429:
+                raise OpenRouterRateLimitError("Rate limit exceeded")
+            elif response.status_code >= 500:
+                raise OpenRouterError(
+                    f"OpenRouter server error: {response.status_code}"
+                )
+            elif response.status_code != 200:
+                error_data = response.json() if response.content else {}
+                raise OpenRouterError(
+                    f"OpenRouter API error: {response.status_code}, "
+                    f"details: {error_data}"
+                )
+
+            # Парсим ответ
+            data = response.json()
+
+            # Извлекаем токены для логирования
+            usage = data.get("usage", {})
+            logger.info(
+                f"OpenRouter virtual try-on response received (usage: {usage})"
+            )
+
+            # Извлекаем сгенерированное изображение
+            choice = data.get("choices", [{}])[0]
+            message = choice.get("message", {})
+            images = message.get("images", [])
+
+            if not images:
+                raise OpenRouterError("No image returned from Nano Banana")
+
+            # Логируем структуру для отладки
+            logger.info(f"Images response structure: {type(images[0])}, content: {str(images[0])[:200]}")
+
+            # Возвращаем первое изображение (data:image/png;base64,...)
+            # images[0] может быть либо строкой, либо dict с полем 'url'
+            first_image = images[0]
+            if isinstance(first_image, dict):
+                # Если это dict, пробуем разные возможные поля
+                image_url = first_image.get("url") or first_image.get("data") or first_image.get("image")
+                logger.info(f"Dict image, extracted URL length: {len(image_url) if image_url else 0}")
+            else:
+                image_url = first_image
+
+            if not image_url:
+                raise OpenRouterError(f"Empty image URL returned from Nano Banana. First image type: {type(first_image)}, keys: {first_image.keys() if isinstance(first_image, dict) else 'N/A'}")
+
+            logger.info(f"Virtual try-on image generated successfully, URL length: {len(image_url)}")
+
+            return image_url
+
+        except (OpenRouterAuthError, OpenRouterRateLimitError, OpenRouterError):
+            # Пробрасываем наши кастомные ошибки
+            raise
+        except httpx.TimeoutException as e:
+            logger.error(f"OpenRouter request timeout: {e}")
+            raise OpenRouterError(f"Request timeout: {e}")
+        except httpx.NetworkError as e:
+            logger.error(f"OpenRouter network error: {e}")
+            raise OpenRouterError(f"Network error: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in OpenRouter virtual try-on: {e}")
             raise OpenRouterError(f"Unexpected error: {e}")
 
     async def __aenter__(self):

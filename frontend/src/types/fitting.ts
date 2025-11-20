@@ -12,10 +12,9 @@ export type GenerationStatus = 'pending' | 'processing' | 'completed' | 'failed'
 // Ответ при загрузке файла
 export interface FittingUploadResponse {
   file_id: string; // UUID
-  url: string;
-  size: number;
+  file_url: string; // Backend возвращает file_url, не url
+  file_size: number; // Backend возвращает file_size, не size
   mime_type: string;
-  created_at: string;
 }
 
 // Запрос на генерацию примерки

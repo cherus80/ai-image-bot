@@ -139,7 +139,7 @@ async def generate_fitting(
             detail=f"Item photo not found: {str(e)}"
         )
 
-    # Создание записи Generation в БД
+    # Создание записи Generation в БД (БЕЗ списания кредитов - будет в Celery после успеха)
     generation = Generation(
         user_id=current_user.id,
         type="fitting",
@@ -148,28 +148,23 @@ async def generate_fitting(
         accessory_zone=request.accessory_zone,
         prompt="Virtual try-on generation",  # Placeholder prompt for database
         status="pending",
-        credits_spent=credits_cost,
+        credits_spent=0,  # Будет установлено после успешной генерации
     )
 
     db.add(generation)
     await db.commit()
     await db.refresh(generation)
 
-    # Списание кредитов
-    deduct_result = await deduct_credits(
-        db,
-        current_user,
-        credits_cost,
-        generation_id=generation.id
-    )
+    # НЕ списываем кредиты здесь - списание произойдёт в Celery задаче ПОСЛЕ успешной генерации
 
-    # Запуск Celery задачи
+    # Запуск Celery задачи с передачей credits_cost
     task = generate_fitting_task.delay(
         generation_id=generation.id,
         user_id=current_user.id,
         user_photo_url=generation.user_photo_url,
         item_photo_url=generation.item_photo_url,
         accessory_zone=request.accessory_zone,
+        credits_cost=credits_cost,  # Передаём стоимость в задачу
     )
 
     # Обновление task_id в БД
@@ -211,15 +206,13 @@ async def get_fitting_status(
             detail="Generation task not found"
         )
 
-    # Определение прогресса
-    progress_map = {
+    # Получение прогресса из БД (если есть) или дефолтные значения
+    progress = generation.progress if hasattr(generation, 'progress') and generation.progress is not None else {
         "pending": 0,
         "processing": 50,
         "completed": 100,
         "failed": 0,
-    }
-
-    progress = progress_map.get(generation.status, 0)
+    }.get(generation.status, 0)
 
     message_map = {
         "pending": "Task is waiting in queue",

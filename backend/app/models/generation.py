@@ -105,6 +105,14 @@ class Generation(Base, TimestampMixin):
         comment="Статус: pending, processing, completed, failed",
     )
 
+    # Прогресс генерации (0-100)
+    progress: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+        comment="Прогресс генерации в процентах (0-100)",
+    )
+
     # Task ID для отслеживания прогресса
     task_id: Mapped[Optional[str]] = mapped_column(
         String(255),

@@ -161,7 +161,7 @@ start_celery() {
     source venv/bin/activate
 
     # Запуск в фоне
-    nohup celery -A app.celery_app.celery_app worker --loglevel=info > ../logs/celery.log 2>&1 &
+    nohup celery -A app.tasks.celery_app:celery_app worker --loglevel=info > ../logs/celery.log 2>&1 &
     CELERY_PID=$!
     echo $CELERY_PID > ../logs/celery.pid
 
