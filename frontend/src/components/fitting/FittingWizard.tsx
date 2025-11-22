@@ -3,7 +3,7 @@
  * Управляет навигацией между шагами и процессом генерации
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Step1UserPhoto } from './Step1UserPhoto';
 import { Step2ItemPhoto } from './Step2ItemPhoto';
@@ -18,7 +18,18 @@ type WizardStep = 'user_photo' | 'item_photo' | 'zone' | 'generating' | 'result'
 
 export const FittingWizard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<WizardStep>('user_photo');
-  const { startGeneration } = useFittingStore();
+  const { startGeneration, result, isGenerating } = useFittingStore();
+
+  // Если есть результат или идёт генерация, синхронизируем шаг — защищает от случайного сброса на шаг 1
+  useEffect(() => {
+    if (isGenerating && currentStep !== 'generating') {
+      setCurrentStep('generating');
+      return;
+    }
+    if (result && currentStep !== 'result') {
+      setCurrentStep('result');
+    }
+  }, [isGenerating, result, currentStep]);
 
   const handleGenerateClick = async () => {
     setCurrentStep('generating');
