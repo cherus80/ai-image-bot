@@ -194,8 +194,10 @@ export const useAuthStore = create<AuthState>()(
       refreshProfile: async () => {
         const { token } = get();
 
+        // Нет токена — просто выходим, сбрасывая флаги загрузки/ошибки
         if (!token) {
-          throw new Error('Не авторизован');
+          set({ isLoading: false, error: null });
+          return;
         }
 
         set({ isLoading: true, error: null });
