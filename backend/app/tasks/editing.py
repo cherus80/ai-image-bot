@@ -46,8 +46,7 @@ class EditingTask(Task):
 @celery_app.task(
     bind=True,
     base=EditingTask,
-    max_retries=3,
-    default_retry_delay=60,  # 1 минута между попытками
+    max_retries=0,  # избегаем автоповторов, чтобы не сжигать токены на OpenRouter
     name="app.tasks.editing.generate_editing_task"
 )
 def generate_editing_task(
@@ -224,18 +223,11 @@ def generate_editing_task(
                     error_message=str(e),
                 )
 
-                # Попытка retry
-                try:
-                    raise self.retry(exc=e, countdown=60)
-                except self.MaxRetriesExceededError:
-                    logger.error(
-                        f"Max retries exceeded for generation {generation_id}"
-                    )
-                    return {
-                        "status": "failed",
-                        "error": str(e),
-                        "generation_id": generation_id,
-                    }
+                return {
+                    "status": "failed",
+                    "error": str(e),
+                    "generation_id": generation_id,
+                }
 
     # Запуск async функции
     try:
