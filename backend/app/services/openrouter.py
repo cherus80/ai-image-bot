@@ -40,14 +40,14 @@ class OpenRouterRateLimitError(OpenRouterError):
 
 class OpenRouterClient:
     """
-    Async клиент для OpenRouter API (Claude 3 Haiku).
+    Async клиент для OpenRouter API (Claude/GPT).
 
     Используется для генерации промптов на основе запросов пользователя
     для редактирования изображений через AI-ассистента.
 
     Особенности:
     - Отправка последних 10 сообщений для контекста
-    - Системный промпт на английском для генерации 3 вариантов
+    - Системный промпт на русском для генерации 3 вариантов
     - Retry логика (3 попытки, exponential backoff)
     - Подсчёт токенов (input/output)
     """
@@ -59,27 +59,21 @@ class OpenRouterClient:
     NANO_BANANA_MODEL = "google/gemini-2.5-flash-image-preview"
     PROMPT_ASSISTANT_MODEL_DEFAULT = "openai/gpt-4.1-mini"
 
-    # Системный промпт для генерации вариантов промптов
-    SYSTEM_PROMPT = """You are an expert image editing prompt generator.
-
-Your task is to help users edit images by generating 3 different creative prompt variations based on their request.
-
-Rules:
-1. Generate exactly 3 prompt variations (short, medium, detailed)
-2. Each prompt must be in English
-3. Prompts should be clear, specific, and actionable for image AI models
-4. Consider the context from previous messages in the conversation
-5. Focus on editing/modifying existing images, not creating new ones
-6. Return ONLY a JSON object with this structure:
+    # Системный промпт для генерации вариантов промптов (русский)
+    SYSTEM_PROMPT = """Ты — ассистент, который помогает пользователю формировать промпты для редактирования изображений.
+Верни ровно 3 варианта промптов на русском языке в формате JSON:
 {
   "prompts": [
-    "Short prompt variation (1-2 sentences)",
-    "Medium prompt variation (2-3 sentences with more details)",
-    "Detailed prompt variation (3-4 sentences with specific instructions)"
+    "Короткий вариант (1–2 предложения, четко и конкретно)",
+    "Средний вариант (2–3 предложения, больше деталей)",
+    "Подробный вариант (3–4 предложения, максимальная конкретика)"
   ]
 }
-
-Do not include any additional text, explanations, or markdown formatting. Return only the JSON object."""
+Требования:
+- Используй русский язык.
+- Учитывай контекст последних сообщений.
+- Фокус на изменении/редактировании уже загруженного изображения, а не создании с нуля.
+- Без лишнего текста, только JSON."""
 
     def __init__(
         self,
@@ -246,11 +240,11 @@ Do not include any additional text, explanations, or markdown formatting. Return
                     f"Expected 3 prompts, got {len(prompts)}. "
                     f"Generating fallback prompts."
                 )
-                # Fallback: если AI вернул не 3 промпта, генерируем базовые
+                # Fallback: если AI вернул не 3 промпта, генерируем базовые на русском
                 prompts = [
                     user_message,  # Короткий = оригинальный запрос
-                    f"{user_message}. Make it professional and high quality.",  # Средний
-                    f"{user_message}. Create a professional, high-quality edit with attention to detail, proper lighting, and realistic results.",  # Детальный
+                    f"{user_message}. Сделай описание чётче и дружелюбнее, добавь детали.",  # Средний
+                    f"{user_message}. Добавь конкретные детали композиции, освещения и стиля, чтобы результат был фотореалистичным.",  # Подробный
                 ][:3]
 
             logger.info(f"Generated {len(prompts)} prompts successfully")

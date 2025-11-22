@@ -100,14 +100,14 @@ export const Layout: React.FC<LayoutProps> = ({
 
             {/* Right side: Balance + Hamburger menu */}
             <div className="flex items-center space-x-3 ml-3">
-              {showBalance && user && (
+              {showBalance && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                   <Card variant="gradient" padding="sm" className="border border-primary-200">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-primary-700">{user.balance_credits}</p>
+                      <p className="text-2xl font-bold text-primary-700">{user?.balance_credits ?? 0}</p>
                       <p className="text-xs text-primary-600 font-semibold whitespace-nowrap">кредитов</p>
                     </div>
-                    {user.subscription_type && user.subscription_type !== 'none' && (
+                    {user?.subscription_type && user.subscription_type !== 'none' && (
                       <Badge variant="primary" size="sm" className="mt-1">
                         {user.subscription_type}
                       </Badge>

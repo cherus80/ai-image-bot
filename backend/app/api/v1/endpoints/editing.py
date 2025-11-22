@@ -234,10 +234,10 @@ async def send_message(
 
         # Формируем ответ assistant с промптами
         assistant_content = (
-            "Here are 3 prompt variations for your image editing request:\n\n"
-            f"1. Short: {prompts[0]}\n\n"
-            f"2. Medium: {prompts[1]}\n\n"
-            f"3. Detailed: {prompts[2]}"
+            "Вот 3 варианта промпта для редактирования изображения:\n\n"
+            f"1. Короткий: {prompts[0]}\n\n"
+            f"2. Средний: {prompts[1]}\n\n"
+            f"3. Подробный: {prompts[2]}"
         )
 
         # Добавление ответа assistant в историю

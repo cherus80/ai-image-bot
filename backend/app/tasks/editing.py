@@ -190,6 +190,8 @@ def generate_editing_task(
                     chat = chat_history.scalar_one_or_none()
 
                     if chat:
+                        # Обновляем базовое изображение для следующих запросов
+                        chat.base_image_url = image_url
                         chat.add_message(
                             role="assistant",
                             content=f"Image edited successfully with prompt: {prompt}",
