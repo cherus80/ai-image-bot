@@ -231,11 +231,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   generateImage: async (prompt: string) => {
     const { sessionId } = get();
 
+    console.log('[chatStore] generateImage called with prompt:', prompt);
+    console.log('[chatStore] Current sessionId:', sessionId);
+
     if (!sessionId) {
+      console.error('[chatStore] No sessionId - throwing error');
       throw new Error('Сессия не инициализирована');
     }
 
     if (!prompt.trim()) {
+      console.error('[chatStore] Empty prompt - throwing error');
       throw new Error('Промпт не может быть пустым');
     }
 
@@ -247,11 +252,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
 
     try {
+      console.log('[chatStore] Calling API /editing/generate...');
       // Запускаем генерацию (списывает 1 кредит)
       const response = await generateEditedImage({
         session_id: sessionId,
         prompt,
       });
+
+      console.log('[chatStore] API response:', response);
 
       set({
         taskId: response.task_id,

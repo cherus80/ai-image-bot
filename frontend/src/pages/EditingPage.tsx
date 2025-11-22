@@ -81,8 +81,12 @@ export const EditingPage: React.FC = () => {
 
   const handleUseOriginalPrompt = async () => {
     if (!pendingPrompt) {
+      console.warn('[EditingPage] No pending prompt');
       return;
     }
+
+    console.log('[EditingPage] Starting direct generation with prompt:', pendingPrompt);
+    console.log('[EditingPage] Current sessionId:', sessionId);
 
     setIsDecisionLoading(true);
     try {
@@ -95,11 +99,16 @@ export const EditingPage: React.FC = () => {
         content:
           'Отправляю запрос как есть. Списание: 1 кредит за генерацию.',
       });
+
+      console.log('[EditingPage] Calling generateImage...');
       await generateImage(pendingPrompt);
+      console.log('[EditingPage] generateImage completed successfully');
+
       toast.success('Промпт отправлен без AI-ассистента');
       setShowPromptDecision(false);
       setPendingPrompt(null);
     } catch (err: any) {
+      console.error('[EditingPage] Error in handleUseOriginalPrompt:', err);
       toast.error(err.message || 'Ошибка генерации изображения');
     } finally {
       setIsDecisionLoading(false);
