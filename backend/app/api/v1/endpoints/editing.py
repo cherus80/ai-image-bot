@@ -167,9 +167,8 @@ async def send_message(
     """
     # Проверка баланса
     can_perform, reason = await check_user_can_perform_action(
-        db=db,
         user=current_user,
-        cost=1,  # Стоимость запроса к AI
+        credits_cost=1,  # Стоимость запроса к AI
     )
 
     if not can_perform:
@@ -227,9 +226,9 @@ async def send_message(
 
         # Списание 1 кредита (ПОСЛЕ успешного получения промптов)
         await deduct_credits(
-            db=db,
+            session=db,
             user=current_user,
-            cost=1,
+            credits_cost=1,
             generation_id=None,  # Не привязано к генерации
         )
 
@@ -302,9 +301,8 @@ async def generate_image(
     """
     # Проверка баланса
     can_perform, reason = await check_user_can_perform_action(
-        db=db,
         user=current_user,
-        cost=1,  # Стоимость генерации
+        credits_cost=1,  # Стоимость генерации
     )
 
     if not can_perform:
@@ -324,9 +322,9 @@ async def generate_image(
 
         # Списание 1 кредита
         await deduct_credits(
-            db=db,
+            session=db,
             user=current_user,
-            cost=1,
+            credits_cost=1,
             generation_id=None,  # Будет установлено позже
         )
 
