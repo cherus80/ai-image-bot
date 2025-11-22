@@ -1,8 +1,8 @@
 """
-OpenRouter API Client для Claude Haiku.
+OpenRouter API Client для генерации промптов (GPT/Claude) и вызова Nano Banana.
 
-Клиент для работы с OpenRouter API для генерации промптов
-через Claude 3 Haiku для редактирования изображений.
+Клиент для работы с OpenRouter API: улучшение промптов через GPT (по умолчанию gpt-4.1-mini)
+и обращение к Nano Banana для генерации/редактирования изображений.
 
 Документация: https://openrouter.ai/docs
 """
@@ -57,6 +57,7 @@ class OpenRouterClient:
 
     # Модель Nano Banana для генерации изображений
     NANO_BANANA_MODEL = "google/gemini-2.5-flash-image-preview"
+    PROMPT_ASSISTANT_MODEL_DEFAULT = "openai/gpt-4.1-mini"
 
     # Системный промпт для генерации вариантов промптов
     SYSTEM_PROMPT = """You are an expert image editing prompt generator.
@@ -85,6 +86,7 @@ Do not include any additional text, explanations, or markdown formatting. Return
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         model: Optional[str] = None,
+        prompt_model: Optional[str] = None,
         timeout: int = 60,
     ):
         """
@@ -94,11 +96,18 @@ Do not include any additional text, explanations, or markdown formatting. Return
             api_key: API ключ от OpenRouter (если не указан, берётся из settings)
             base_url: Базовый URL API (по умолчанию https://openrouter.ai/api/v1)
             model: Модель для использования (по умолчанию claude-3-haiku-20240307)
+            prompt_model: Модель для улучшения промптов (по умолчанию gpt-4.1-mini)
             timeout: Таймаут запросов в секундах
         """
         self.api_key = api_key or settings.OPENROUTER_API_KEY
         self.base_url = base_url or settings.OPENROUTER_BASE_URL
         self.model = model or settings.OPENROUTER_MODEL
+        self.prompt_model = (
+            prompt_model
+            or settings.OPENROUTER_PROMPT_MODEL
+            or self.model
+            or self.PROMPT_ASSISTANT_MODEL_DEFAULT
+        )
         self.timeout = timeout
 
         if not self.api_key:
@@ -115,7 +124,7 @@ Do not include any additional text, explanations, or markdown formatting. Return
         )
 
         logger.info(
-            f"OpenRouter client initialized (model: {self.model}, "
+            f"OpenRouter client initialized (prompt model: {self.prompt_model}, "
             f"base_url: {self.base_url})"
         )
 
@@ -171,7 +180,7 @@ Do not include any additional text, explanations, or markdown formatting. Return
 
             # Формируем запрос
             payload = {
-                "model": self.model,
+                "model": self.prompt_model,
                 "messages": messages,
                 "max_tokens": max_tokens,
                 "temperature": temperature,
@@ -179,7 +188,7 @@ Do not include any additional text, explanations, or markdown formatting. Return
             }
 
             logger.info(
-                f"Sending request to OpenRouter (model: {self.model}, "
+                f"Sending request to OpenRouter (model: {self.prompt_model}, "
                 f"messages: {len(messages)}, user_message_length: {len(user_message)})"
             )
 

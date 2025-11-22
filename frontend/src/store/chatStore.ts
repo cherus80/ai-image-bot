@@ -21,6 +21,8 @@ import {
 } from '../api/editing';
 import { useAuthStore } from './authStore';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+
 interface ChatState {
   // State: сессия чата
   sessionId: string | null;
@@ -102,14 +104,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       // Создаём сессию чата
       const sessionResponse = await createChatSession({
-        base_image_url: uploadResponse.url,
+        base_image_url: uploadResponse.base_image_url,
       });
+
+      const resolvedUrl = uploadResponse.base_image_url.startsWith('http')
+        ? uploadResponse.base_image_url
+        : `${API_BASE_URL}${uploadResponse.base_image_url}`;
 
       // Сохраняем в state
       set({
         baseImage: {
-          file_id: uploadResponse.file_id,
-          url: uploadResponse.url,
+          file_id: 'base-image',
+          url: resolvedUrl,
           preview,
           file,
         },

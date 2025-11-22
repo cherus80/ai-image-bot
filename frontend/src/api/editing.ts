@@ -14,17 +14,17 @@ import type {
   ChatHistoryResponse,
   ResetSessionResponse,
 } from '../types/editing';
-import type { FittingUploadResponse, FittingStatusResponse, FittingResult } from '../types/fitting';
+import type { FittingStatusResponse, FittingResult } from '../types/fitting';
 
 /**
  * Загрузка базового изображения для редактирования
  * POST /api/v1/editing/upload
  */
-export const uploadBaseImage = async (file: File): Promise<FittingUploadResponse> => {
+export const uploadBaseImage = async (file: File): Promise<ChatSessionCreate> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await apiClient.post<FittingUploadResponse>(
+  const response = await apiClient.post<ChatSessionCreate>(
     '/api/v1/editing/upload',
     formData,
     {

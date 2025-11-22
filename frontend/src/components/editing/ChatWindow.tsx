@@ -26,6 +26,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   isGenerating = false,
   baseImageUrl,
 }) => {
+  const promptAssistantModel =
+    import.meta.env.VITE_PROMPT_ASSISTANT_MODEL || 'AI-ассистент';
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
@@ -67,15 +69,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   Базовое изображение
                 </span>
               </div>
-              <div className="relative rounded-xl overflow-hidden shadow-large">
+              <div className="relative rounded-xl overflow-hidden shadow-large bg-white/60 border border-white/40">
                 <img
                   src={baseImageUrl}
                   alt="Base image"
-                  className="w-full h-auto"
+                  className="w-full max-h-96 object-contain mx-auto"
                 />
               </div>
               <p className="mt-4 text-sm text-dark-600">
-                Опишите, как хотите изменить это изображение. AI-ассистент предложит вам несколько вариантов промптов на выбор.
+                Опишите, что хотите изменить. После ввода можно отправить запрос сразу или попросить AI ({promptAssistantModel}) улучшить формулировку (спишет 1 кредит) перед генерацией.
               </p>
             </Card>
           </motion.div>
@@ -118,7 +120,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               transition={{ delay: 0.5 }}
               className="text-dark-600 max-w-md mx-auto"
             >
-              Опишите, как хотите изменить изображение. Например:
+              Опишите, как хотите изменить изображение, затем выберите — отправить запрос как есть или улучшить его с AI. Например:
               "Измени фон на закат", "Добавь эффект черно-белого фото", "Сделай изображение ярче"
             </motion.p>
           </motion.div>

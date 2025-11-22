@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.4] - 2025-11-22
+
+### Changed - Editing Flow & UX
+- **Registration bonus**: Email/Google регистрации теперь начисляют 100 кредитов для быстрого старта.
+- **Base image preview**: превью базового изображения в чате использует полный `VITE_API_BASE_URL` и отображается уменьшенным (`object-contain`, `max-h-96`), чтобы не растягивать экран.
+- **Prompt decision modal**: кнопки «Отправить без улучшений» / «Улучшить с AI» теперь надёжно отрабатывают (submit), тексты упрощены для новичков.
+- **Prompt assistant model**: конфиг `OPENROUTER_PROMPT_MODEL` и UI подпись ассистента без упоминаний внутренних сервисов.
+- **Upload → session**: фронт использует `base_image_url` из `/editing/upload`, что предотвращает пустой UI после загрузки.
+
+### Notes
+- После обновлений фронт нужно перезапустить dev-сервер; на некоторых окружениях может потребоваться ручной запуск Vite.
+
+---
+
 ## [0.12.3] - 2025-11-20
 
 ### Fixed - Virtual Try-On Queue Stall

@@ -161,7 +161,7 @@ start_celery() {
     source venv/bin/activate
 
     # Запуск в фоне
-    nohup celery -A app.tasks.celery_app:celery_app worker --loglevel=info > ../logs/celery.log 2>&1 &
+    nohup celery -A app.tasks.celery_app:celery_app worker --loglevel=info -Q fitting,editing,maintenance > ../logs/celery.log 2>&1 &
     CELERY_PID=$!
     echo $CELERY_PID > ../logs/celery.pid
 
@@ -195,7 +195,7 @@ start_frontend() {
     cd frontend
 
     # Запуск в фоне
-    nohup npm run dev > ../logs/frontend.log 2>&1 &
+    nohup npm run dev -- --host 0.0.0.0 --port 5173 > ../logs/frontend.log 2>&1 &
     FRONTEND_PID=$!
     echo $FRONTEND_PID > ../logs/frontend.pid
 

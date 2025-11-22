@@ -7,6 +7,7 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChatWindow } from '../components/editing/ChatWindow';
 import { ChatInput } from '../components/editing/ChatInput';
+import { PromptDecisionModal } from '../components/editing/PromptDecisionModal';
 import { FileUpload } from '../components/common/FileUpload';
 import { useChatStore } from '../store/chatStore';
 import { AuthGuard } from '../components/auth/AuthGuard';
@@ -27,13 +28,19 @@ export const EditingPage: React.FC = () => {
     sendMessage,
     generateImage,
     resetSession,
+    addMessage,
     uploadError,
     error,
     clearError,
   } = useChatStore();
 
+  const promptAssistantModel =
+    import.meta.env.VITE_PROMPT_ASSISTANT_MODEL || 'AI-ассистент';
   const [isUploadingImage, setIsUploadingImage] = React.useState(false);
   const [showResetConfirm, setShowResetConfirm] = React.useState(false);
+  const [pendingPrompt, setPendingPrompt] = React.useState<string | null>(null);
+  const [showPromptDecision, setShowPromptDecision] = React.useState(false);
+  const [isDecisionLoading, setIsDecisionLoading] = React.useState(false);
 
   // Сброс состояния при монтировании страницы
   useEffect(() => {
@@ -67,11 +74,53 @@ export const EditingPage: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (text: string) => {
+  const handlePromptSubmit = (text: string) => {
+    setPendingPrompt(text);
+    setShowPromptDecision(true);
+  };
+
+  const handleUseOriginalPrompt = async () => {
+    if (!pendingPrompt) {
+      return;
+    }
+
+    setIsDecisionLoading(true);
     try {
-      await sendMessage(text);
+      addMessage({
+        role: 'user',
+        content: pendingPrompt,
+      });
+      addMessage({
+        role: 'assistant',
+        content:
+          'Отправляю запрос как есть. Списание: 1 кредит за генерацию.',
+      });
+      await generateImage(pendingPrompt);
+      toast.success('Промпт отправлен без AI-ассистента');
+      setShowPromptDecision(false);
+      setPendingPrompt(null);
     } catch (err: any) {
-      toast.error(err.message || 'Ошибка отправки сообщения');
+      toast.error(err.message || 'Ошибка генерации изображения');
+    } finally {
+      setIsDecisionLoading(false);
+    }
+  };
+
+  const handleUseAiHelper = async () => {
+    if (!pendingPrompt) {
+      return;
+    }
+
+    setIsDecisionLoading(true);
+    try {
+      await sendMessage(pendingPrompt);
+      toast.success('AI предложил варианты промптов — выберите подходящий.');
+      setShowPromptDecision(false);
+      setPendingPrompt(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Ошибка отправки запроса AI-ассистенту');
+    } finally {
+      setIsDecisionLoading(false);
     }
   };
 
@@ -208,7 +257,7 @@ export const EditingPage: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="text-base font-bold text-dark-900 mb-2">AI-ассистент</h3>
                       <p className="text-sm text-dark-600">
-                        Опишите изменения естественным языком. AI предложит варианты промптов.
+                        Опишите изменения. Можно отправить промпт как есть или улучшить его через AI (рекомендуем {promptAssistantModel}, списывает 1 кредит).
                       </p>
                     </div>
                   </div>
@@ -246,12 +295,26 @@ export const EditingPage: React.FC = () => {
               />
 
               <ChatInput
-                onSend={handleSendMessage}
-                disabled={isSendingMessage || isGenerating}
+                onSend={handlePromptSubmit}
+                disabled={isSendingMessage || isGenerating || isDecisionLoading}
                 placeholder="Опишите, как хотите изменить изображение..."
               />
             </>
           )}
+
+        <PromptDecisionModal
+          prompt={pendingPrompt || ''}
+          isOpen={showPromptDecision && Boolean(pendingPrompt)}
+          onClose={() => {
+            if (isDecisionLoading) return;
+            setShowPromptDecision(false);
+            setPendingPrompt(null);
+          }}
+          onUseOriginal={handleUseOriginalPrompt}
+          onUseAiHelper={handleUseAiHelper}
+          modelName={promptAssistantModel}
+          isLoading={isDecisionLoading}
+        />
 
         {/* Reset confirmation modal */}
         {showResetConfirm && (
