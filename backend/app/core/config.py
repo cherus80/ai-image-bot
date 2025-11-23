@@ -125,6 +125,52 @@ class Settings(BaseSettings):
         description="Сколько регистраций в минуту разрешено с одного IP",
     )
 
+    # Email Verification
+    EMAIL_VERIFICATION_ENABLED: bool = Field(
+        default=True,
+        description="Enable email verification (disable for local testing)",
+    )
+    SMTP_HOST: Optional[str] = Field(
+        default=None,
+        description="SMTP server host (e.g., smtp.gmail.com)",
+    )
+    SMTP_PORT: int = Field(
+        default=587,
+        description="SMTP server port (587 for TLS, 465 for SSL)",
+    )
+    SMTP_USER: Optional[str] = Field(
+        default=None,
+        description="SMTP username (email address)",
+    )
+    SMTP_PASSWORD: Optional[str] = Field(
+        default=None,
+        description="SMTP password or app-specific password",
+    )
+    SMTP_USE_TLS: bool = Field(
+        default=True,
+        description="Use TLS for SMTP connection",
+    )
+    EMAIL_FROM: Optional[str] = Field(
+        default=None,
+        description="Email address to send from (defaults to SMTP_USER)",
+    )
+    EMAIL_FROM_NAME: str = Field(
+        default="AI Image Generator",
+        description="Name to display in 'From' field",
+    )
+    EMAIL_VERIFICATION_TOKEN_TTL_MIN: int = Field(
+        default=30,
+        description="Email verification token validity in minutes",
+    )
+    EMAIL_VERIFICATION_RESEND_LIMIT: int = Field(
+        default=3,
+        description="Max verification emails per user per hour",
+    )
+    EMAIL_VERIFICATION_RESEND_PER_IP_PER_HOUR: int = Field(
+        default=10,
+        description="Max verification emails per IP per hour",
+    )
+
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:

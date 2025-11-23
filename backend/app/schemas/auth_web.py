@@ -208,6 +208,46 @@ class GoogleOAuthResponse(BaseModel):
 
 
 # ============================================================================
+# Email Verification
+# ============================================================================
+
+
+class SendVerificationEmailResponse(BaseModel):
+    """Ответ на запрос отправки письма верификации"""
+
+    message: str = Field(
+        ...,
+        description="Success message",
+        example="Письмо для подтверждения отправлено на ваш email"
+    )
+
+
+class VerifyEmailRequest(BaseModel):
+    """Запрос на верификацию email"""
+
+    token: str = Field(
+        ...,
+        description="Verification token from email",
+        example="abc123def456..."
+    )
+
+
+class VerifyEmailResponse(BaseModel):
+    """Ответ на успешную верификацию email"""
+
+    message: str = Field(
+        ...,
+        description="Success message",
+        example="Email успешно подтверждён"
+    )
+
+    user: UserProfile = Field(
+        ...,
+        description="Updated user profile"
+    )
+
+
+# ============================================================================
 # Password Reset (будущее расширение)
 # ============================================================================
 

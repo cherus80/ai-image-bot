@@ -30,15 +30,25 @@ from app.schemas.auth_web import (
     GoogleOAuthResponse,
     UserProfile,
     UserProfileResponse,
+    SendVerificationEmailResponse,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
 )
 from app.utils.jwt import create_user_access_token
 from app.utils.password import hash_password, verify_password, is_strong_password
 from app.utils.google_oauth import verify_google_id_token, GoogleOAuthError
+from app.services.email import email_service
+from app.models.email_verification import EmailVerificationToken
 
 router = APIRouter(prefix="/auth-web", tags=["Web Authentication"])
 # In-memory rate limit for registrations
 _register_hits: defaultdict[str, deque] = defaultdict(deque)
 _REGISTER_WINDOW_SEC = 60
+
+# In-memory rate limit for email verification resend
+_verification_resend_hits_per_user: defaultdict[int, deque] = defaultdict(deque)
+_verification_resend_hits_per_ip: defaultdict[str, deque] = defaultdict(deque)
+_VERIFICATION_WINDOW_SEC = 3600  # 1 hour
 
 
 def generate_referral_code(user_id: int) -> str:
@@ -195,6 +205,39 @@ async def register_with_email(
         user_id=user.id,
         email=user.email,
     )
+
+    # Отправляем письмо верификации (если включено)
+    if settings.EMAIL_VERIFICATION_ENABLED and settings.SMTP_HOST and settings.SMTP_USER:
+        try:
+            from datetime import timedelta
+
+            # Генерируем токен верификации
+            token_string = secrets.token_urlsafe(32)
+            expires_at = datetime.utcnow() + timedelta(minutes=settings.EMAIL_VERIFICATION_TOKEN_TTL_MIN)
+
+            # Сохраняем токен в БД
+            verification_token = EmailVerificationToken(
+                user_id=user.id,
+                token=token_string,
+                expires_at=expires_at,
+                request_ip=request.client.host if request.client else "unknown",
+                user_agent=None,  # Не всегда доступно при регистрации
+            )
+            db.add(verification_token)
+            await db.commit()
+
+            # Отправляем email (не блокируем регистрацию если не удалось)
+            user_name = user.first_name or user.username
+            email_service.send_verification_email(
+                to_email=user.email,
+                verification_token=token_string,
+                user_name=user_name,
+            )
+        except Exception as e:
+            # Логируем ошибку, но не блокируем регистрацию
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send verification email during registration: {e}")
 
     # Формируем ответ
     return LoginResponse(
@@ -463,4 +506,199 @@ async def get_current_user_profile(
     """
     return UserProfileResponse(
         user=user_to_profile(current_user)
+    )
+
+
+# ============================================================================
+# Email Verification
+# ============================================================================
+
+
+@router.post("/send-verification", response_model=SendVerificationEmailResponse, status_code=status.HTTP_200_OK)
+async def send_verification_email(
+    request: Request,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> SendVerificationEmailResponse:
+    """
+    Отправить письмо для верификации email.
+
+    Args:
+        request: FastAPI Request (для получения IP)
+        current_user: Текущий пользователь из JWT токена
+        db: Database session
+
+    Returns:
+        SendVerificationEmailResponse: Сообщение об успешной отправке
+
+    Raises:
+        HTTPException 400: Если email уже подтверждён
+        HTTPException 429: Если превышен лимит отправки
+        HTTPException 503: Если email verification отключена
+    """
+    # Проверка, что email verification включена
+    if not settings.EMAIL_VERIFICATION_ENABLED:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email verification is disabled",
+        )
+
+    # Проверка, что у пользователя есть email
+    if not current_user.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User does not have an email address",
+        )
+
+    # Если email уже подтверждён
+    if current_user.email_verified:
+        return SendVerificationEmailResponse(
+            message="Email уже подтверждён"
+        )
+
+    # Rate limit по user_id
+    now = time.time()
+    user_hits = _verification_resend_hits_per_user[current_user.id]
+    while user_hits and now - user_hits[0] > _VERIFICATION_WINDOW_SEC:
+        user_hits.popleft()
+    if len(user_hits) >= settings.EMAIL_VERIFICATION_RESEND_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Вы можете отправить не более {settings.EMAIL_VERIFICATION_RESEND_LIMIT} писем в час",
+        )
+
+    # Rate limit по IP
+    client_ip = request.client.host if request.client else "unknown"
+    ip_hits = _verification_resend_hits_per_ip[client_ip]
+    while ip_hits and now - ip_hits[0] > _VERIFICATION_WINDOW_SEC:
+        ip_hits.popleft()
+    if len(ip_hits) >= settings.EMAIL_VERIFICATION_RESEND_PER_IP_PER_HOUR:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Слишком много запросов с вашего IP. Попробуйте позже",
+        )
+
+    # Инвалидируем предыдущие активные токены пользователя
+    result = await db.execute(
+        select(EmailVerificationToken).where(
+            EmailVerificationToken.user_id == current_user.id,
+            EmailVerificationToken.consumed_at.is_(None),
+        )
+    )
+    old_tokens = result.scalars().all()
+    for old_token in old_tokens:
+        old_token.consumed_at = datetime.utcnow()
+    await db.commit()
+
+    # Генерируем новый токен
+    from datetime import timedelta
+    token_string = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(minutes=settings.EMAIL_VERIFICATION_TOKEN_TTL_MIN)
+
+    # Сохраняем токен в БД
+    verification_token = EmailVerificationToken(
+        user_id=current_user.id,
+        token=token_string,
+        expires_at=expires_at,
+        request_ip=client_ip,
+        user_agent=request.headers.get("User-Agent"),
+    )
+    db.add(verification_token)
+    await db.commit()
+
+    # Отправляем email
+    user_name = current_user.first_name or current_user.username
+    email_sent = email_service.send_verification_email(
+        to_email=current_user.email,
+        verification_token=token_string,
+        user_name=user_name,
+    )
+
+    if not email_sent:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось отправить письмо. Попробуйте позже",
+        )
+
+    # Обновляем rate limits
+    user_hits.append(now)
+    ip_hits.append(now)
+
+    return SendVerificationEmailResponse(
+        message="Письмо для подтверждения отправлено на ваш email"
+    )
+
+
+@router.get("/verify", response_model=VerifyEmailResponse, status_code=status.HTTP_200_OK)
+async def verify_email(
+    token: str,
+    db: DBSession,
+) -> VerifyEmailResponse:
+    """
+    Верифицировать email по токену.
+
+    Args:
+        token: Токен верификации из email
+        db: Database session
+
+    Returns:
+        VerifyEmailResponse: Сообщение об успешной верификации и обновлённый профиль
+
+    Raises:
+        HTTPException 400: Если токен невалиден, истёк или уже использован
+        HTTPException 404: Если токен не найден
+    """
+    # Ищем токен
+    result = await db.execute(
+        select(EmailVerificationToken).where(
+            EmailVerificationToken.token == token
+        )
+    )
+    verification_token = result.scalar_one_or_none()
+
+    if not verification_token:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Токен не найден",
+        )
+
+    # Проверяем, не использован ли токен
+    if verification_token.is_consumed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Токен уже использован",
+        )
+
+    # Проверяем, не истёк ли токен
+    if verification_token.is_expired:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Срок действия токена истёк. Запросите новое письмо",
+        )
+
+    # Получаем пользователя
+    result = await db.execute(
+        select(User).where(User.id == verification_token.user_id)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден",
+        )
+
+    # Обновляем пользователя
+    user.email_verified = True
+    user.email_verified_at = datetime.utcnow()
+
+    # Помечаем токен как использованный
+    verification_token.consumed_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(user)
+
+    return VerifyEmailResponse(
+        message="Email успешно подтверждён",
+        user=user_to_profile(user),
     )

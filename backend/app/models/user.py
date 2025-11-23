@@ -81,6 +81,12 @@ class User(Base, TimestampMixin):
         comment="Is email verified",
     )
 
+    email_verified_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Дата и время подтверждения email",
+    )
+
     # Password hash (для Email/Password авторизации)
     password_hash: Mapped[Optional[str]] = mapped_column(
         String(255),
@@ -230,6 +236,13 @@ class User(Base, TimestampMixin):
         "Referral",
         foreign_keys="[Referral.referred_id]",
         back_populates="referred",
+        cascade="all, delete-orphan",
+    )
+
+    # Email verification tokens
+    email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
+        "EmailVerificationToken",
+        back_populates="user",
         cascade="all, delete-orphan",
     )
 
