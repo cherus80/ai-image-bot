@@ -141,7 +141,7 @@ def create_mock_user(**kwargs):
 ### Подготовка:
 
 ```bash
-cd ai-image-bot/backend
+cd ai-media-generator/backend
 
 # 1. Убедитесь что PostgreSQL запущен
 docker-compose up -d postgres
@@ -244,7 +244,7 @@ pytest tests/test_billing_v4.py tests/test_billing_api.py -v --tb=short
 
 ### Результат финального запуска:
 ```bash
-cd ai-image-bot/backend
+cd ai-media-generator/backend
 export BILLING_V4_ENABLED=true
 export BILLING_LEDGER_ENABLED=true
 export PAYMENT_MOCK_MODE=true

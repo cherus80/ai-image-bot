@@ -61,7 +61,7 @@ ssh root@185.135.82.109
 ### 3.1 Скачайте скрипт
 ```bash
 cd /root
-curl -O https://raw.githubusercontent.com/cherus80/ai-image-bot/master/vps-deploy-script.sh
+curl -O https://raw.githubusercontent.com/cherus80/ai-media-generator/master/vps-deploy-script.sh
 chmod +x vps-deploy-script.sh
 ```
 
@@ -98,7 +98,7 @@ YUKASSA_SECRET_KEY="ваш_secret_key"
 ## Шаг 4: Запустите приложение через Docker Compose ⏱️ 5-7 минут
 
 ```bash
-cd /opt/ai-image-bot
+cd /opt/ai-media-generator
 
 # Запустить все контейнеры
 docker-compose -f docker-compose.prod.yml up -d
@@ -209,7 +209,7 @@ docker ps
 
 ```bash
 # Просмотр логов всех контейнеров
-docker-compose -f /opt/ai-image-bot/docker-compose.prod.yml logs -f
+docker-compose -f /opt/ai-media-generator/docker-compose.prod.yml logs -f
 
 # Просмотр логов backend
 docker logs -f ai_image_bot_backend_prod
@@ -218,13 +218,13 @@ docker logs -f ai_image_bot_backend_prod
 docker logs -f ai_image_bot_celery_worker_prod
 
 # Перезапуск всех контейнеров
-docker-compose -f /opt/ai-image-bot/docker-compose.prod.yml restart
+docker-compose -f /opt/ai-media-generator/docker-compose.prod.yml restart
 
 # Остановка всех контейнеров
-docker-compose -f /opt/ai-image-bot/docker-compose.prod.yml down
+docker-compose -f /opt/ai-media-generator/docker-compose.prod.yml down
 
 # Запуск всех контейнеров
-docker-compose -f /opt/ai-image-bot/docker-compose.prod.yml up -d
+docker-compose -f /opt/ai-media-generator/docker-compose.prod.yml up -d
 
 # Использование ресурсов
 docker stats
@@ -242,10 +242,10 @@ docker exec -it ai_image_bot_postgres_prod pg_dump -U postgres ai_image_bot > /o
 1. Откройте http://185.135.82.109:9000/
 2. Войдите (admin / Rusik_773arm258)
 3. Выберите **Stacks** → **Add stack**
-4. Название: `ai-image-bot`
+4. Название: `ai-media-generator`
 5. Выберите **Web editor**
-6. Скопируйте содержимое файла `/opt/ai-image-bot/docker-compose.prod.yml`
-7. В разделе **Environment variables** добавьте переменные из `/opt/ai-image-bot/.env`
+6. Скопируйте содержимое файла `/opt/ai-media-generator/docker-compose.prod.yml`
+7. В разделе **Environment variables** добавьте переменные из `/opt/ai-media-generator/.env`
 8. Нажмите **Deploy the stack**
 
 ---
@@ -267,12 +267,12 @@ docker exec -it ai_image_bot_postgres_prod pg_dump -U postgres ai_image_bot > /o
 3. **Проверьте nginx:**
    ```bash
    systemctl status nginx
-   tail -f /var/log/nginx/ai-image-bot-error.log
+   tail -f /var/log/nginx/ai-media-generator-error.log
    ```
 
 4. **Перезапустите всё:**
    ```bash
-   cd /opt/ai-image-bot
+   cd /opt/ai-media-generator
    docker-compose -f docker-compose.prod.yml restart
    systemctl restart nginx
    ```
@@ -294,7 +294,7 @@ docker exec -it ai_image_bot_postgres_prod pg_dump -U postgres ai_image_bot > /o
 
 5. **Обновления:** Для обновления приложения:
    ```bash
-   cd /opt/ai-image-bot
+   cd /opt/ai-media-generator
    git pull
    docker-compose -f docker-compose.prod.yml build
    docker-compose -f docker-compose.prod.yml up -d

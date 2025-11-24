@@ -188,7 +188,7 @@ if (isDev && !inTelegram) {
 ## 🗂️ Структура проекта
 
 ```
-ai-image-bot/
+ai-media-generator/
 ├── backend/                        # FastAPI backend
 │   ├── app/
 │   │   ├── api/v1/endpoints/

@@ -241,7 +241,7 @@ async def test_concurrent_generations_v4(
 
 ```bash
 # Подготовка
-cd ai-image-bot/backend
+cd ai-media-generator/backend
 alembic upgrade head
 
 # Убедиться что .env настроен

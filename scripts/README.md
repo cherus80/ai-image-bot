@@ -28,7 +28,7 @@
 crontab -e
 
 # Добавить строку для ежедневного backup в 2:00 ночи
-0 2 * * * /root/ai-image-bot/scripts/backup-database.sh >> /var/log/ai-bot-backup.log 2>&1
+0 2 * * * /root/ai-media-generator/scripts/backup-database.sh >> /var/log/ai-bot-backup.log 2>&1
 ```
 
 **Расположение backup'ов:**
@@ -120,10 +120,10 @@ gunzip -c backup_file.sql.gz | head -100
 ### Копирование backup на локальную машину
 ```bash
 # С VPS на локальную машину
-scp root@185.135.82.109:/root/ai-image-bot/backups/db_backup_*.sql.gz ./
+scp root@185.135.82.109:/root/ai-media-generator/backups/db_backup_*.sql.gz ./
 
 # Или скачать последний backup
-ssh root@185.135.82.109 "cat /root/ai-image-bot/backups/daily_latest.sql.gz" > latest_backup.sql.gz
+ssh root@185.135.82.109 "cat /root/ai-media-generator/backups/daily_latest.sql.gz" > latest_backup.sql.gz
 ```
 
 ## Troubleshooting
@@ -134,7 +134,7 @@ ssh root@185.135.82.109 "cat /root/ai-image-bot/backups/daily_latest.sql.gz" > l
 df -h
 
 # Удалить старые backup'ы вручную
-cd /root/ai-image-bot/backups
+cd /root/ai-media-generator/backups
 rm db_backup_2024*.sql.gz
 
 # Очистить Docker volumes (осторожно!)
@@ -179,7 +179,7 @@ chmod +x scripts/backup-database.sh
 # upload-to-s3.sh
 
 BACKUP_FILE=$1
-S3_BUCKET="s3://your-backup-bucket/ai-image-bot/"
+S3_BUCKET="s3://your-backup-bucket/ai-media-generator/"
 
 aws s3 cp "${BACKUP_FILE}" "${S3_BUCKET}" \
     --storage-class STANDARD_IA \
@@ -201,7 +201,7 @@ BACKUP_NOTIFICATION_WEBHOOK=https://hooks.slack.com/services/...
 #!/bin/bash
 # check-backup-age.sh
 
-LATEST_BACKUP=$(ls -t /root/ai-image-bot/backups/db_backup_*.sql.gz | head -1)
+LATEST_BACKUP=$(ls -t /root/ai-media-generator/backups/db_backup_*.sql.gz | head -1)
 BACKUP_AGE=$(($(date +%s) - $(stat -c %Y "${LATEST_BACKUP}")))
 MAX_AGE=$((24 * 3600))  # 24 hours
 

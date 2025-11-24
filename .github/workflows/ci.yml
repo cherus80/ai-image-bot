@@ -131,7 +131,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: false
-          tags: ai-image-bot-backend:test
+          tags: ai-media-generator-backend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -141,7 +141,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile.prod
           push: false
-          tags: ai-image-bot-frontend:test
+          tags: ai-media-generator-frontend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -151,7 +151,7 @@ jobs:
           context: ./telegram_bot
           file: ./telegram_bot/Dockerfile
           push: false
-          tags: ai-image-bot-telegram:test
+          tags: ai-media-generator-telegram:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -19,7 +19,7 @@ Nginx будет выступать в роли reverse proxy, перенапр�
 
 ```bash
 # Копируем готовую конфигурацию
-sudo cp nginx/ai-image-bot.conf /etc/nginx/sites-available/ai-image-bot.conf
+sudo cp nginx/ai-media-generator.conf /etc/nginx/sites-available/ai-media-generator.conf
 ```
 
 ---
@@ -29,7 +29,7 @@ sudo cp nginx/ai-image-bot.conf /etc/nginx/sites-available/ai-image-bot.conf
 Откройте файл:
 
 ```bash
-sudo nano /etc/nginx/sites-available/ai-image-bot.conf
+sudo nano /etc/nginx/sites-available/ai-media-generator.conf
 ```
 
 ### Что нужно изменить:
@@ -80,7 +80,7 @@ ssl_trusted_certificate /etc/letsencrypt/live/your-domain.com/chain.pem;
 
 ```bash
 # Создаём симлинк в sites-enabled
-sudo ln -s /etc/nginx/sites-available/ai-image-bot.conf /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/ai-media-generator.conf /etc/nginx/sites-enabled/
 
 # Проверяем, что симлинк создан
 ls -la /etc/nginx/sites-enabled/
@@ -188,9 +188,9 @@ curl https://your-domain.com/api/v1/health
 /etc/nginx/
 ├── nginx.conf                          # Главная конфигурация nginx
 ├── sites-available/
-│   └── ai-image-bot.conf              # Наша конфигурация (исходник)
+│   └── ai-media-generator.conf              # Наша конфигурация (исходник)
 ├── sites-enabled/
-│   └── ai-image-bot.conf -> ../sites-available/ai-image-bot.conf  # Симлинк
+│   └── ai-media-generator.conf -> ../sites-available/ai-media-generator.conf  # Симлинк
 └── conf.d/
 ```
 
@@ -261,7 +261,7 @@ location /ws/ {
 
 ```nginx
 location /uploads/ {
-    alias /var/www/ai-image-bot/uploads/;
+    alias /var/www/ai-media-generator/uploads/;
     expires 24h;
 }
 ```
@@ -317,17 +317,17 @@ gzip_types text/plain text/css application/javascript application/json;
 
 ```bash
 # Access log (все запросы)
-/var/log/nginx/ai-image-bot-access.log
+/var/log/nginx/ai-media-generator-access.log
 
 # Error log (ошибки)
-/var/log/nginx/ai-image-bot-error.log
+/var/log/nginx/ai-media-generator-error.log
 
 # Просмотр логов в реальном времени
-sudo tail -f /var/log/nginx/ai-image-bot-access.log
-sudo tail -f /var/log/nginx/ai-image-bot-error.log
+sudo tail -f /var/log/nginx/ai-media-generator-access.log
+sudo tail -f /var/log/nginx/ai-media-generator-error.log
 
 # Поиск ошибок за последний час
-sudo grep "error" /var/log/nginx/ai-image-bot-error.log | tail -n 50
+sudo grep "error" /var/log/nginx/ai-media-generator-error.log | tail -n 50
 ```
 
 ---
@@ -478,7 +478,7 @@ limit_req zone=api burst=20 nodelay;
 
 ## Резюме
 
-✅ Скопировали конфигурацию: `nginx/ai-image-bot.conf` → `/etc/nginx/sites-available/`
+✅ Скопировали конфигурацию: `nginx/ai-media-generator.conf` → `/etc/nginx/sites-available/`
 ✅ Изменили доменное имя и пути к SSL
 ✅ Создали симлинк в `sites-enabled/`
 ✅ Проверили синтаксис: `sudo nginx -t`

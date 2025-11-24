@@ -21,7 +21,7 @@ git commit -m "fix: cache busting для веб-клиента (v0.11.3)"
 git push origin master
 
 # На VPS (SSH):
-cd /path/to/ai-image-bot
+cd /path/to/ai-media-generator
 git pull origin master
 ```
 
@@ -45,7 +45,7 @@ git pull origin master
 docker ps | grep frontend
 
 # Проверить логи:
-docker logs ai-image-bot-frontend --tail 50
+docker logs ai-media-generator-frontend --tail 50
 
 # Проверить headers:
 curl -I https://your-domain.com/
@@ -81,7 +81,7 @@ curl https://your-domain.com/ | grep -o 'src="[^"]*\.js"'
 ```bash
 # На VPS:
 docker-compose down frontend
-docker rmi ai-image-bot-frontend
+docker rmi ai-media-generator-frontend
 docker system prune -af
 ./redeploy-frontend.sh
 ```
@@ -90,7 +90,7 @@ docker system prune -af
 
 ### Успешный деплой:
 
-✅ `docker ps` показывает `ai-image-bot-frontend` (Up)
+✅ `docker ps` показывает `ai-media-generator-frontend` (Up)
 ✅ `curl -I /` возвращает `Cache-Control: no-cache`
 ✅ `curl /` показывает файлы с хешами: `index.a1b2c3d4.js`
 ✅ Браузер/пользователи видят обновлённый интерфейс
@@ -129,7 +129,7 @@ docker system prune -af
 **Не работает?** Проверьте:
 
 1. Контейнер запущен: `docker ps | grep frontend`
-2. Нет ошибок в логах: `docker logs ai-image-bot-frontend`
+2. Нет ошибок в логах: `docker logs ai-media-generator-frontend`
 3. Headers правильные: `curl -I https://your-domain.com/`
 4. Файлы с хешами: `curl https://your-domain.com/ | grep assets`
 - Браузерное приложение перезапущено / вкладка перезагружена с очисткой кэша

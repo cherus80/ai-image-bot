@@ -145,9 +145,9 @@
 ## 📝 Файлы тестов
 
 ### Playwright E2E Tests
-- **Локация:** `ai-image-bot/tests/e2e/admin-panel.spec.ts`
-- **Конфигурация:** `ai-image-bot/playwright.config.ts`
-- **Package:** `ai-image-bot/package.json`
+- **Локация:** `ai-media-generator/tests/e2e/admin-panel.spec.ts`
+- **Конфигурация:** `ai-media-generator/playwright.config.ts`
+- **Package:** `ai-media-generator/package.json`
 
 ### Покрытие тестами
 
@@ -170,7 +170,7 @@
 
 ```bash
 # Перейти в директорию проекта
-cd ai-image-bot
+cd ai-media-generator
 
 # Установить зависимости (если еще не установлены)
 npm install

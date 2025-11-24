@@ -68,16 +68,16 @@ sudo apt install -y curl git htop nano certbot python3-certbot-nginx
 ### 4. Создание директории для проекта
 
 ```bash
-sudo mkdir -p /var/www/ai-image-bot
-sudo chown -R $USER:$USER /var/www/ai-image-bot
-cd /var/www/ai-image-bot
+sudo mkdir -p /var/www/ai-media-generator
+sudo chown -R $USER:$USER /var/www/ai-media-generator
+cd /var/www/ai-media-generator
 ```
 
 ### 5. Клонирование проекта
 
 ```bash
 # Если используете git
-git clone https://github.com/your-repo/ai-image-bot.git .
+git clone https://github.com/your-repo/ai-media-generator.git .
 
 # Или загрузите файлы через SFTP/SCP
 ```
@@ -128,7 +128,7 @@ sudo crontab -e
 #### Backend (.env.production)
 
 ```bash
-cd /var/www/ai-image-bot
+cd /var/www/ai-media-generator
 cp backend/.env.example backend/.env.production
 nano backend/.env.production
 ```
@@ -237,13 +237,13 @@ ls -la frontend/.env.production
 ### 1. Копирование конфигурации
 
 ```bash
-sudo cp nginx/ai-image-bot.conf /etc/nginx/sites-available/ai-image-bot.conf
+sudo cp nginx/ai-media-generator.conf /etc/nginx/sites-available/ai-media-generator.conf
 ```
 
 ### 2. Редактирование конфигурации
 
 ```bash
-sudo nano /etc/nginx/sites-available/ai-image-bot.conf
+sudo nano /etc/nginx/sites-available/ai-media-generator.conf
 ```
 
 **Замените `your-domain.com` на ваш домен** во всех местах:
@@ -260,7 +260,7 @@ ssl_trusted_certificate /etc/letsencrypt/live/your-domain.com/chain.pem;  # <- �
 ### 3. Создание симлинка
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/ai-image-bot.conf /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/ai-media-generator.conf /etc/nginx/sites-enabled/
 ```
 
 ### 4. Отключение дефолтной конфигурации (если нужно)
@@ -295,7 +295,7 @@ sudo systemctl reload nginx
 ### 1. Сборка образов
 
 ```bash
-cd /var/www/ai-image-bot
+cd /var/www/ai-media-generator
 ./deploy.sh build
 ```
 
@@ -438,8 +438,8 @@ docker system df
 
 ```bash
 # nginx логи
-sudo tail -f /var/log/nginx/ai-image-bot-access.log
-sudo tail -f /var/log/nginx/ai-image-bot-error.log
+sudo tail -f /var/log/nginx/ai-media-generator-access.log
+sudo tail -f /var/log/nginx/ai-media-generator-error.log
 
 # Docker логи
 docker logs -f ai_image_bot_backend_prod
@@ -480,7 +480,7 @@ https://your-server-ip:9443
 crontab -e
 
 # Добавить backup каждый день в 4:00 утра
-0 4 * * * cd /var/www/ai-image-bot && ./deploy.sh backup
+0 4 * * * cd /var/www/ai-media-generator && ./deploy.sh backup
 ```
 
 ### Восстановление из backup
@@ -633,7 +633,7 @@ rm backups/backup_*.sql.old
 ### Способ 1: Через git (рекомендуется)
 
 ```bash
-cd /var/www/ai-image-bot
+cd /var/www/ai-media-generator
 
 # Обновить код, пересобрать, перезапустить
 ./deploy.sh update

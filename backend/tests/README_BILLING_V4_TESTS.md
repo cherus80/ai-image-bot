@@ -3,7 +3,7 @@
 ## Подготовка
 
 ```bash
-cd ai-image-bot/backend
+cd ai-media-generator/backend
 
 # 1. Запустить Postgres
 docker start ai_image_bot_postgres

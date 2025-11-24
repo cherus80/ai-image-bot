@@ -548,14 +548,14 @@ async def generate_fitting(...):
 # docker-compose.yml
 services:
   backend:
-    image: ai-image-bot-backend
+    image: ai-media-generator-backend
     deploy:
       replicas: 3  # 3 инстанса backend
     environment:
       - WORKERS=2  # 2 воркера на инстанс
 
   celery_worker:
-    image: ai-image-bot-backend
+    image: ai-media-generator-backend
     command: celery -A app.tasks.celery_app worker -Q fitting,editing,maintenance
     deploy:
       replicas: 5  # 5 воркеров Celery
