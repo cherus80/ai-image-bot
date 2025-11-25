@@ -186,7 +186,7 @@ def generate_editing_task(
                         result_url = None  # Reset для fallback
 
                 # Попытка 2: OpenRouter (fallback или primary если kie.ai отключен)
-                if service_used == "kie_ai" and settings.KIE_AI_DISABLE_FALLBACK:
+                if service_used == "kie_ai" and settings.KIE_AI_DISABLE_FALLBACK and not result_url:
                     raise ValueError("kie.ai failed and fallback is disabled")
 
                 if not result_url:

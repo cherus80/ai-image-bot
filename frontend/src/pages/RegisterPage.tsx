@@ -53,7 +53,7 @@ export function RegisterPage() {
       // Если есть реферальный код, зарегистрировать реферала
       if (referralCode) {
         try {
-          await registerReferral(referralCode);
+          await registerReferral({ referral_code: referralCode });
           console.log('Referral registered successfully');
         } catch (refError) {
           console.error('Failed to register referral:', refError);
@@ -71,7 +71,7 @@ export function RegisterPage() {
     // Если есть реферальный код, зарегистрировать реферала
     if (referralCode) {
       try {
-        await registerReferral(referralCode);
+        await registerReferral({ referral_code: referralCode });
         console.log('Referral registered successfully after Google sign-in');
       } catch (refError) {
         console.error('Failed to register referral after Google sign-in:', refError);

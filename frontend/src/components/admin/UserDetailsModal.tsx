@@ -352,7 +352,16 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
       {/* Модальное окно добавления кредитов */}
       <AddCreditsModal
-        userId={userId}
+        user={
+          userDetails
+            ? {
+                id: userDetails.user.id,
+                email: userDetails.user.email || 'unknown',
+                username: userDetails.user.username || undefined,
+                balance_credits: userDetails.user.balance_credits,
+              }
+            : null
+        }
         isOpen={showAddCreditsModal}
         onClose={() => setShowAddCreditsModal(false)}
         onSuccess={handleCreditsAdded}

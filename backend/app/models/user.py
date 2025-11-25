@@ -32,9 +32,9 @@ class SubscriptionType(str, enum.Enum):
 
 class AuthProvider(str, enum.Enum):
     """Способы авторизации"""
-    EMAIL = "EMAIL"       # Email/Password
-    GOOGLE = "GOOGLE"     # Google OAuth
-    TELEGRAM = "TELEGRAM" # Legacy Telegram (для обратной совместимости)
+    email = "email"       # Email/Password
+    google = "google"     # Google OAuth
+    telegram = "telegram" # Legacy Telegram (для обратной совместимости)
 
 
 class UserRole(str, enum.Enum):
@@ -97,7 +97,7 @@ class User(Base, TimestampMixin):
     # OAuth provider
     auth_provider: Mapped[AuthProvider] = mapped_column(
         Enum(AuthProvider, name="auth_provider_enum"),
-        default=AuthProvider.EMAIL,
+        default=AuthProvider.email,
         nullable=False,
         comment="Authentication provider (email, google, telegram)",
     )

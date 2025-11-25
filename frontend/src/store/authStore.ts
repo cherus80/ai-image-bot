@@ -49,16 +49,21 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => {
-      const computeAccessFlags = (user: UserProfile | null) => ({
-        hasCredits: (user?.balance_credits ?? 0) > 0,
-        canUseFreemium: user?.can_use_freemium ?? false,
-        hasActiveSubscription:
+      const computeAccessFlags = (user: UserProfile | null) => {
+        const hasActiveSubscription =
           !!user?.subscription_type &&
+          user.subscription_type !== 'none' &&
           !!user.subscription_expires_at &&
-          new Date(user.subscription_expires_at) > new Date(),
-        isAdmin: user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN',
-        isSuperAdmin: user?.role === 'SUPER_ADMIN',
-      });
+          new Date(user.subscription_expires_at) > new Date();
+
+        return {
+          hasCredits: (user?.balance_credits ?? 0) > 0,
+          canUseFreemium: user?.can_use_freemium ?? false,
+          hasActiveSubscription,
+          isAdmin: user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN',
+          isSuperAdmin: user?.role === 'SUPER_ADMIN',
+        };
+      };
 
       return {
         // Initial state
@@ -74,7 +79,8 @@ export const useAuthStore = create<AuthState>()(
           // Если профиль уже есть и не запрашивали принудительно — избегаем лишнего спиннера
           if (get().user) {
             try {
-              const user = await getCurrentUser();
+              const profile = await getCurrentUser();
+              const user = profile.user;
               set({ user, isLoading: false, error: null, ...computeAccessFlags(user) });
               return;
             } catch {
@@ -235,17 +241,15 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
 
-        try {
-          const profile = await getCurrentUser();
-          const user = profile.user;
+          try {
+            const profile = await getCurrentUser();
+            const user = profile.user;
 
-          set({
-            user,
-            error: null,
-            ...computeAccessFlags(user),
+            set({
+              user,
+              error: null,
+              ...computeAccessFlags(user),
             });
-
-            // Zustand persist automatically updates localStorage
           } catch (error: any) {
             const errorMessage = error.detail || 'Не удалось обновить профиль';
             set({
@@ -296,15 +300,21 @@ export const useAuthStore = create<AuthState>()(
             console.error('❌ Ошибка восстановления состояния:', error);
           } else if (state) {
             // Recompute access flags from rehydrated user
-            const computeAccessFlags = (user: UserProfile | null) => ({
-              hasCredits: (user?.balance_credits ?? 0) > 0,
-              canUseFreemium: user?.can_use_freemium ?? false,
-              hasActiveSubscription:
+            const computeAccessFlags = (user: UserProfile | null) => {
+              const hasActiveSubscription =
                 !!user?.subscription_type &&
+                user.subscription_type !== 'none' &&
                 !!user.subscription_expires_at &&
-                new Date(user.subscription_expires_at) > new Date(),
-              isAdmin: user?.role === 'ADMIN',
-            });
+                new Date(user.subscription_expires_at) > new Date();
+
+              return {
+                hasCredits: (user?.balance_credits ?? 0) > 0,
+                canUseFreemium: user?.can_use_freemium ?? false,
+                hasActiveSubscription,
+                isAdmin: user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN',
+                isSuperAdmin: user?.role === 'SUPER_ADMIN',
+              };
+            };
 
             // Apply computed flags to rehydrated state
             Object.assign(state, computeAccessFlags(state.user));

@@ -55,7 +55,7 @@ class CreditsLedger(Base, TimestampMixin):
         index=True,
     )
     type: Mapped[LedgerEntryType] = mapped_column(
-        Enum(LedgerEntryType, name="ledger_entry_type_enum"),
+        Enum(LedgerEntryType, name="ledger_entry_type_enum", native_enum=False),
         nullable=False,
     )
     amount: Mapped[int] = mapped_column(
@@ -64,7 +64,7 @@ class CreditsLedger(Base, TimestampMixin):
         comment="Положительное число для начисления, отрицательное для списания",
     )
     source: Mapped[LedgerSource] = mapped_column(
-        Enum(LedgerSource, name="ledger_source_enum"),
+        Enum(LedgerSource, name="ledger_source_enum", native_enum=False),
         nullable=False,
         comment="Источник операции: подписка, freemium или кредиты",
     )

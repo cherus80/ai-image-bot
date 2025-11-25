@@ -19,6 +19,21 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Безопасно удаляем старые enum-типы, если остались от предыдущих попыток
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ledger_entry_type_enum') THEN
+                DROP TYPE ledger_entry_type_enum;
+            END IF;
+            IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ledger_source_enum') THEN
+                DROP TYPE ledger_source_enum;
+            END IF;
+        END$$;
+        """
+    )
+
     # Enums for ledger
     ledger_entry_type_enum = sa.Enum(
         'tryon',
@@ -27,16 +42,15 @@ def upgrade() -> None:
         'subscription',
         'credit_purchase',
         name='ledger_entry_type_enum',
+        native_enum=False,
     )
     ledger_source_enum = sa.Enum(
         'subscription',
         'freemium',
         'credits',
         name='ledger_source_enum',
+        native_enum=False,
     )
-    bind = op.get_bind()
-    ledger_entry_type_enum.create(bind, checkfirst=True)
-    ledger_source_enum.create(bind, checkfirst=True)
 
     # Subscription ops fields on users
     op.add_column(

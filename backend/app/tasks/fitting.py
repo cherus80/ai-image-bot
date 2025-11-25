@@ -251,7 +251,7 @@ def generate_fitting_task(
                         generated_image_url = None  # Reset для fallback
 
                 # Попытка 2: OpenRouter (fallback или primary если kie.ai отключен)
-                if service_used == "kie_ai" and settings.KIE_AI_DISABLE_FALLBACK:
+                if service_used == "kie_ai" and settings.KIE_AI_DISABLE_FALLBACK and not generated_image_url:
                     raise ValueError("kie.ai failed and fallback is disabled")
 
                 if not generated_image_url:

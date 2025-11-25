@@ -175,7 +175,7 @@ async def register_with_email(
         email=request_body.email,
         email_verified=False,  # TODO: Добавить email verification позже
         password_hash=password_hash,
-        auth_provider=AuthProvider.EMAIL,
+        auth_provider=AuthProvider.email,
         first_name=request_body.first_name,
         last_name=request_body.last_name,
         username=request_body.email.split('@')[0],  # Временный username из email
@@ -411,8 +411,8 @@ async def login_with_google(
     if user:
         # Обновляем существующего пользователя
         # Если пользователь был с email/password, переключаем на Google OAuth
-        if user.auth_provider == AuthProvider.EMAIL:
-            user.auth_provider = AuthProvider.GOOGLE
+        if user.auth_provider == AuthProvider.email:
+            user.auth_provider = AuthProvider.google
             user.oauth_provider_id = google_sub
 
         # Обновляем данные профиля
@@ -439,7 +439,7 @@ async def login_with_google(
         user = User(
             email=email,
             email_verified=email_verified,
-            auth_provider=AuthProvider.GOOGLE,
+            auth_provider=AuthProvider.google,
             oauth_provider_id=google_sub,
             first_name=first_name,
             last_name=last_name,

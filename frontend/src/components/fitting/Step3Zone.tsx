@@ -34,8 +34,8 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
     }
 
     const hasCredits = user.balance_credits >= 2;
-    const hasSubscription = user.subscription_type && user.subscription_type !== 'none';
-    const hasFreemium = user.freemium_actions_remaining > 0;
+    const hasSubscription = !!user.subscription_type && user.subscription_type !== 'none';
+    const hasFreemium = (user.freemium_actions_remaining ?? 0) > 0;
 
     if (!hasCredits && !hasSubscription && !hasFreemium) {
       toast.error('Недостаточно кредитов для генерации');

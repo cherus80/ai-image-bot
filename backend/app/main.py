@@ -92,6 +92,8 @@ app.add_middleware(
         "http://127.0.0.1:5174",
         "https://ai-bot-media.mix4.ru",  # Production frontend
         "https://api.ai-bot-media.mix4.ru",  # Production API
+        "https://ai-generator.mix4.ru",  # New production frontend
+        "https://api.ai-generator.mix4.ru",  # New production API
     ],
     allow_credentials=True,
     allow_methods=["*"],

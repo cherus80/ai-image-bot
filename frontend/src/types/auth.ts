@@ -13,6 +13,8 @@
 
 export type AuthProvider = 'email' | 'google' | 'telegram';
 
+export type SubscriptionType = 'basic' | 'pro' | 'premium' | 'none';
+
 // ============================================================================
 // Email/Password Registration & Login
 // ============================================================================
@@ -85,12 +87,19 @@ export interface UserProfile {
 
   // Balance & Subscription
   balance_credits: number;
-  subscription_type?: 'basic' | 'pro' | 'premium';
-  subscription_expires_at?: string;
+  subscription_type?: SubscriptionType | null;
+  subscription_expires_at?: string | null;
+  subscription_ops_limit?: number | null;
+  subscription_ops_used?: number | null;
+  subscription_ops_remaining?: number | null;
+  subscription_ops_reset_at?: string | null;
 
   // Freemium
   freemium_actions_used: number;
-  freemium_reset_at: string;
+  freemium_reset_at: string | null;
+  freemium_actions_remaining?: number;
+  freemium_actions_limit?: number;
+  freemium_last_reset?: string | null;
   can_use_freemium: boolean;
 
   // Status
@@ -99,7 +108,7 @@ export interface UserProfile {
   last_activity_at: string;
 
   // Role
-  role: 'USER' | 'ADMIN'; // User role for admin panel access
+  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN'; // User role for admin panel access
 
   // Referral
   referral_code: string;

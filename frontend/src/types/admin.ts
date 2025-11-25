@@ -82,7 +82,7 @@ export interface AdminUserItem {
   freemium_reset_at: string | null; // ISO datetime
   created_at: string; // ISO datetime
   last_active_at: string | null; // ISO datetime
-  role: 'USER' | 'ADMIN'; // User role
+  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN'; // User role
   total_generations: number;
   total_spent: string; // Decimal as string
   referrals_count: number;

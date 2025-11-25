@@ -96,10 +96,10 @@ export const useAuth = () => {
     // Computed values
     hasCredits: user ? user.balance_credits > 0 : false,
     canUseFreemium: user ? user.can_use_freemium : false,
-    hasActiveSubscription: user
-      ? user.subscription_type !== null &&
-        user.subscription_expires_at !== null &&
-        new Date(user.subscription_expires_at) > new Date()
-      : false,
+    hasActiveSubscription: (() => {
+      if (!user || !user.subscription_type || user.subscription_type === 'none') return false;
+      const expiresAt = user.subscription_expires_at ? new Date(user.subscription_expires_at) : null;
+      return !!expiresAt && expiresAt > new Date();
+    })(),
   };
 };

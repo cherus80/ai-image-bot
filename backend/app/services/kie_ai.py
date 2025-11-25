@@ -50,11 +50,11 @@ class KieAIClient:
 
     BASE_URL = "https://api.kie.ai"  # root, without /api/v1
     SUBMIT_ENDPOINT = "/api/v1/jobs/createTask"
-    STATUS_ENDPOINT = "/api/v1/gpt4o-image/record-info"
+    STATUS_ENDPOINT = "/api/v1/jobs/recordInfo"
     MODEL_NAME = "google/nano-banana"
 
     DEFAULT_POLL_INTERVAL = 5
-    DEFAULT_MAX_POLLS = 18  # ~90s
+    DEFAULT_MAX_POLLS = 24  # ~120s, должно хватить даже с запасом
 
     SUPPORTED_ASPECT_RATIOS = [
         "1:1",
@@ -145,8 +145,8 @@ class KieAIClient:
             "image_size": image_size,
             "size": image_size,
         }
-        task_id = await self._submit_task(prompt=prompt, input_payload=input_payload)
-        task_data = await self._poll_task_until_complete(task_id, progress_callback)
+        task_id, status_id = await self._submit_task(prompt=prompt, input_payload=input_payload)
+        task_data = await self._poll_task_until_complete(status_id, progress_callback)
         return self._extract_image_from_result(task_data)
 
     async def generate_image_edit(
@@ -173,8 +173,8 @@ class KieAIClient:
         if mask_url:
             input_payload["maskUrl"] = mask_url
 
-        task_id = await self._submit_task(prompt=prompt, input_payload=input_payload)
-        task_data = await self._poll_task_until_complete(task_id, progress_callback)
+        task_id, status_id = await self._submit_task(prompt=prompt, input_payload=input_payload)
+        task_data = await self._poll_task_until_complete(status_id, progress_callback)
         return self._extract_image_from_result(task_data)
 
     # ---------------------------------------------------------------
@@ -187,7 +187,7 @@ class KieAIClient:
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
         reraise=True,
     )
-    async def _submit_task(self, prompt: str, input_payload: dict) -> str:
+    async def _submit_task(self, prompt: str, input_payload: dict) -> tuple[str, str]:
         payload = {
             "model": self.MODEL_NAME,
             "input": {"prompt": prompt, **input_payload},
@@ -207,11 +207,12 @@ class KieAIClient:
         body = response.json()
         data = body.get("data", {}) or {}
         task_id = data.get("taskId") or body.get("taskId") or body.get("task_id")
+        record_id = data.get("recordId") or data.get("record_id") or task_id
         if not task_id:
             raise KieAIError(f"Task ID not found in response: {body}")
 
-        logger.info("Submitted task to kie.ai: task_id=%s", task_id)
-        return task_id
+        logger.info("Submitted task to kie.ai: task_id=%s, record_id=%s", task_id, record_id)
+        return task_id, record_id
 
     async def _check_task_status(self, task_id: str) -> Dict:
         response = await self.client.get(self.status_url, params={"taskId": task_id})
@@ -240,8 +241,13 @@ class KieAIClient:
             try:
                 raw = await self._check_task_status(task_id)
                 data = raw.get("data", raw) or {}
+                if not data:
+                    logger.info("Task %s: empty status payload (poll %s)", task_id, polls)
+                    await asyncio.sleep(self.poll_interval)
+                    continue
                 success_flag = data.get("successFlag")
                 progress = data.get("progress", 0)
+                state = data.get("state")
 
                 if progress_callback:
                     pct = int(progress * 100) if isinstance(progress, (int, float)) else 50
@@ -250,7 +256,7 @@ class KieAIClient:
                     except Exception as e:
                         logger.warning("Progress callback error: %s", e)
 
-                if success_flag == 1:
+                if state == "success" or success_flag == 1:
                     logger.info(
                         "Task %s completed after %s polls (%.1fs)",
                         task_id,
@@ -258,8 +264,13 @@ class KieAIClient:
                         elapsed,
                     )
                     return data
-                if success_flag == 2:
-                    error_msg = data.get("failMsg") or data.get("message") or "Task failed"
+                if state == "fail" or success_flag == 2:
+                    error_msg = (
+                        data.get("failMsg")
+                        or data.get("message")
+                        or data.get("msg")
+                        or "Task failed"
+                    )
                     raise KieAITaskFailedError(error_msg)
 
                 await asyncio.sleep(self.poll_interval)

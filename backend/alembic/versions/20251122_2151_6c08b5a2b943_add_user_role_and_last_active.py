@@ -20,8 +20,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Создаем enum для ролей пользователей
-    user_role_enum = sa.Enum('user', 'admin', name='user_role_enum', create_type=True)
+    # Создаем enum для ролей пользователей (используем значения в верхнем регистре для согласованности с моделью/фронтом)
+    user_role_enum = sa.Enum('USER', 'ADMIN', name='user_role_enum', create_type=True)
     user_role_enum.create(op.get_bind(), checkfirst=True)
 
     # Добавляем поле role

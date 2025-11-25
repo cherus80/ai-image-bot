@@ -1,0 +1,37 @@
+{
+    email cherus09@mail.ru
+    # Отключаем попытки on-demand, используем обычный ACME
+    acme_ca https://acme-v02.api.letsencrypt.org/directory
+}
+
+ai-generator.mix4.ru {
+    encode gzip
+
+    @api path /api/* /health
+    handle @api {
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+        }
+    }
+
+    @uploads path /uploads/* 
+    handle @uploads {
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+        }
+    }
+
+    handle {
+        reverse_proxy frontend:80 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+        }
+    }
+
+    # Ограничение размера загрузок (до 20 МБ с запасом)
+    request_body {
+        max_size 20MB
+    }
+}

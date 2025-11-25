@@ -18,7 +18,7 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
-  const { isAuthenticated, isLoading, error, token } = useAuth();
+  const { isAuthenticated, isLoading, error } = useAuth();
   const [isHydrated, setIsHydrated] = React.useState(false);
 
   // Ждем восстановления состояния из localStorage

@@ -3,6 +3,7 @@
  */
 
 import React, { useState } from 'react';
+import apiClient from '../../api/client';
 
 interface User {
   id: number;
@@ -43,34 +44,10 @@ export const AddCreditsModal: React.FC<AddCreditsModalProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth-storage');
-      if (!token) throw new Error('No token');
-
-      const authData = JSON.parse(token);
-      const accessToken = authData.state?.token;
-
-      const response = await fetch(
-        `http://localhost:8000/api/v1/admin/users/${user.id}/add-credits`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            amount: amountNum,
-            reason: reason || 'Admin credit adjustment',
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Failed to add credits');
-      }
-
-      const data = await response.json();
-      console.log('Credits added:', data);
+      await apiClient.post(`/api/v1/admin/users/${user.id}/add-credits`, {
+        amount: amountNum,
+        reason: reason || 'Admin credit adjustment',
+      });
 
       setAmount('');
       setReason('');

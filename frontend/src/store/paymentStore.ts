@@ -266,7 +266,8 @@ export const usePayment = () => {
     user: authStore.user,
     hasCredits: authStore.user ? authStore.user.balance_credits > 0 : false,
     hasActiveSubscription: authStore.user
-      ? authStore.user.subscription_type !== 'none'
+      ? !!authStore.user.subscription_type &&
+        authStore.user.subscription_type !== 'none'
       : false,
   };
 };
