@@ -31,10 +31,16 @@ export function EmailVerificationPage() {
         setState('success');
         setMessage(response.message);
 
-        // Редирект на главную через 3 секунды
+        // Покажем тост после редиректа на главную
+        sessionStorage.setItem(
+          'emailVerifiedMessage',
+          response.message || 'Email подтверждён! Теперь можно пользоваться приложением.'
+        );
+
+        // Редирект на главную через 2 секунды
         setTimeout(() => {
-          navigate('/');
-        }, 3000);
+          navigate('/', { replace: true });
+        }, 2000);
       } catch (error: any) {
         setState('error');
 

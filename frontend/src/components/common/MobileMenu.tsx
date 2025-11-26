@@ -71,7 +71,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         </svg>
       ),
       label: 'История генераций',
-      onClick: () => handleNavigate('/profile'),
+      onClick: () => handleNavigate('/history'),
     },
     {
       icon: (

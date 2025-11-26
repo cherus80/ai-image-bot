@@ -13,6 +13,7 @@ import {
 } from '../api/payment';
 import { useAuthStore } from './authStore';
 import type {
+  BackendTariff,
   PaymentType,
   SubscriptionType,
   SelectedTariff,
@@ -152,8 +153,38 @@ export const usePaymentStore = create<PaymentState>()(
 
         try {
           const response = await getTariffs();
+
+          const mapSubscription = (tariff: BackendTariff) => ({
+            type: tariff.tariff_id as SubscriptionType,
+            name: tariff.name,
+            description: tariff.description,
+            price: Number(tariff.price),
+            currency: '₽',
+            actions_count: tariff.credits_amount ?? 0,
+            duration_days: tariff.duration_days ?? 30,
+            is_recommended: tariff.is_popular ?? false,
+            features: [
+              `${tariff.credits_amount ?? 0} действий`,
+              `Срок ${tariff.duration_days ?? 30} дней`,
+            ],
+          });
+
+          const mapCredits = (tariff: BackendTariff) => ({
+            credits_amount: tariff.credits_amount ?? 0,
+            price: Number(tariff.price),
+            currency: '₽',
+            bonus_credits: 0,
+            is_popular: tariff.is_popular ?? false,
+            description: tariff.description,
+          });
+
+          const mappedTariffs: TariffInfo = {
+            subscription_tariffs: response.subscriptions.map(mapSubscription),
+            credits_packages: response.credits_packages.map(mapCredits),
+          };
+
           set({
-            tariffs: response.tariffs,
+            tariffs: mappedTariffs,
             isLoading: false,
           });
         } catch (error: any) {

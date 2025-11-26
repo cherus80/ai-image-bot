@@ -13,10 +13,10 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status, Form
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_current_active_user, require_verified_email, get_db
+from app.api.dependencies import require_verified_email, get_db
 from app.core.config import settings
 from app.models.generation import Generation
 from app.models.user import User
@@ -53,7 +53,7 @@ router = APIRouter()
 )
 async def upload_photo(
     file: UploadFile = File(..., description="Фото (JPEG/PNG, max 5MB)"),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_verified_email),
 ) -> FittingUploadResponse:
     """
     Загрузить фото для примерки.
@@ -209,7 +209,7 @@ async def generate_fitting(
 )
 async def get_fitting_status(
     task_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ) -> FittingStatusResponse:
     """
@@ -262,7 +262,7 @@ async def get_fitting_status(
 )
 async def get_fitting_result(
     task_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ) -> FittingResult:
     """
@@ -318,14 +318,28 @@ async def get_fitting_result(
     description="Получить историю всех генераций примерки текущего пользователя."
 )
 async def get_fitting_history(
-    limit: int = 10,
-    offset: int = 0,
-    current_user: User = Depends(get_current_active_user),
+    page: int = 1,
+    page_size: int = 20,
+    current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Получить историю генераций примерки.
     """
+    page = max(page, 1)
+    page_size = max(1, min(page_size, 100))
+    offset = (page - 1) * page_size
+
+    total_stmt = (
+        select(func.count())
+        .select_from(Generation)
+        .where(
+            Generation.user_id == current_user.id,
+            Generation.type == "fitting",
+        )
+    )
+    total = await db.scalar(total_stmt) or 0
+
     stmt = (
         select(Generation)
         .where(
@@ -341,17 +355,20 @@ async def get_fitting_history(
     generations = result.scalars().all()
 
     return {
-        "total": len(generations),
+        "total": total,
+        "page": page,
+        "page_size": page_size,
         "items": [
             {
                 "id": gen.id,
                 "task_id": gen.task_id,
                 "status": gen.status,
+                "generation_type": "fitting",
                 "image_url": gen.image_url,
                 "has_watermark": gen.has_watermark,
                 "credits_spent": gen.credits_spent,
                 "created_at": gen.created_at.isoformat(),
             }
             for gen in generations
-        ]
+        ],
     }

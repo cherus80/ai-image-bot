@@ -58,8 +58,8 @@ export interface GenerationHistoryItem {
   status: GenerationStatus;
   image_url?: string;
   thumbnail_url?: string;
-  generation_type: 'fitting' | 'editing';
-  credits_spent: number;
+  generation_type?: 'fitting' | 'editing';
+  credits_spent?: number;
   has_watermark: boolean;
   created_at: string;
 }

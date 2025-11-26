@@ -5,7 +5,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // Base API URL from environment variable
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  (typeof window !== 'undefined' ? window.location.origin : '') ||
+  'http://localhost:8000'
+).replace(/\/$/, '');
 
 // Create axios instance
 export const apiClient = axios.create({
@@ -55,18 +59,36 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Handle 401 Unauthorized - clear auth and redirect
+    // Handle 401 Unauthorized - clear auth and redirect to login without reload loops
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Clear auth data
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_profile');
+      const authStorage = localStorage.getItem('auth-storage');
+      const hasToken = (() => {
+        if (!authStorage) return false;
+        try {
+          const parsed = JSON.parse(authStorage);
+          return Boolean(parsed?.state?.token);
+        } catch {
+          return false;
+        }
+      })();
 
-      // Reload to trigger re-authentication
-      if (typeof window !== 'undefined') {
-        window.location.reload();
+      if (hasToken) {
+        try {
+          const { useAuthStore } = await import('../store/authStore');
+          useAuthStore.getState().logout();
+        } catch {
+          localStorage.removeItem('auth-storage');
+          sessionStorage.removeItem('auth-storage');
+        }
       }
+
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.replace('/login');
+      }
+
+      return Promise.reject(error);
     }
 
     // Handle 403 Forbidden - user is banned

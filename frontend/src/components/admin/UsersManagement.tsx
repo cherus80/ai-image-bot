@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import apiClient from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 
 interface User {
@@ -50,12 +51,6 @@ export const UsersManagement: React.FC<UsersManagementProps> = ({
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth-storage');
-      if (!token) return;
-
-      const authData = JSON.parse(token);
-      const accessToken = authData.state?.token;
-
       const params = new URLSearchParams({
         page: page.toString(),
         page_size: limit.toString(),
@@ -64,22 +59,13 @@ export const UsersManagement: React.FC<UsersManagementProps> = ({
       if (search) params.append('search', search);
       if (roleFilter !== 'all') params.append('role', roleFilter);
 
-      const response = await fetch(
-        `http://localhost:8000/api/v1/admin/users?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+      const response = await apiClient.get(
+        `/api/v1/admin/users?${params.toString()}`
       );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-
-      const data = await response.json();
-      setUsers(data.users || []);
-      setTotal(data.total || 0);
+      const data = response.data;
+      setUsers(data.users ?? []);
+      setTotal(data.total ?? 0);
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {

@@ -11,6 +11,7 @@ import { Badge } from '../ui/Badge';
 import { MobileMenu } from './MobileMenu';
 import { EmailVerificationBanner } from './EmailVerificationBanner';
 import { useAuthStore } from '../../store/authStore';
+import toast from 'react-hot-toast';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -37,6 +38,11 @@ export const Layout: React.FC<LayoutProps> = ({
   const location = useLocation();
   const { user, refreshProfile } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isTrialUser =
+    !!user &&
+    !user.subscription_type &&
+    user.created_at &&
+    Date.now() - new Date(user.created_at).getTime() < 7 * 24 * 60 * 60 * 1000;
 
   // Обновляем профиль при монтировании, чтобы баланс был актуален на любой странице
   React.useEffect(() => {
@@ -45,6 +51,14 @@ export const Layout: React.FC<LayoutProps> = ({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  React.useEffect(() => {
+    const message = sessionStorage.getItem('emailVerifiedMessage');
+    if (message) {
+      toast.success(message);
+      sessionStorage.removeItem('emailVerifiedMessage');
+    }
+  }, [location.pathname]);
 
   const handleBack = () => {
     if (backTo) {
@@ -71,7 +85,7 @@ export const Layout: React.FC<LayoutProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-primary-50 via-white to-secondary-50 overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-20 backdrop-blur-md bg-white/70 border-b border-white/20 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -116,6 +130,11 @@ export const Layout: React.FC<LayoutProps> = ({
                       <p className="text-2xl font-bold text-primary-700">{user?.balance_credits ?? 0}</p>
                       <p className="text-xs text-primary-600 font-semibold whitespace-nowrap">кредитов</p>
                     </div>
+                    {isTrialUser && (
+                      <p className="mt-1 text-[11px] text-primary-50 font-semibold">
+                        Пробный пакет активен
+                      </p>
+                    )}
                     {user?.subscription_type && user.subscription_type !== 'none' && (
                       <Badge variant="primary" size="sm" className="mt-1">
                         {user.subscription_type}
@@ -144,7 +163,7 @@ export const Layout: React.FC<LayoutProps> = ({
       <EmailVerificationBanner />
 
       {/* Main content */}
-      <main>{children}</main>
+      <main className="flex-1 w-full">{children}</main>
 
       {/* Mobile Menu */}
       <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />

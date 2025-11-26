@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../store/authStore';
+import { useAuth, useAuthStore } from '../store/authStore';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { VKSignInButton } from '../components/auth/VKSignInButton';
 import { validateRegisterForm, checkPasswordStrength, getPasswordStrengthLabel, getPasswordStrengthColor } from '../utils/passwordValidation';
@@ -62,7 +62,16 @@ export function RegisterPage() {
         }
       }
 
-      navigate('/');
+      const nextUser = useAuthStore.getState().user;
+      if (
+        nextUser?.email &&
+        !nextUser.email_verified &&
+        nextUser.auth_provider === 'email'
+      ) {
+        navigate('/verify-required', { replace: true });
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       // Error handled in store
     }
@@ -78,7 +87,16 @@ export function RegisterPage() {
         console.error('Failed to register referral after Google sign-in:', refError);
       }
     }
-    navigate('/');
+    const nextUser = useAuthStore.getState().user;
+    if (
+      nextUser?.email &&
+      !nextUser.email_verified &&
+      nextUser.auth_provider === 'email'
+    ) {
+      navigate('/verify-required', { replace: true });
+    } else {
+      navigate('/');
+    }
   };
 
   const handleVKSuccess = async () => {
@@ -91,7 +109,16 @@ export function RegisterPage() {
         console.error('Failed to register referral after VK sign-in:', refError);
       }
     }
-    navigate('/');
+    const nextUser = useAuthStore.getState().user;
+    if (
+      nextUser?.email &&
+      !nextUser.email_verified &&
+      nextUser.auth_provider === 'email'
+    ) {
+      navigate('/verify-required', { replace: true });
+    } else {
+      navigate('/');
+    }
   };
 
   return (

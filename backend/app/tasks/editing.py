@@ -19,6 +19,7 @@ from app.services.kie_ai import KieAIClient, KieAIError, KieAITimeoutError, KieA
 from app.tasks.celery_app import celery_app
 from app.tasks.utils import (
     should_add_watermark,
+    to_public_url,
     update_generation_status,
     extract_file_id_from_url,
     image_to_base64_data_url,
@@ -26,19 +27,6 @@ from app.tasks.utils import (
 from app.utils.image_utils import determine_image_size_for_editing, convert_iphone_format_to_png
 
 logger = logging.getLogger(__name__)
-
-
-def _to_public_url(path_or_url: str) -> str:
-    """
-    Convert local/relative path to absolute URL using BACKEND_URL.
-    Assumes files are served from /uploads/.
-    """
-    if not path_or_url:
-        return path_or_url
-    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
-        return path_or_url
-    trimmed = path_or_url.lstrip("./")
-    return f"{settings.BACKEND_URL.rstrip('/')}/{trimmed.lstrip('/')}"
 
 
 class EditingTask(Task):
@@ -136,7 +124,7 @@ def generate_editing_task(
                 logger.info(f"Determined aspect ratio for editing: {aspect_ratio}")
 
                 # Публичный URL для kie.ai (требуются HTTP ссылки, не base64)
-                public_base_image_url = _to_public_url(base_image_url or str(base_image_path))
+                public_base_image_url = to_public_url(base_image_url or str(base_image_path))
 
                 # Обновление прогресса
                 await update_generation_status(
@@ -256,7 +244,7 @@ def generate_editing_task(
                     file_size = 0
 
                 if image_url and image_url.startswith("/"):
-                    image_url = f"{settings.BACKEND_URL}{image_url}"
+                    image_url = to_public_url(image_url)
 
                 logger.info(
                     f"Saved edited image: {image_url} "

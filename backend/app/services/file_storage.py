@@ -16,6 +16,7 @@ from fastapi import UploadFile, HTTPException, status
 
 from app.core.config import settings
 from app.services.file_validator import get_file_extension
+from app.utils.image_utils import convert_to_webp
 
 
 class FileStorageError(Exception):
@@ -56,7 +57,7 @@ async def save_upload_file(
     user_id: int
 ) -> tuple[UUID, str, int]:
     """
-    Сохранить загруженный файл.
+    Сохранить загруженный файл и автоматически конвертировать в WebP.
 
     Args:
         file: Загруженный файл
@@ -77,19 +78,29 @@ async def save_upload_file(
         if not extension:
             raise FileStorageError(f"Unknown content type: {file.content_type}")
 
-        # Получение пути для сохранения
-        file_path = _get_file_path(file_id, extension)
+        # Получение пути для сохранения (временный файл)
+        temp_file_path = _get_file_path(file_id, extension)
 
         # Чтение содержимого файла
         content = await file.read()
-        file_size = len(content)
+        original_size = len(content)
 
-        # Сохранение файла
-        with open(file_path, "wb") as f:
+        # Сохранение файла временно
+        with open(temp_file_path, "wb") as f:
             f.write(content)
 
-        # Формирование URL для доступа к файлу
-        file_url = f"/uploads/{file_id}.{extension}"
+        # Конвертация в WebP (удаляет оригинальный файл)
+        webp_file_path = convert_to_webp(
+            temp_file_path,
+            quality=85,
+            delete_original=True
+        )
+
+        # Получение размера WebP файла
+        file_size = webp_file_path.stat().st_size
+
+        # Формирование URL для доступа к файлу (WebP)
+        file_url = f"/uploads/{file_id}.webp"
 
         # Возврат указателя файла в начало (на случай если понадобится еще раз прочитать)
         await file.seek(0)
@@ -107,7 +118,8 @@ async def save_upload_file_by_content(
     filename: Optional[str] = None
 ) -> tuple[UUID, str, int]:
     """
-    Сохранить файл из байтов (например, для результата генерации).
+    Сохранить файл из байтов (например, для результата генерации)
+    и автоматически конвертировать в WebP.
 
     Args:
         content: Содержимое файла
@@ -149,17 +161,27 @@ async def save_upload_file_by_content(
             else:
                 extension = 'png'  # Дефолт для изображений
 
-        # Получение пути для сохранения
-        file_path = _get_file_path(file_id, extension)
+        # Получение пути для сохранения (временный файл)
+        temp_file_path = _get_file_path(file_id, extension)
 
-        file_size = len(content)
+        original_size = len(content)
 
-        # Сохранение файла
-        with open(file_path, "wb") as f:
+        # Сохранение файла временно
+        with open(temp_file_path, "wb") as f:
             f.write(content)
 
-        # Формирование URL для доступа к файлу
-        file_url = f"/uploads/{file_id}.{extension}"
+        # Конвертация в WebP (удаляет оригинальный файл)
+        webp_file_path = convert_to_webp(
+            temp_file_path,
+            quality=85,
+            delete_original=True
+        )
+
+        # Получение размера WebP файла
+        file_size = webp_file_path.stat().st_size
+
+        # Формирование URL для доступа к файлу (WebP)
+        file_url = f"/uploads/{file_id}.webp"
 
         return file_id, file_url, file_size
 
@@ -179,8 +201,8 @@ def get_file_by_id(file_id: UUID) -> Optional[Path]:
     """
     upload_dir = _ensure_upload_dir_exists()
 
-    # Поиск файла с любым расширением
-    for ext in ['jpg', 'jpeg', 'png']:
+    # Поиск файла с любым расширением (приоритет WebP)
+    for ext in ['webp', 'jpg', 'jpeg', 'png']:
         file_path = upload_dir / f"{file_id}.{ext}"
         if file_path.exists():
             return file_path

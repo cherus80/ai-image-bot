@@ -44,14 +44,14 @@ class KieAIClient:
     """
     Async client for kie.ai Nano Banana API (google/nano-banana).
 
-    - URL-based inputs (filesUrl / user_photo / item_photo)
+    - URL-based inputs (image_urls)
     - Polling via record-info endpoint (successFlag/progress)
     """
 
     BASE_URL = "https://api.kie.ai"  # root, without /api/v1
     SUBMIT_ENDPOINT = "/api/v1/jobs/createTask"
     STATUS_ENDPOINT = "/api/v1/jobs/recordInfo"
-    MODEL_NAME = "google/nano-banana"
+    MODEL_NAME = "google/nano-banana-edit"  # согласно актуальной документации
 
     DEFAULT_POLL_INTERVAL = 5
     DEFAULT_MAX_POLLS = 24  # ~120s, должно хватить даже с запасом
@@ -139,11 +139,10 @@ class KieAIClient:
             prompt[:50],
         )
         input_payload = {
-            "user_photo": user_photo_url,
-            "item_photo": item_photo_url,
+            # dok: image_urls (array of URLs)
+            "image_urls": [user_photo_url, item_photo_url],
             "output_format": output_format.lower(),
             "image_size": image_size,
-            "size": image_size,
         }
         task_id, status_id = await self._submit_task(prompt=prompt, input_payload=input_payload)
         task_data = await self._poll_task_until_complete(status_id, progress_callback)
@@ -165,13 +164,11 @@ class KieAIClient:
             image_size = "auto"
 
         input_payload = {
-            "filesUrl": [base_image_url],
+            "image_urls": [base_image_url],
             "output_format": output_format.lower(),
             "image_size": image_size,
-            "size": image_size,
         }
-        if mask_url:
-            input_payload["maskUrl"] = mask_url
+        # mask_url не документирован в новой схеме, поэтому не отправляем
 
         task_id, status_id = await self._submit_task(prompt=prompt, input_payload=input_payload)
         task_data = await self._poll_task_until_complete(status_id, progress_callback)
@@ -245,34 +242,58 @@ class KieAIClient:
                     logger.info("Task %s: empty status payload (poll %s)", task_id, polls)
                     await asyncio.sleep(self.poll_interval)
                     continue
-                success_flag = data.get("successFlag")
-                progress = data.get("progress", 0)
+
+                # Согласно документации API kie.ai, используем только поле "state"
                 state = data.get("state")
 
+                logger.info(
+                    "Task %s polling (poll %s/%s): state=%s, elapsed=%.1fs",
+                    task_id,
+                    polls,
+                    self.max_polls,
+                    state,
+                    elapsed,
+                )
+
+                # Вызов progress callback с оценкой прогресса на основе state
                 if progress_callback:
-                    pct = int(progress * 100) if isinstance(progress, (int, float)) else 50
+                    # Mapping state к прогрессу: waiting=10%, queuing=30%, generating=60%
+                    progress_map = {
+                        "waiting": 10,
+                        "queuing": 30,
+                        "generating": 60,
+                        "success": 100,
+                    }
+                    pct = progress_map.get(state, 50)
                     try:
-                        await progress_callback(str(success_flag), pct)
+                        await progress_callback(state, pct)
                     except Exception as e:
                         logger.warning("Progress callback error: %s", e)
 
-                if state == "success" or success_flag == 1:
+                # Проверка завершения: только state == "success"
+                if state == "success":
                     logger.info(
-                        "Task %s completed after %s polls (%.1fs)",
+                        "Task %s completed successfully after %s polls (%.1fs)",
                         task_id,
                         polls,
                         elapsed,
                     )
                     return data
-                if state == "fail" or success_flag == 2:
-                    error_msg = (
+
+                # Проверка ошибки: state == "fail"
+                if state == "fail":
+                    fail_code = data.get("failCode", "unknown")
+                    fail_msg = (
                         data.get("failMsg")
                         or data.get("message")
                         or data.get("msg")
                         or "Task failed"
                     )
+                    error_msg = f"kie.ai task failed (code: {fail_code}): {fail_msg}"
+                    logger.error(error_msg)
                     raise KieAITaskFailedError(error_msg)
 
+                # Состояния waiting/queuing/generating - продолжаем polling
                 await asyncio.sleep(self.poll_interval)
                 continue
 

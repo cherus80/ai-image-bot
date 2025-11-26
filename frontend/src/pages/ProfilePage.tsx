@@ -12,6 +12,7 @@ import { handlePaymentReturn, pollPaymentStatus } from '../api/payment';
 import { getReferralStats, copyReferralLink, shareReferralLink, type ReferralStatsResponse } from '../api/referral';
 import { sendVerificationEmail } from '../api/authWeb';
 import { Layout } from '../components/common/Layout';
+import { AuthGuard } from '../components/auth/AuthGuard';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -75,12 +76,14 @@ export const ProfilePage: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Загрузка профиля...</p>
+      <AuthGuard>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Загрузка профиля...</p>
+          </div>
         </div>
-      </div>
+      </AuthGuard>
     );
   }
 
@@ -137,38 +140,46 @@ export const ProfilePage: React.FC = () => {
     );
   };
 
+  const isTrialUser =
+    !user.subscription_type &&
+    user.created_at &&
+    Date.now() - new Date(user.created_at).getTime() < 7 * 24 * 60 * 60 * 1000;
+
   // Модальное окно с PaymentWizard
   if (showPaymentWizard) {
     return (
-      <Layout
-        title="Покупка кредитов"
-        subtitle="Выберите подходящий тариф"
-        backTo="/profile"
-        showBackButton={true}
-        icon={
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        }
-      >
-        <div className="max-w-6xl mx-auto p-6">
-          <PaymentWizard />
-        </div>
-      </Layout>
+      <AuthGuard>
+        <Layout
+          title="Покупка кредитов"
+          subtitle="Выберите подходящий тариф"
+          backTo="/profile"
+          showBackButton={true}
+          icon={
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        >
+          <div className="max-w-6xl mx-auto p-6">
+            <PaymentWizard />
+          </div>
+        </Layout>
+      </AuthGuard>
     );
   }
 
   return (
-    <Layout
-      title="Мой профиль"
-      subtitle={`@${user?.username || 'unknown'}`}
-      backTo="/"
-      icon={
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      }
-    >
+    <AuthGuard>
+      <Layout
+        title="Мой профиль"
+        subtitle={`@${user?.username || 'unknown'}`}
+        backTo="/"
+        icon={
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        }
+      >
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
         {/* Welcome card */}
         <motion.div
@@ -195,6 +206,32 @@ export const ProfilePage: React.FC = () => {
             </div>
           </Card>
         </motion.div>
+
+        {isTrialUser && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card variant="glass" padding="md" className="border border-primary-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
+                  ⭐
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm text-primary-900 font-semibold">Пробный доступ активен</div>
+                  <div className="text-xs text-gray-600">
+                    Вам начислено 10 приветственных кредитов. Подтвердите email и используйте их в течение первых 7 дней.
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-primary-800">{user.balance_credits}</div>
+                  <div className="text-xs text-gray-500">кредитов</div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Уведомление о возврате с оплаты */}
         {paymentReturnMessage && (
@@ -654,5 +691,6 @@ export const ProfilePage: React.FC = () => {
         </div>
       </div>
     </Layout>
-  );
+  </AuthGuard>
+);
 };

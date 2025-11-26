@@ -183,7 +183,7 @@ async def register_with_email(
         first_name=request_body.first_name,
         last_name=request_body.last_name,
         username=request_body.email.split('@')[0],  # Временный username из email
-        balance_credits=100,  # 100 тестовых кредитов при регистрации
+        balance_credits=settings.BILLING_FREE_TRIAL_CREDITS,
         freemium_actions_used=0,
         freemium_reset_at=datetime.utcnow(),
         is_active=True,
@@ -198,9 +198,9 @@ async def register_with_email(
     await db.commit()
     await db.refresh(user)
 
-    # Гарантируем бонус 100 кредитов (на случай сбоя установки значения по умолчанию)
-    if user.balance_credits < 100:
-        user.balance_credits = 100
+    # Гарантируем бонусные кредиты при регистрации (защита от отката)
+    if user.balance_credits < settings.BILLING_FREE_TRIAL_CREDITS:
+        user.balance_credits = settings.BILLING_FREE_TRIAL_CREDITS
         await db.commit()
         await db.refresh(user)
 
@@ -448,7 +448,7 @@ async def login_with_google(
             first_name=first_name,
             last_name=last_name,
             username=email.split('@')[0],  # Временный username из email
-            balance_credits=100,  # 100 тестовых кредитов при регистрации
+            balance_credits=settings.BILLING_FREE_TRIAL_CREDITS,
             freemium_actions_used=0,
             freemium_reset_at=datetime.utcnow(),
             is_active=True,
@@ -463,8 +463,8 @@ async def login_with_google(
         await db.commit()
         await db.refresh(user)
 
-        if user.balance_credits < 100:
-            user.balance_credits = 100
+        if user.balance_credits < settings.BILLING_FREE_TRIAL_CREDITS:
+            user.balance_credits = settings.BILLING_FREE_TRIAL_CREDITS
             await db.commit()
             await db.refresh(user)
 
@@ -610,7 +610,7 @@ async def login_with_vk(
             first_name=first_name,
             last_name=last_name,
             username=username,
-            balance_credits=100,  # 100 тестовых кредитов при регистрации
+            balance_credits=settings.BILLING_FREE_TRIAL_CREDITS,
             freemium_actions_used=0,
             freemium_reset_at=datetime.utcnow(),
             is_active=True,
@@ -626,8 +626,8 @@ async def login_with_vk(
         await db.refresh(user)
 
         # Гарантируем бонус 100 кредитов
-        if user.balance_credits < 100:
-            user.balance_credits = 100
+        if user.balance_credits < settings.BILLING_FREE_TRIAL_CREDITS:
+            user.balance_credits = settings.BILLING_FREE_TRIAL_CREDITS
             await db.commit()
             await db.refresh(user)
 

@@ -21,6 +21,7 @@ from app.tasks.celery_app import celery_app
 from app.tasks.utils import (
     extract_file_id_from_url,
     should_add_watermark,
+    to_public_url,
     update_generation_status,
     image_to_base64_data_url,
 )
@@ -68,19 +69,6 @@ FITTING_PROMPTS = {
         "No extra limbs or duplicated body parts. Realistic fit and draping, studio lighting, photorealistic 8k."
     ),
 }
-
-
-def _to_public_url(path_or_url: str) -> str:
-    """
-    Convert local/relative path to absolute URL using BACKEND_URL.
-    Assumes files served at /uploads.
-    """
-    if not path_or_url:
-        return path_or_url
-    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
-        return path_or_url
-    trimmed = path_or_url.lstrip("./")
-    return f"{settings.BACKEND_URL.rstrip('/')}/{trimmed.lstrip('/')}"
 
 
 def _get_prompt_for_zone(zone: Optional[str]) -> str:
@@ -207,8 +195,8 @@ def generate_fitting_task(
                 logger.info(f"Determined aspect ratio for fitting: {aspect_ratio}")
 
                 # Публичные URL для kie.ai
-                public_user_photo_url = _to_public_url(user_photo_url or str(user_photo_path))
-                public_item_photo_url = _to_public_url(item_photo_url or str(item_photo_path))
+                public_user_photo_url = to_public_url(user_photo_url or str(user_photo_path))
+                public_item_photo_url = to_public_url(item_photo_url or str(item_photo_path))
 
                 # Генерация изображения с виртуальной примеркой
                 # Используем kie.ai как primary, OpenRouter как fallback
@@ -313,7 +301,7 @@ def generate_fitting_task(
 
                 # Нормализуем URL для фронтенда (добавляем backend host если путь относительный)
                 if final_image_url and final_image_url.startswith("/"):
-                    final_image_url = f"{settings.BACKEND_URL}{final_image_url}"
+                    final_image_url = to_public_url(final_image_url)
 
                 generation = await session.get(Generation, generation_id)
                 if generation:

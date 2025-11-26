@@ -3,6 +3,7 @@
  */
 
 import React, { useState } from 'react';
+import apiClient from '../../api/client';
 
 interface User {
   id: number;
@@ -41,29 +42,11 @@ export const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth-storage');
-      if (!token) throw new Error('No token');
-
-      const authData = JSON.parse(token);
-      const accessToken = authData.state?.token;
-
-      const response = await fetch(
-        `http://localhost:8000/api/v1/admin/users/${user.id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+      const response = await apiClient.delete(
+        `/api/v1/admin/users/${user.id}`
       );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Failed to delete user');
-      }
-
-      const data = await response.json();
-      console.log('User deleted:', data);
+      console.log('User deleted:', response.data);
 
       setConfirmText('');
       onSuccess();

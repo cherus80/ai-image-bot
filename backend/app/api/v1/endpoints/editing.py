@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_current_active_user, require_verified_email, get_db
+from app.api.dependencies import require_verified_email, get_db
 from app.core.config import settings
 from app.models.generation import Generation
 from app.models.user import User
@@ -68,7 +68,7 @@ router = APIRouter()
 )
 async def upload_base_image(
     file: UploadFile = File(..., description="Базовое изображение (JPEG/PNG, max 5MB)"),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ) -> ChatSessionCreate:
     """
@@ -111,7 +111,7 @@ async def upload_base_image(
 )
 async def create_session(
     request: ChatSessionCreate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ) -> ChatSessionResponse:
     """
@@ -431,7 +431,7 @@ async def generate_image(
 )
 async def get_history(
     session_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ) -> ChatHistoryResponse:
     """
@@ -484,7 +484,7 @@ async def get_history(
 )
 async def delete_session(
     session_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ) -> ResetSessionResponse:
     """

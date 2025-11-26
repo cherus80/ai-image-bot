@@ -262,7 +262,7 @@ export interface VKIDConfig {
   app: string; // VK App ID
   redirectUrl?: string;
   mode?: 'redirect' | 'floating';
-  scope?: string;
+  scope?: string | string[];
   state?: string;
   codeChallenge?: string;
 }

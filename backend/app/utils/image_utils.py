@@ -377,6 +377,97 @@ def convert_iphone_format_to_png(file_path: str | Path) -> Path:
         ) from e
 
 
+def convert_to_webp(
+    file_path: str | Path,
+    quality: int = 85,
+    delete_original: bool = True
+) -> Path:
+    """
+    Convert any image format to WebP for web optimization.
+
+    This function converts images from any format (JPEG, PNG, HEIC, MPO, etc.)
+    to WebP format with specified quality. WebP provides better compression
+    and smaller file sizes compared to JPEG/PNG while maintaining quality.
+
+    Args:
+        file_path: Path to input image file
+        quality: WebP quality (1-100, default: 85)
+        delete_original: Whether to delete the original file after conversion (default: True)
+
+    Returns:
+        Path to the converted WebP file
+
+    Raises:
+        ValueError: If image cannot be read or converted
+        IOError: If file operations fail
+
+    Examples:
+        >>> convert_to_webp("photo.jpg")
+        Path("photo.webp")
+        >>> convert_to_webp("photo.png", quality=90)
+        Path("photo.webp")
+    """
+    path = Path(file_path)
+
+    # Check if file exists
+    if not path.exists():
+        raise IOError(f"File not found: {file_path}")
+
+    # Validate quality parameter
+    if not 1 <= quality <= 100:
+        raise ValueError(f"Quality must be between 1 and 100, got {quality}")
+
+    try:
+        # Open image
+        with Image.open(path) as img:
+            img_format = img.format.upper() if img.format else None
+            logger.info(
+                f"Converting {img_format} image to WebP: {path.name}"
+            )
+
+            # Create output path (same directory, replace extension with .webp)
+            output_path = path.with_suffix(".webp")
+
+            # Convert to RGB mode if necessary (WebP supports RGB and RGBA)
+            # CMYK and other modes need to be converted
+            if img.mode not in ["RGB", "RGBA"]:
+                logger.debug(f"Converting image mode from {img.mode} to RGB")
+                converted_img = img.convert("RGB")
+            else:
+                converted_img = img
+
+            # Save as WebP with specified quality
+            converted_img.save(
+                output_path,
+                "WEBP",
+                quality=quality,
+                method=6  # 0=fast, 6=slower but better compression
+            )
+
+            logger.info(
+                f"Successfully converted {path.name} ({img_format}) to "
+                f"{output_path.name} (WebP, quality={quality})"
+            )
+
+        # Delete original file if requested
+        if delete_original and output_path != path:
+            try:
+                path.unlink()
+                logger.debug(f"Deleted original file: {path.name}")
+            except Exception as e:
+                logger.warning(f"Failed to delete original file {path.name}: {e}")
+
+        return output_path
+
+    except Exception as e:
+        logger.error(
+            f"Failed to convert {file_path} to WebP: {e}"
+        )
+        raise ValueError(
+            f"Cannot convert image {path.name} to WebP: {e}"
+        ) from e
+
+
 # ======================================================================
 # VALIDATION UTILITIES
 # ======================================================================

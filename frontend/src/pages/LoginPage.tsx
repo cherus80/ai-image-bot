@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../store/authStore';
+import { useAuth, useAuthStore } from '../store/authStore';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { VKSignInButton } from '../components/auth/VKSignInButton';
 import { validateLoginForm } from '../utils/passwordValidation';
@@ -28,18 +28,45 @@ export function LoginPage() {
 
     try {
       await loginWithEmail(formData);
-      navigate('/');
+      const nextUser = useAuthStore.getState().user;
+      if (
+        nextUser?.email &&
+        !nextUser.email_verified &&
+        nextUser.auth_provider === 'email'
+      ) {
+        navigate('/verify-required', { replace: true });
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       // Error is set in store
     }
   };
 
   const handleGoogleSuccess = () => {
-    navigate('/');
+    const nextUser = useAuthStore.getState().user;
+    if (
+      nextUser?.email &&
+      !nextUser.email_verified &&
+      nextUser.auth_provider === 'email'
+    ) {
+      navigate('/verify-required', { replace: true });
+    } else {
+      navigate('/');
+    }
   };
 
   const handleVKSuccess = () => {
-    navigate('/');
+    const nextUser = useAuthStore.getState().user;
+    if (
+      nextUser?.email &&
+      !nextUser.email_verified &&
+      nextUser.auth_provider === 'email'
+    ) {
+      navigate('/verify-required', { replace: true });
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -57,20 +84,21 @@ export function LoginPage() {
 
         <div className="mt-8 space-y-6">
           {/* OAuth Buttons */}
-          <div className="space-y-3">
-            {/* Google Sign-In */}
-            <GoogleSignInButton
-              onSuccess={handleGoogleSuccess}
-              onError={(err) => console.error(err)}
-              text="signin_with"
-              size="large"
-            />
-
-            {/* VK Sign-In */}
-            <VKSignInButton
-              onSuccess={handleVKSuccess}
-              onError={(err) => console.error(err)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="w-full">
+              <GoogleSignInButton
+                onSuccess={handleGoogleSuccess}
+                onError={(err) => console.error(err)}
+                text="signin_with"
+                size="large"
+              />
+            </div>
+            <div className="w-full">
+              <VKSignInButton
+                onSuccess={handleVKSuccess}
+                onError={(err) => console.error(err)}
+              />
+            </div>
           </div>
 
           {/* Divider */}

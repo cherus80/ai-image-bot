@@ -9,6 +9,7 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.models.generation import Generation
 from app.models.user import User
 
@@ -106,3 +107,38 @@ def image_to_base64_data_url(file_path: str | Path) -> str:
         mime = "image/jpeg"
 
     return f"data:{mime};base64,{base64.b64encode(data).decode('utf-8')}"
+
+
+def resolve_public_base_url() -> str:
+    """
+    Получить публичный базовый URL для раздачи файлов/ссылок.
+    Если BACKEND_URL остался локальным, а окружение production — подставляем FRONTEND_URL.
+    """
+    backend = settings.BACKEND_URL.rstrip("/")
+    is_local_backend = backend.startswith("http://localhost") or backend.startswith("http://127.0.0.1")
+    if is_local_backend and settings.ENVIRONMENT.lower() == "production" and settings.FRONTEND_URL:
+        return settings.FRONTEND_URL.rstrip("/")
+    return backend
+
+
+def to_public_url(path_or_url: str) -> str:
+    """
+    Превратить относительный путь в публичный абсолютный URL.
+    """
+    if not path_or_url:
+        return path_or_url
+
+    # Если получили полный URL, но он указывает на localhost — заменяем на публичный базовый
+    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+        parsed = urlparse(path_or_url)
+        if parsed.hostname in {"localhost", "127.0.0.1"}:
+            base = resolve_public_base_url().rstrip("/")
+            rebuilt = f"{base}{parsed.path or ''}"
+            if parsed.query:
+                rebuilt = f"{rebuilt}?{parsed.query}"
+            return rebuilt
+        return path_or_url
+
+    trimmed = path_or_url.lstrip("./")
+    base = resolve_public_base_url()
+    return f"{base}/{trimmed.lstrip('/')}"

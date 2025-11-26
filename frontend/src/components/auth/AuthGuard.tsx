@@ -7,7 +7,7 @@
  */
 
 import React, { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingPage } from '../../pages/LoadingPage';
 
@@ -17,7 +17,8 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
-  const { isAuthenticated, isLoading, error } = useAuth();
+  const { isAuthenticated, isLoading, error, user } = useAuth();
+  const location = useLocation();
   const [isHydrated, setIsHydrated] = React.useState(false);
 
   // Ждем восстановления состояния из localStorage
@@ -64,7 +65,20 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   }
 
   // Authenticated - render children
+  const needsEmailVerification =
+    isAuthenticated &&
+    user?.email &&
+    !user.email_verified &&
+    user.auth_provider === 'email';
+
   if (isAuthenticated) {
+    if (
+      needsEmailVerification &&
+      location.pathname !== '/verify-required' &&
+      location.pathname !== '/verify'
+    ) {
+      return <Navigate to="/verify-required" replace />;
+    }
     return <>{children}</>;
   }
 

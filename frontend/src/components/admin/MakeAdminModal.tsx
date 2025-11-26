@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import apiClient from '../../api/client';
 
 interface MakeAdminModalProps {
   isOpen: boolean;
@@ -35,31 +36,12 @@ export const MakeAdminModal: React.FC<MakeAdminModalProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth-storage');
-      if (!token) throw new Error('No token');
-
-      const authData = JSON.parse(token);
-      const accessToken = authData.state?.token;
-
-      const response = await fetch(
-        `http://localhost:8000/api/v1/admin/users/make-admin`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ email }),
-        }
+      const response = await apiClient.post(
+        '/api/v1/admin/users/make-admin',
+        { email }
       );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Failed to make admin');
-      }
-
-      const data = await response.json();
-      console.log('Admin created:', data);
+      console.log('Admin created:', response.data);
 
       setSuccess(`Пользователь ${email} теперь администратор!`);
       setEmail('');

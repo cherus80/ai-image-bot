@@ -119,7 +119,22 @@ export interface TariffInfo {
  * Ответ со списком всех тарифов
  */
 export interface TariffsListResponse {
-  tariffs: TariffInfo;
+  subscriptions: BackendTariff[];
+  credits_packages: BackendTariff[];
+}
+
+/**
+ * Тариф, возвращаемый бэкендом
+ */
+export interface BackendTariff {
+  tariff_id: string;
+  type: PaymentType;
+  name: string;
+  description: string;
+  price: number;
+  credits_amount?: number;
+  duration_days?: number;
+  is_popular?: boolean;
 }
 
 /**
