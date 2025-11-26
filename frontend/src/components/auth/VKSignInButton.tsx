@@ -31,7 +31,36 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
       return;
     }
 
-    // Ожидание загрузки VK ID SDK
+    const ensureVKSdk = () =>
+      new Promise<void>((resolve, reject) => {
+        if (window.VKID) {
+          resolve();
+          return;
+        }
+
+        const existing = document.getElementById('vkid-sdk') as HTMLScriptElement | null;
+        if (existing) {
+          existing.addEventListener('load', () => resolve(), { once: true });
+          existing.addEventListener('error', () => reject(new Error('VK ID SDK failed to load')), {
+            once: true,
+          });
+          const readyState = (existing as any).readyState;
+          if (readyState === 'complete' || readyState === 'loaded') {
+            resolve();
+          }
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.id = 'vkid-sdk';
+        script.src = 'https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('VK ID SDK failed to load'));
+        document.body.appendChild(script);
+      });
+
     const initializeVK = () => {
       if (!window.VKID) {
         console.warn('VK ID SDK ещё не загружен, повторная попытка...');
@@ -39,23 +68,16 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
       }
 
       try {
-        // Инициализация VK ID SDK
         window.VKID.Config.init({
           app: appId,
           redirectUrl: window.location.origin,
+          scope: ['email', 'phone'],
         });
 
-        // Создание кнопки VK ID
         if (containerRef.current && !buttonInstanceRef.current) {
           const button = new window.VKID.FloatingOneTapButton(containerRef.current);
-
-          // Обработка успешного входа
           button.on('success', handleVKAuthResponse);
-
-          // Отрисовка кнопки
           button.render();
-
-          // Сохранение ссылки на кнопку для очистки
           buttonInstanceRef.current = button;
         }
 
@@ -67,32 +89,50 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
       }
     };
 
-    // Попытка инициализации сразу
-    if (initializeVK()) {
-      return;
-    }
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
-    // Если не загружен, повторять с интервалом
-    let retryCount = 0;
-    const maxRetries = 10;
-    const retryInterval = 500; // 500ms
-
-    const intervalId = setInterval(() => {
-      retryCount++;
-
-      if (initializeVK()) {
-        clearInterval(intervalId);
-      } else if (retryCount >= maxRetries) {
-        clearInterval(intervalId);
-        console.error('VK ID SDK не удалось загрузить после нескольких попыток');
-        setSdkError('VK вход недоступен');
-        onError?.('VK вход недоступен');
+    const bootstrap = async () => {
+      try {
+        await ensureVKSdk();
+      } catch (err) {
+        if (!cancelled) {
+          console.error(err);
+          setSdkError('VK вход недоступен');
+          onError?.('VK вход недоступен');
+        }
+        return;
       }
-    }, retryInterval);
+
+      if (initializeVK()) return;
+
+      let retryCount = 0;
+      const maxRetries = 20;
+      const retryInterval = 500;
+
+      intervalId = setInterval(() => {
+        retryCount += 1;
+        if (initializeVK()) {
+          if (intervalId) clearInterval(intervalId);
+        } else if (retryCount >= maxRetries) {
+          if (intervalId) clearInterval(intervalId);
+          if (!cancelled) {
+            console.error('VK ID SDK не удалось загрузить после нескольких попыток');
+            setSdkError('VK вход недоступен');
+            onError?.('VK вход недоступен');
+          }
+        }
+      }, retryInterval);
+    };
+
+    bootstrap();
 
     // Cleanup
     return () => {
-      clearInterval(intervalId);
+      cancelled = true;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
       if (buttonInstanceRef.current) {
         try {
           buttonInstanceRef.current.destroy();
@@ -102,7 +142,7 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
         }
       }
     };
-  }, [appId]);
+  }, [appId, onError]);
 
   const handleVKAuthResponse = async (response: VKIDAuthResponse) => {
     setIsLoading(true);
@@ -134,14 +174,6 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
     );
   }
 
-  if (!window.VKID && !sdkError) {
-    return (
-      <div className="flex items-center justify-center p-3 border border-gray-300 rounded-md bg-gray-50">
-        <span className="text-sm text-gray-500">Загрузка VK входа...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="relative">
       {/* Контейнер для кнопки VK ID */}
@@ -151,12 +183,19 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
         style={{ minHeight: '44px' }}
       />
 
+      {/* Фолбек если SDK не загрузился */}
+      {!window.VKID && !sdkError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 border border-gray-200 rounded-md">
+          <span className="text-sm text-gray-500">VK вход загружается...</span>
+        </div>
+      )}
+
       {/* Оверлей загрузки */}
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
         </div>
       )}
-    </div>
+  </div>
   );
 }
