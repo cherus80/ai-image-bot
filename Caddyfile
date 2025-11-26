@@ -7,6 +7,18 @@
 ai-generator.mix4.ru {
     encode gzip
 
+    # VK OAuth support - allow popups for OAuth flow
+    header Cross-Origin-Opener-Policy "same-origin-allow-popups"
+
+    # Content Security Policy - разрешения для VK ID SDK и OAuth
+    header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.vk.com https://*.vk.ru; style-src 'self' 'unsafe-inline' https://unpkg.com; connect-src 'self' https://*.vk.com https://*.vk.ru https://id.vk.com wss://*.vk.com; frame-src 'self' https://*.vk.com https://*.vk.ru https://id.vk.com; img-src 'self' data: https: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self';"
+
+    # Security headers
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    header X-Content-Type-Options "nosniff"
+    header X-Frame-Options "SAMEORIGIN"
+    header Referrer-Policy "no-referrer-when-downgrade"
+
     @api path /api/* /health
     handle @api {
         reverse_proxy backend:8000 {
@@ -15,7 +27,7 @@ ai-generator.mix4.ru {
         }
     }
 
-    @uploads path /uploads/* 
+    @uploads path /uploads/*
     handle @uploads {
         reverse_proxy backend:8000 {
             header_up X-Forwarded-Proto {scheme}
