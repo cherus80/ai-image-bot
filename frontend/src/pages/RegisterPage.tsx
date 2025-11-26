@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../store/authStore';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
+import { VKSignInButton } from '../components/auth/VKSignInButton';
 import { validateRegisterForm, checkPasswordStrength, getPasswordStrengthLabel, getPasswordStrengthColor } from '../utils/passwordValidation';
 import { registerReferral } from '../api/referral';
 
@@ -80,6 +81,19 @@ export function RegisterPage() {
     navigate('/');
   };
 
+  const handleVKSuccess = async () => {
+    // Если есть реферальный код, зарегистрировать реферала
+    if (referralCode) {
+      try {
+        await registerReferral({ referral_code: referralCode });
+        console.log('Referral registered successfully after VK sign-in');
+      } catch (refError) {
+        console.error('Failed to register referral after VK sign-in:', refError);
+      }
+    }
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
       <div className="max-w-md w-full space-y-8">
@@ -107,12 +121,22 @@ export function RegisterPage() {
         )}
 
         <div className="mt-8 space-y-6">
-          <GoogleSignInButton
-            onSuccess={handleGoogleSuccess}
-            onError={(err) => console.error(err)}
-            text="signup_with"
-            size="large"
-          />
+          {/* OAuth Buttons */}
+          <div className="space-y-3">
+            {/* Google Sign-In */}
+            <GoogleSignInButton
+              onSuccess={handleGoogleSuccess}
+              onError={(err) => console.error(err)}
+              text="signup_with"
+              size="large"
+            />
+
+            {/* VK Sign-In */}
+            <VKSignInButton
+              onSuccess={handleVKSuccess}
+              onError={(err) => console.error(err)}
+            />
+          </div>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

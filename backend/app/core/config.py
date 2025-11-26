@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: Optional[str] = Field(default=None, description="Google OAuth Client ID (optional)")
     GOOGLE_CLIENT_SECRET: Optional[str] = Field(default=None, description="Google OAuth Client Secret (optional)")
 
+    # VK ID OAuth (опционально для локального тестирования)
+    VK_APP_ID: Optional[str] = Field(default=None, description="VK ID Application ID (optional)")
+    VK_CLIENT_SECRET: Optional[str] = Field(default=None, description="VK ID Client Secret (optional)")
+
     # JWT настройки
     JWT_SECRET_KEY: str = Field(..., description="Secret key for JWT tokens")
     JWT_ALGORITHM: str = Field(default="HS256")

@@ -11,7 +11,7 @@
 // Auth Providers
 // ============================================================================
 
-export type AuthProvider = 'email' | 'google' | 'telegram';
+export type AuthProvider = 'email' | 'google' | 'vk' | 'telegram';
 
 export type SubscriptionType = 'basic' | 'pro' | 'premium' | 'none';
 
@@ -45,6 +45,18 @@ export interface GoogleOAuthResponse {
   user: UserProfile;
   is_new_user: boolean; // True if this is a new user registration
 }
+
+// ============================================================================
+// VK OAuth
+// ============================================================================
+
+export interface VKOAuthRequest {
+  token: string; // VK ID silent token
+  uuid: string; // VK ID session UUID
+}
+
+// VK OAuth response is identical to Google OAuth response
+export type VKOAuthResponse = GoogleOAuthResponse;
 
 // ============================================================================
 // Legacy Telegram (для обратной совместимости)
@@ -228,7 +240,34 @@ export interface GoogleSignInButtonConfig {
   locale?: string;
 }
 
-// Window extension for Google Identity Services
+// ============================================================================
+// VK ID SDK Types
+// ============================================================================
+
+export interface VKIDUser {
+  first_name?: string;
+  last_name?: string;
+  avatar?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface VKIDAuthResponse {
+  token: string; // Silent token
+  uuid: string; // Session UUID
+  user?: VKIDUser;
+}
+
+export interface VKIDConfig {
+  app: string; // VK App ID
+  redirectUrl?: string;
+  mode?: 'redirect' | 'floating';
+  scope?: string;
+  state?: string;
+  codeChallenge?: string;
+}
+
+// Window extension for Google Identity Services and VK ID SDK
 declare global {
   interface Window {
     google?: {
@@ -243,6 +282,16 @@ declare global {
           disableAutoSelect: () => void;
           revoke: (email: string, callback: () => void) => void;
         };
+      };
+    };
+    VKID?: {
+      Config: {
+        init: (config: VKIDConfig) => void;
+      };
+      FloatingOneTapButton: new (container: HTMLElement) => {
+        on: (event: string, callback: (response: VKIDAuthResponse) => void) => void;
+        render: () => void;
+        destroy: () => void;
       };
     };
   }

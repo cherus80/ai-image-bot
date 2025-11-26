@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../store/authStore';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
+import { VKSignInButton } from '../components/auth/VKSignInButton';
 import { validateLoginForm } from '../utils/passwordValidation';
 
 export function LoginPage() {
@@ -37,6 +38,10 @@ export function LoginPage() {
     navigate('/');
   };
 
+  const handleVKSuccess = () => {
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8">
@@ -51,13 +56,20 @@ export function LoginPage() {
         </div>
 
         <div className="mt-8 space-y-6">
-          {/* Google Sign-In */}
-          <div>
+          {/* OAuth Buttons */}
+          <div className="space-y-3">
+            {/* Google Sign-In */}
             <GoogleSignInButton
               onSuccess={handleGoogleSuccess}
               onError={(err) => console.error(err)}
               text="signin_with"
               size="large"
+            />
+
+            {/* VK Sign-In */}
+            <VKSignInButton
+              onSuccess={handleVKSuccess}
+              onError={(err) => console.error(err)}
             />
           </div>
 

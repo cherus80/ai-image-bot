@@ -34,6 +34,7 @@ class AuthProvider(str, enum.Enum):
     """Способы авторизации"""
     email = "email"       # Email/Password
     google = "google"     # Google OAuth
+    vk = "vk"             # VK ID OAuth
     telegram = "telegram" # Legacy Telegram (для обратной совместимости)
 
 

@@ -1,8 +1,8 @@
 {
   "projectName": "AI Media Generator - Virtual Try-On & AI Editing",
-  "description": "Telegram Web App для виртуальной примерки одежды/украшений/аксессуаров и AI-редактирования",
-  "version": "0.14.0",
-  "lastUpdated": "2025-11-24",
+  "description": "Web App для виртуальной примерки одежды/украшений/аксессуаров и AI-редактирования с авторизацией через Email, Google OAuth и VK ID",
+  "version": "0.15.0",
+  "lastUpdated": "2025-11-26",
 
    "environment": "vps-remote",
   "vpsInfo": {
@@ -24,10 +24,16 @@
       "tech": "React 18 + TypeScript + Vite + Tailwind",
       "keyFiles": {
         "app": "frontend/src/App.tsx",
+        "loginPage": "frontend/src/pages/LoginPage.tsx",
+        "registerPage": "frontend/src/pages/RegisterPage.tsx",
+        "googleSignInButton": "frontend/src/components/auth/GoogleSignInButton.tsx",
+        "vkSignInButton": "frontend/src/components/auth/VKSignInButton.tsx",
         "tryOnCamera": "frontend/src/components/TryOnCamera/index.tsx",
         "uploadPhoto": "frontend/src/components/UploadPhoto/index.tsx",
         "resultPreview": "frontend/src/components/ResultPreview/index.tsx",
         "adminPanel": "frontend/src/pages/AdminPage.tsx",
+        "authApi": "frontend/src/api/authWeb.ts",
+        "authStore": "frontend/src/store/authStore.ts",
         "api": "frontend/src/services/api.ts",
         "store": "frontend/src/store/index.ts"
       }
@@ -37,10 +43,15 @@
       "tech": "FastAPI + SQLAlchemy + PostgreSQL",
       "keyFiles": {
         "main": "backend/app/main.py",
+        "auth_web_api": "backend/app/api/v1/endpoints/auth_web.py",
+        "google_oauth": "backend/app/utils/google_oauth.py",
+        "vk_oauth": "backend/app/utils/vk_oauth.py",
         "users_api": "backend/app/api/v1/users.py",
         "photos_api": "backend/app/api/v1/photos.py",
         "admin_api": "backend/app/api/v1/admin.py",
         "payments_api": "backend/app/api/v1/payments.py",
+        "user_model": "backend/app/models/user.py",
+        "auth_schemas": "backend/app/schemas/auth_web.py",
         "models": "backend/app/models",
         "schemas": "backend/app/schemas",
         "services": "backend/app/services",

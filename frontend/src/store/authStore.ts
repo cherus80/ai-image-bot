@@ -4,6 +4,7 @@
  * Supports:
  * - Email/Password authentication
  * - Google OAuth authentication
+ * - VK OAuth authentication
  * - Legacy Telegram authentication (for backwards compatibility)
  */
 
@@ -14,6 +15,7 @@ import {
   registerWithEmail as registerEmailAPI,
   loginWithEmail as loginEmailAPI,
   loginWithGoogle as loginGoogleAPI,
+  loginWithVK as loginVKAPI,
   getCurrentUser,
 } from '../api/authWeb';
 import { loginWithTelegram } from '../api/auth'; // Legacy Telegram auth
@@ -31,6 +33,7 @@ interface AuthState {
   registerWithEmail: (data: RegisterRequest) => Promise<void>;
   loginWithEmail: (data: LoginRequest) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
+  loginWithVK: (token: string, uuid: string) => Promise<void>;
   loginWithTelegram: () => Promise<void>; // Legacy
   logout: () => void;
   refreshProfile: () => Promise<void>;
@@ -165,6 +168,37 @@ export const useAuthStore = create<AuthState>()(
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Google login failed';
+            set({
+              token: null,
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error: errorMessage,
+              ...computeAccessFlags(null),
+            });
+
+            throw error;
+          }
+        },
+
+        // Login with VK OAuth
+        loginWithVK: async (token: string, uuid: string) => {
+          set({ isLoading: true, error: null });
+
+          try {
+            const response = await loginVKAPI(token, uuid);
+
+            set({
+              token: response.access_token,
+              user: response.user,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+              ...computeAccessFlags(response.user),
+            });
+          } catch (error: any) {
+            const errorMessage =
+              error.response?.data?.detail || error.message || 'VK login failed';
             set({
               token: null,
               user: null,

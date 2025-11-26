@@ -7,6 +7,123 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.15.0] - 2025-11-26
+
+### Added - VK ID OAuth Authentication
+
+#### Backend
+- **VK OAuth Utility**: Complete VK ID silent token verification module
+  - Created `verify_vk_silent_token()` function for VK ID SDK token validation
+  - Created `get_vk_user_by_access_token()` for alternative VK API access
+  - Created `exchange_vk_code_for_token()` for traditional OAuth 2.0 flow
+  - Added `VKOAuthError` exception class for error handling
+  - File: [backend/app/utils/vk_oauth.py](backend/app/utils/vk_oauth.py)
+
+- **Database Migration**: Added 'vk' auth provider to enum
+  - Added `'vk'` value to `auth_provider_enum` in PostgreSQL
+  - Updated `AuthProvider` enum in User model
+  - File: [backend/alembic/versions/20251126_1500_add_vk_auth_provider.py](backend/alembic/versions/20251126_1500_add_vk_auth_provider.py)
+  - File: [backend/app/models/user.py:37](backend/app/models/user.py#L37)
+
+- **Pydantic Schemas**: VK OAuth request/response validation
+  - Created `VKOAuthRequest` schema with `token` and `uuid` fields
+  - Reused `GoogleOAuthResponse` for VK OAuth responses (universal schema)
+  - File: [backend/app/schemas/auth_web.py:216](backend/app/schemas/auth_web.py#L216)
+
+- **API Endpoint**: `POST /api/v1/auth-web/vk`
+  - Validates VK ID silent token via VK API
+  - Creates new user or updates existing (with email migration support)
+  - Supports users without email (optional email field)
+  - Auto-assigns ADMIN role via email whitelist
+  - Returns JWT token + user profile + is_new_user flag
+  - File: [backend/app/api/v1/endpoints/auth_web.py:498](backend/app/api/v1/endpoints/auth_web.py#L498)
+
+- **Configuration**: VK OAuth environment variables
+  - Added `VK_APP_ID` and `VK_CLIENT_SECRET` to Settings
+  - Updated `.env.example` with VK OAuth variables
+  - File: [backend/app/core/config.py:61](backend/app/core/config.py#L61)
+  - File: [backend/.env.example:31](backend/.env.example#L31)
+
+#### Frontend
+- **VK ID SDK Integration**: Added VK ID JavaScript SDK
+  - Integrated `@vkid/sdk` via CDN in index.html
+  - File: [frontend/index.html](frontend/index.html)
+
+- **VKSignInButton Component**: Full-featured VK auth button
+  - Initializes VK ID SDK with app configuration
+  - Creates Floating One Tap Button for seamless auth
+  - Handles silent token callback from VK ID
+  - Implements retry mechanism (10 attempts) for SDK loading
+  - Shows loading state with spinner overlay
+  - Displays fallback UI if VK_APP_ID not configured
+  - File: [frontend/src/components/auth/VKSignInButton.tsx](frontend/src/components/auth/VKSignInButton.tsx)
+
+- **TypeScript Types**: Complete VK OAuth type definitions
+  - Added `VKOAuthRequest`, `VKOAuthResponse` interfaces
+  - Added `VKIDUser`, `VKIDAuthResponse`, `VKIDConfig` types
+  - Extended `Window` interface for `window.VKID` support
+  - Updated `AuthProvider` type with `'vk'` value
+  - File: [frontend/src/types/auth.ts](frontend/src/types/auth.ts)
+
+- **API Client**: VK auth API method
+  - Created `loginWithVK(token, uuid)` function
+  - Sends POST request to `/api/v1/auth-web/vk`
+  - File: [frontend/src/api/authWeb.ts](frontend/src/api/authWeb.ts)
+
+- **Auth Store**: VK authentication logic
+  - Added `loginWithVK` method to Zustand store
+  - Handles token storage, user profile, auth state
+  - Implements error handling with Russian error messages
+  - File: [frontend/src/store/authStore.ts](frontend/src/store/authStore.ts)
+
+- **Login Page**: VK sign-in button integration
+  - Added `<VKSignInButton />` vertically under Google button
+  - Implements `handleVKSuccess` callback with navigation
+  - File: [frontend/src/pages/LoginPage.tsx](frontend/src/pages/LoginPage.tsx)
+
+- **Register Page**: VK registration integration
+  - Added `<VKSignInButton />` under Google button
+  - Supports referral code parameter during VK registration
+  - File: [frontend/src/pages/RegisterPage.tsx](frontend/src/pages/RegisterPage.tsx)
+
+- **Environment Variables**: VK app configuration
+  - Added `VITE_VK_APP_ID` to `.env.example`
+  - File: [frontend/.env.example](frontend/.env.example)
+
+#### Documentation
+- **VK OAuth Setup Guide**: Complete setup instructions
+  - Step-by-step VK Mini App creation guide
+  - Backend and frontend configuration instructions
+  - 4 testing scenarios for VK auth flow
+  - Production deployment checklist
+  - Troubleshooting section with 5 common issues
+  - File: [docs/VK_OAUTH_SETUP.md](docs/VK_OAUTH_SETUP.md)
+
+- **Project Index**: Updated with VK OAuth files
+  - Added VK auth files to key files list
+  - Updated project version to 0.15.0
+  - Updated project description with VK OAuth mention
+  - File: [.claude/project-index.json](.claude/project-index.json)
+
+### Features
+- **No mandatory email**: Users can authenticate via VK without providing email
+- **Email migration**: Existing email/password users can switch to VK OAuth
+- **Vertical button layout**: VK button placed under Google button as requested
+- **Modern VK ID**: Uses new VK ID SDK instead of legacy VK OAuth
+- **Referral support**: VK authentication supports referral codes
+- **Auto-admin assignment**: Email whitelist works with VK OAuth
+- **100 credits bonus**: New VK users receive 100 credits on signup
+
+### Technical Details
+- **Lines of code added**: ~800+
+- **Files created**: 4
+- **Files modified**: 14
+- **VK ID SDK version**: Latest (via CDN)
+- **Retry mechanism**: 10 attempts with 500ms intervals
+- **Error handling**: Full Russian localization
+
+---
+
 ## [0.12.6] - 2025-11-26
 
 ### Added - iPhone Photo Support (MPO/HEIC)

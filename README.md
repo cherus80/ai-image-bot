@@ -1,8 +1,8 @@
 # 🎨 AI Media Generator
 
-> Telegram Web App для виртуальной примерки одежды/аксессуаров и AI-редактирования изображений
+> Веб-приложение для виртуальной примерки одежды/аксессуаров и AI-редактирования изображений
 
-[![Version](https://img.shields.io/badge/version-0.14.0-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.15.0-brightgreen.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Private-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Node](https://img.shields.io/badge/node-20+-green.svg)](https://nodejs.org/)
@@ -25,8 +25,9 @@
 **Аутентификация**:
 - Email/Password регистрация с верификацией
 - Google OAuth
-- Telegram WebApp (обратная совместимость)
-- **Бонус**: 100 кредитов при регистрации (v0.12.5)
+- **VK ID OAuth** — современная авторизация через VK.com (v0.15.0)
+- Telegram WebApp (legacy, обратная совместимость)
+- **Бонус**: 100 кредитов при регистрации
 
 **Тестирование**:
 - ✅ 42 теста для Billing v4 (37 passed, 5 skipped)

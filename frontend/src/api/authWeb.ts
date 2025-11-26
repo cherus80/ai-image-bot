@@ -1,7 +1,7 @@
 /**
  * Web Authentication API Client
  *
- * Handles Email/Password and Google OAuth authentication
+ * Handles Email/Password, Google OAuth, and VK OAuth authentication
  */
 
 import client from './client';
@@ -9,8 +9,10 @@ import type {
   RegisterRequest,
   LoginRequest,
   GoogleOAuthRequest,
+  VKOAuthRequest,
   LoginResponse,
   GoogleOAuthResponse,
+  VKOAuthResponse,
   UserProfileResponse,
   SendVerificationEmailResponse,
   VerifyEmailResponse,
@@ -38,6 +40,15 @@ export async function loginWithEmail(data: LoginRequest): Promise<LoginResponse>
 export async function loginWithGoogle(idToken: string): Promise<GoogleOAuthResponse> {
   const data: GoogleOAuthRequest = { id_token: idToken };
   const response = await client.post<GoogleOAuthResponse>('/api/v1/auth-web/google', data);
+  return response.data;
+}
+
+/**
+ * Login or register with VK OAuth
+ */
+export async function loginWithVK(token: string, uuid: string): Promise<VKOAuthResponse> {
+  const data: VKOAuthRequest = { token, uuid };
+  const response = await client.post<VKOAuthResponse>('/api/v1/auth-web/vk', data);
   return response.data;
 }
 

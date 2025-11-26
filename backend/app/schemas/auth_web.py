@@ -4,6 +4,7 @@ Web Authentication Schemas — Pydantic схемы для веб-авториз�
 Поддерживает:
 - Email/Password регистрацию и вход
 - Google OAuth авторизацию
+- VK ID OAuth авторизацию
 """
 
 from __future__ import annotations
@@ -28,7 +29,7 @@ class UserProfile(BaseModel):
     # Auth method
     auth_provider: str = Field(
         ...,
-        description="Authentication provider (email, google, telegram)"
+        description="Authentication provider (email, google, vk, telegram)"
     )
 
     # Email (for web users)
@@ -205,6 +206,31 @@ class GoogleOAuthResponse(BaseModel):
         ...,
         description="True if this is a new user registration"
     )
+
+
+# ============================================================================
+# VK ID OAuth
+# ============================================================================
+
+
+class VKOAuthRequest(BaseModel):
+    """Запрос на вход через VK ID OAuth"""
+
+    token: str = Field(
+        ...,
+        description="VK ID silent token from VK ID SDK",
+        example="vk1.a.AbCdEf123..."
+    )
+
+    uuid: str = Field(
+        ...,
+        description="Device UUID from VK ID SDK (for additional security)",
+        example="550e8400-e29b-41d4-a716-446655440000"
+    )
+
+
+# VKOAuthResponse is identical to GoogleOAuthResponse, so we reuse it
+VKOAuthResponse = GoogleOAuthResponse
 
 
 # ============================================================================

@@ -5,6 +5,7 @@ Endpoints:
 - POST /auth/register - Регистрация через Email/Password
 - POST /auth/login - Вход через Email/Password
 - POST /auth/google - Вход через Google OAuth
+- POST /auth/vk - Вход через VK ID OAuth
 - GET /auth/me - Получение текущего профиля пользователя
 - POST /auth/logout - Выход (для будущего расширения)
 """
@@ -28,6 +29,8 @@ from app.schemas.auth_web import (
     LoginResponse,
     GoogleOAuthRequest,
     GoogleOAuthResponse,
+    VKOAuthRequest,
+    VKOAuthResponse,
     UserProfile,
     UserProfileResponse,
     SendVerificationEmailResponse,
@@ -37,6 +40,7 @@ from app.schemas.auth_web import (
 from app.utils.jwt import create_user_access_token
 from app.utils.password import hash_password, verify_password, is_strong_password
 from app.utils.google_oauth import verify_google_id_token, GoogleOAuthError
+from app.utils.vk_oauth import verify_vk_silent_token, VKOAuthError
 from app.services.email import email_service
 from app.models.email_verification import EmailVerificationToken
 
@@ -479,6 +483,169 @@ async def login_with_google(
 
     # Формируем ответ
     return GoogleOAuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user_to_profile(user),
+        is_new_user=is_new_user,
+    )
+
+
+# ============================================================================
+# VK ID OAuth
+# ============================================================================
+
+
+@router.post("/vk", response_model=VKOAuthResponse, status_code=status.HTTP_200_OK)
+async def login_with_vk(
+    request: VKOAuthRequest,
+    db: DBSession,
+) -> VKOAuthResponse:
+    """
+    Вход/Регистрация через VK ID OAuth.
+
+    Args:
+        request: VK ID silent token и UUID устройства
+        db: Database session
+
+    Returns:
+        VKOAuthResponse: JWT токен, профиль пользователя, флаг is_new_user
+
+    Raises:
+        HTTPException 401: Если VK ID token невалидный
+        HTTPException 403: Если пользователь забанен
+        HTTPException 503: Если VK OAuth не настроен
+    """
+    # Проверка настройки VK OAuth
+    if not settings.VK_APP_ID or not settings.VK_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="VK OAuth is not configured. Please use email/password authentication.",
+        )
+
+    # Валидация VK ID silent token
+    try:
+        vk_user_info = verify_vk_silent_token(request.token, request.uuid)
+    except VKOAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid VK ID token: {str(e)}",
+        )
+
+    # Извлекаем данные из VK
+    vk_user_id = vk_user_info['user_id']
+    email = vk_user_info.get('email')  # Может быть None
+    first_name = vk_user_info.get('first_name')
+    last_name = vk_user_info.get('last_name')
+
+    if not vk_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="VK user ID not provided by VK.",
+        )
+
+    # Конвертируем VK user_id в строку для хранения в oauth_provider_id
+    vk_user_id_str = str(vk_user_id)
+
+    # Ищем существующего пользователя по VK ID или email (если email есть)
+    if email:
+        result = await db.execute(
+            select(User).where(
+                (User.oauth_provider_id == vk_user_id_str) |
+                (User.email == email)
+            )
+        )
+    else:
+        # Если email нет, ищем только по VK ID
+        result = await db.execute(
+            select(User).where(User.oauth_provider_id == vk_user_id_str)
+        )
+
+    user = result.scalar_one_or_none()
+
+    is_new_user = False
+
+    if user:
+        # Обновляем существующего пользователя
+        # Если пользователь был с email/password, переключаем на VK OAuth
+        if user.auth_provider == AuthProvider.email:
+            user.auth_provider = AuthProvider.vk
+            user.oauth_provider_id = vk_user_id_str
+
+        # Обновляем данные профиля
+        if email:
+            user.email = email
+            # VK не гарантирует email verification, но мы можем установить в True
+            # так как VK сам верифицирует пользователей
+            user.email_verified = True
+
+        user.first_name = first_name or user.first_name
+        user.last_name = last_name or user.last_name
+        user.updated_at = datetime.utcnow()
+
+        # Автоназначение роли ADMIN по whitelist (если email есть)
+        if user.email and user.email.lower() in settings.admin_email_list and user.role != UserRole.ADMIN:
+            user.role = UserRole.ADMIN
+
+        # Сбрасываем Freemium счётчик, если нужно
+        user.reset_freemium_if_needed()
+
+        await db.commit()
+        await db.refresh(user)
+
+    else:
+        # Создаём нового пользователя
+        is_new_user = True
+
+        # Генерируем username из имени или VK ID
+        if first_name:
+            username = f"{first_name}_{vk_user_id}"
+        else:
+            username = f"vk_user_{vk_user_id}"
+
+        user = User(
+            email=email,  # Может быть None
+            email_verified=True if email else False,  # Если email есть, считаем верифицированным
+            auth_provider=AuthProvider.vk,
+            oauth_provider_id=vk_user_id_str,
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            balance_credits=100,  # 100 тестовых кредитов при регистрации
+            freemium_actions_used=0,
+            freemium_reset_at=datetime.utcnow(),
+            is_active=True,
+            is_banned=False,
+        )
+
+        # Автоназначение роли ADMIN по whitelist (если email есть)
+        if user.email and user.email.lower() in settings.admin_email_list:
+            user.role = UserRole.ADMIN
+
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+        # Гарантируем бонус 100 кредитов
+        if user.balance_credits < 100:
+            user.balance_credits = 100
+            await db.commit()
+            await db.refresh(user)
+
+    # Проверка, что пользователь не забанен
+    if user.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is blocked",
+        )
+
+    # Создаём JWT токен
+    access_token = create_user_access_token(
+        user_id=user.id,
+        email=user.email,  # Может быть None, но это ок
+    )
+
+    # Формируем ответ
+    return VKOAuthResponse(
         access_token=access_token,
         token_type="bearer",
         user=user_to_profile(user),
