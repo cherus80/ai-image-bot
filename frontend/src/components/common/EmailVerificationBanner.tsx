@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../store/authStore';
 import { sendVerificationEmail } from '../../api/authWeb';
 
 export function EmailVerificationBanner() {
   const { user } = useAuth();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -13,7 +15,8 @@ export function EmailVerificationBanner() {
   // - Email уже подтвержден
   // - Нет email (OAuth пользователи с подтвержденным email)
   // - Баннер был закрыт
-  if (!user || user.email_verified || !user.email || isDismissed) {
+  // - Мы уже на странице verify-required (чтобы не дублировать UI)
+  if (!user || user.email_verified || !user.email || isDismissed || location.pathname === '/verify-required') {
     return null;
   }
 
