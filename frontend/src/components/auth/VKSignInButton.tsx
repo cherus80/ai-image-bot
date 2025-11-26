@@ -71,7 +71,7 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
         window.VKID.Config.init({
           app: appId,
           redirectUrl: window.location.origin,
-          scope: ['email', 'phone'],
+          scope: 'email phone',
         });
 
         if (containerRef.current && !buttonInstanceRef.current) {
