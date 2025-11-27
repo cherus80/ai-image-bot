@@ -195,8 +195,9 @@ def generate_fitting_task(
                 logger.info(f"Determined aspect ratio for fitting: {aspect_ratio}")
 
                 # Публичные URL для kie.ai
-                public_user_photo_url = to_public_url(user_photo_url or str(user_photo_path))
-                public_item_photo_url = to_public_url(item_photo_url or str(item_photo_path))
+                # Используем конвертированные имена файлов (могут содержать _converted.png)
+                public_user_photo_url = to_public_url(f"uploads/{user_photo_path.name}")
+                public_item_photo_url = to_public_url(f"uploads/{item_photo_path.name}")
 
                 # Генерация изображения с виртуальной примеркой
                 # Используем kie.ai как primary, OpenRouter как fallback
