@@ -285,6 +285,48 @@ def generate_editing_task(
                     await session.commit()
                     logger.info(f"Added result to chat history {session_id}")
 
+                # ✅ СПИСЫВАЕМ КРЕДИТЫ ПОСЛЕ УСПЕШНОЙ ГЕНЕРАЦИИ
+                generation_cost = 2  # Стоимость генерации изображения
+                billing_v4_enabled = settings.BILLING_V4_ENABLED
+
+                try:
+                    if billing_v4_enabled:
+                        from app.services.billing_v4 import BillingV4Service
+                        billing = BillingV4Service(session)
+                        await billing.charge_generation(
+                            user_id,
+                            meta={
+                                "generation_id": generation_id,
+                                "feature": "editing_generation",
+                                "session_id": session_id,
+                            },
+                            cost_credits=generation_cost,
+                        )
+                        logger.info(f"Charged {generation_cost} credits for generation {generation_id} (Billing v4)")
+                    else:
+                        # Billing v3
+                        from app.services.credits import deduct_credits
+                        from app.models.generation import Generation
+
+                        # Получаем User и Generation для обновления
+                        user = await session.get(User, user_id)
+                        generation = await session.get(Generation, generation_id)
+
+                        if user and generation:
+                            await deduct_credits(
+                                session=session,
+                                user=user,
+                                credits_cost=generation_cost,
+                                generation_id=generation_id,
+                            )
+                            # Обновляем credits_spent в Generation
+                            generation.credits_spent = generation_cost
+                            await session.commit()
+                            logger.info(f"Deducted {generation_cost} credits for generation {generation_id} (Billing v3)")
+                except Exception as credit_error:
+                    logger.error(f"Failed to charge credits for generation {generation_id}: {credit_error}", exc_info=True)
+                    # НЕ прерываем выполнение — изображение уже сгенерировано
+
                 return {
                     "status": "completed",
                     "image_url": image_url,

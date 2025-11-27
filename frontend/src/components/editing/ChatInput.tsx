@@ -56,9 +56,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="border border-primary-100 backdrop-blur-md bg-white/80 px-4 py-4 shadow-soft rounded-2xl mb-10">
+    <div className="border border-primary-100 backdrop-blur-md bg-white/80 px-2 sm:px-4 py-3 sm:py-4 shadow-soft rounded-2xl mb-10">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-end space-x-3">
+        <div className="flex items-end space-x-2 sm:space-x-3">
           {/* Textarea */}
           <div className="flex-1 relative">
             <textarea
@@ -69,7 +69,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               placeholder={placeholder}
               disabled={disabled}
               rows={1}
-              className="w-full px-5 py-4 glass border-2 border-primary-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-dark-900 placeholder-dark-400 font-medium"
+              className="w-full px-3 sm:px-5 py-3 sm:py-4 glass border-2 border-primary-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-dark-900 placeholder-dark-400 font-medium text-sm sm:text-base"
               style={{ maxHeight: '200px' }}
             />
             {/* Hint text */}

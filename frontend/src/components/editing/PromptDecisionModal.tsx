@@ -43,9 +43,9 @@ export const PromptDecisionModal: React.FC<PromptDecisionModalProps> = ({
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: 'spring', duration: 0.3 }}
         onClick={(e) => e.stopPropagation()}
-        className="max-w-3xl w-full"
+        className="max-w-3xl w-full max-h-[90vh] overflow-y-auto overscroll-contain"
       >
-        <Card variant="glass" padding="xl" className="shadow-glow-primary">
+        <Card variant="glass" padding="xl" className="shadow-glow-primary p-3 sm:p-6">
           <div className="flex items-start justify-between mb-6">
             <div>
               <h3 className="text-2xl font-bold gradient-text">
@@ -74,14 +74,14 @@ export const PromptDecisionModal: React.FC<PromptDecisionModalProps> = ({
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card variant="glass" padding="lg" className="border border-success-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 mt-4 sm:mt-6">
+            <Card variant="glass" padding="lg" className="border border-success-200 p-3 sm:p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <span className="text-2xl">🚀</span>
                   <p className="text-lg font-bold text-dark-900">Отправить как есть</p>
                 </div>
-                <Badge variant="success" size="sm">−1 кредит</Badge>
+                <Badge variant="success" size="sm">−2 кредита</Badge>
               </div>
               <p className="text-sm text-dark-600 mb-4">
                 Сразу отправим запрос на генерацию без дополнительных шагов. Быстро и без списания за ассистента.
@@ -105,7 +105,7 @@ export const PromptDecisionModal: React.FC<PromptDecisionModalProps> = ({
               </form>
             </Card>
 
-            <Card variant="glass" padding="lg" className="border border-primary-200">
+            <Card variant="glass" padding="lg" className="border border-primary-200 p-3 sm:p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <span className="text-2xl">🤖</span>
@@ -117,7 +117,7 @@ export const PromptDecisionModal: React.FC<PromptDecisionModalProps> = ({
             </div>
           </div>
           <p className="text-sm text-dark-600 mb-3">
-            Помощник <span className="font-semibold">{modelName}</span> предложит улучшенные варианты и попросит подтвердить один из них перед отправкой. Генерация изображения также спишет 1 кредит.
+            Помощник <span className="font-semibold">{modelName}</span> предложит улучшенные варианты и попросит подтвердить один из них перед отправкой. Генерация изображения также спишет 2 кредита.
           </p>
           <form
             onSubmit={(e) => {

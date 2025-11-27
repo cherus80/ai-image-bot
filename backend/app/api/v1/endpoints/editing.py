@@ -149,7 +149,7 @@ async def create_session(
     status_code=status.HTTP_200_OK,
     summary="Отправить сообщение AI-ассистенту",
     description=(
-        "Отправляет сообщение AI-ассистенту (Claude Haiku через OpenRouter).\n\n"
+        "Отправляет сообщение AI-ассистенту (GPT-4.1 Mini через OpenRouter).\n\n"
         "AI генерирует 3 варианта промптов для редактирования изображения:\n"
         "1. Короткий (1-2 предложения)\n"
         "2. Средний (2-3 предложения)\n"
@@ -170,14 +170,9 @@ async def send_message(
     billing_v4_enabled = settings.BILLING_V4_ENABLED
     assistant_cost = settings.BILLING_ASSISTANT_COST_CREDITS if billing_v4_enabled else 1
 
-    if billing_v4_enabled:
-        billing = BillingV4Service(db)
-        await billing.charge_assistant(
-            current_user.id,
-            meta={"feature": "editing_assistant", "session_id": str(request.session_id)},
-        )
-    else:
-        # Проверка баланса для старой модели
+    # Проверяем баланс, но НЕ списываем кредиты (списание будет после успешной генерации)
+    if not billing_v4_enabled:
+        # Только проверка баланса для старой модели
         can_perform, reason = await check_user_can_perform_action(
             user=current_user,
             credits_cost=assistant_cost,
@@ -187,6 +182,13 @@ async def send_message(
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail=reason or "Insufficient credits"
+            )
+    else:
+        # Для Billing v4 проверяем наличие кредитов
+        if current_user.balance_credits < assistant_cost:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Insufficient credits for AI assistant"
             )
 
     try:
@@ -229,20 +231,29 @@ async def send_message(
                 f"Generated {len(prompts)} prompts for session {request.session_id}"
             )
 
+            # ✅ СПИСЫВАЕМ КРЕДИТЫ ПОСЛЕ УСПЕШНОЙ ГЕНЕРАЦИИ ПРОМПТОВ
+            if billing_v4_enabled:
+                billing = BillingV4Service(db)
+                await billing.charge_assistant(
+                    current_user.id,
+                    meta={"feature": "editing_assistant", "session_id": str(request.session_id)},
+                )
+                logger.info(f"Charged {assistant_cost} credits for AI assistant (Billing v4)")
+            else:
+                # Billing v3
+                await deduct_credits(
+                    session=db,
+                    user=current_user,
+                    credits_cost=assistant_cost,
+                    generation_id=None,  # Не привязано к генерации
+                )
+                logger.info(f"Deducted {assistant_cost} credits for AI assistant (Billing v3)")
+
         except OpenRouterError as e:
             logger.error(f"OpenRouter error: {e}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=f"AI service error: {str(e)}"
-            )
-
-        # Списание при старой модели (Billing v3)
-        if not billing_v4_enabled:
-            await deduct_credits(
-                session=db,
-                user=current_user,
-                credits_cost=assistant_cost,
-                generation_id=None,  # Не привязано к генерации
             )
 
         # Формируем ответ assistant с промптами
@@ -295,13 +306,14 @@ async def send_message(
     summary="Сгенерировать изображение по промпту",
     description=(
         "Запускает генерацию отредактированного изображения через OpenRouter API.\n\n"
-        "Стоимость: 1 кредит (или Freemium)\n\n"
+        "Стоимость: 2 кредита (списываются после успешной генерации)\n\n"
         "Требуется подтверждённый email для доступа.\n\n"
         "Процесс:\n"
-        "1. Списание 1 кредита\n"
+        "1. Проверка баланса кредитов\n"
         "2. Создание записи Generation\n"
         "3. Запуск Celery задачи\n"
-        "4. Возврат task_id для отслеживания прогресса\n\n"
+        "4. Списание 2 кредитов после успешной генерации\n"
+        "5. Возврат task_id для отслеживания прогресса\n\n"
         "Используйте /fitting/status/{task_id} для проверки статуса."
     )
 )
@@ -314,21 +326,11 @@ async def generate_image(
     Сгенерировать отредактированное изображение по промпту.
     """
     billing_v4_enabled = settings.BILLING_V4_ENABLED
-    generation_cost = settings.BILLING_GENERATION_COST_CREDITS if billing_v4_enabled else 1
-    charge_info = None
+    generation_cost = 2  # Всегда 2 кредита (как указано в config)
 
-    if billing_v4_enabled:
-        billing = BillingV4Service(db)
-        charge_info = await billing.charge_generation(
-            current_user.id,
-            meta={
-                "feature": "editing_generation",
-                "session_id": str(request.session_id),
-            },
-            cost_credits=generation_cost,
-        )
-    else:
-        # Проверка баланса и списание в старой модели
+    # Проверяем баланс, но НЕ списываем кредиты (списание будет в Celery task после успеха)
+    if not billing_v4_enabled:
+        # Только проверка баланса для старой модели
         can_perform, reason = await check_user_can_perform_action(
             user=current_user,
             credits_cost=generation_cost,
@@ -339,13 +341,13 @@ async def generate_image(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail=reason or "Insufficient credits"
             )
-
-        await deduct_credits(
-            session=db,
-            user=current_user,
-            credits_cost=generation_cost,
-            generation_id=None,  # Будет установлено позже
-        )
+    else:
+        # Для Billing v4 проверяем наличие кредитов
+        if current_user.balance_credits < generation_cost:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Insufficient credits for image generation"
+            )
 
     try:
         # Проверка существования сессии
@@ -357,17 +359,14 @@ async def generate_image(
         )
 
         # Создание записи Generation
+        # credits_spent будет установлено в Celery task после успешной генерации
         generation = Generation(
             user_id=current_user.id,
             type="editing",
             prompt=request.prompt,
             status="pending",
             progress=0,
-            credits_spent=(
-                charge_info.get("credits_spent", 0)
-                if billing_v4_enabled and charge_info
-                else (generation_cost if not billing_v4_enabled else 0)
-            ),
+            credits_spent=0,  # Кредиты будут списаны в task после успеха
         )
 
         db.add(generation)

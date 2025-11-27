@@ -66,13 +66,13 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = Field(default="HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60)
 
-    # OpenRouter API (Claude/GPT для промптов, Nano Banana для генерации)
+    # OpenRouter API (GPT-4.1 Mini для промптов, Nano Banana для генерации)
     OPENROUTER_API_KEY: Optional[str] = Field(default=None, description="API key for OpenRouter (optional)")
     OPENROUTER_BASE_URL: str = Field(default="https://openrouter.ai/api/v1")
     OPENROUTER_MODEL: str = Field(default="anthropic/claude-3-haiku-20240307")
     OPENROUTER_PROMPT_MODEL: Optional[str] = Field(
         default="openai/gpt-4.1-mini",
-        description="Модель OpenRouter для улучшения промптов (GPT, по умолчанию gpt-4.1-mini)",
+        description="Модель OpenRouter для улучшения промптов (GPT-4.1 Mini, по умолчанию)",
     )
 
     # kie.ai Nano Banana API (Primary service for image generation)

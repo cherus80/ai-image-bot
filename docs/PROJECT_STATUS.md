@@ -38,7 +38,7 @@
   - Chat History
 
 - **External Services**:
-  - OpenRouter (Gemini image preview + Claude Haiku) - image generation & prompts
+  - OpenRouter (Gemini image preview + GPT-4.1 Mini) - image generation & prompts
   - YuKassa - payments
 
 ### ✅ Frontend (React + TypeScript)

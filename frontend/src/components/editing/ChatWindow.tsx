@@ -30,7 +30,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     import.meta.env.VITE_PROMPT_ASSISTANT_MODEL || 'AI-ассистент';
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const scrollAreaHeight = 'calc(100dvh - 240px)';
+  // Адаптивная высота для маленьких экранов
+  const scrollAreaHeight = typeof window !== 'undefined' && window.innerWidth < 350
+    ? 'calc(100dvh - 280px)'
+    : 'calc(100dvh - 240px)';
 
   // Автоматический scroll вниз при новых сообщениях
   React.useEffect(() => {
@@ -47,7 +50,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto px-4 py-6 overscroll-contain"
+      className="flex-1 overflow-y-auto px-2 sm:px-4 py-4 sm:py-6 overscroll-contain"
       style={{
         maxHeight: scrollAreaHeight,
         height: scrollAreaHeight,

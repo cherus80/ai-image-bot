@@ -488,7 +488,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Celery + Redis for async tasks
 - Alembic migrations
 - kie.ai integration (Nano Banana)
-- OpenRouter integration (Claude Haiku)
+- OpenRouter integration (GPT-4.1 Mini)
 - YuKassa payment integration
 - Telegram WebApp authentication
 

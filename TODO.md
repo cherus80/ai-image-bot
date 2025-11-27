@@ -278,7 +278,7 @@
   - [x] `GenerateImageResponse` (task_id: str, status: str)
   - [x] `ChatHistoryMessage`, `ChatHistoryResponse`, `ResetSessionResponse`
 
-### 5.2. Сервис для OpenRouter (Claude Haiku)
+### 5.2. Сервис для OpenRouter (GPT-4.1 Mini)
 - ✅ Создать `app/services/openrouter.py`
   - [x] Функция `generate_prompts(user_message: str, chat_history: list[dict]) -> list[str]`
   - [x] Интеграция с OpenRouter API (модель: claude-3-haiku-20240307)

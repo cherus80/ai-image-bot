@@ -97,7 +97,7 @@ export const EditingPage: React.FC = () => {
       addMessage({
         role: 'assistant',
         content:
-          'Отправляю запрос как есть. Списание: 1 кредит за генерацию.',
+          'Отправляю запрос как есть. Списание: 2 кредита за генерацию.',
       });
 
       console.log('[EditingPage] Calling generateImage...');
@@ -284,7 +284,7 @@ export const EditingPage: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="text-base font-bold text-dark-900 mb-2">Прозрачная оплата</h3>
                       <p className="text-sm text-dark-600">
-                        1 кредит за сообщение AI, 1 кредит за генерацию изображения.
+                        1 кредит за сообщение AI, 2 кредита за генерацию изображения.
                       </p>
                     </div>
                   </div>
