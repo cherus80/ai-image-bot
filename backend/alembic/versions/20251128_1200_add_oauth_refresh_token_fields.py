@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "20251128_1200_add_oauth_refresh_token_fields"
+revision: str = "20251128_refresh_tokens"
 down_revision: Union[str, None] = "7f5aa99c2c1e"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

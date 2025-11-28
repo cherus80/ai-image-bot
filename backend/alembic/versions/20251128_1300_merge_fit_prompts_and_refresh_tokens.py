@@ -12,7 +12,7 @@ import sqlalchemy as sa  # noqa: F401
 
 # revision identifiers, used by Alembic.
 revision: str = "20251128_1300_merge_fit_prompts_and_refresh_tokens"
-down_revision: Union[str, None] = ("20251127_fit_prompts", "20251128_1200_add_oauth_refresh_token_fields")
+down_revision: Union[str, None] = ("20251127_fit_prompts", "20251128_refresh_tokens")
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
