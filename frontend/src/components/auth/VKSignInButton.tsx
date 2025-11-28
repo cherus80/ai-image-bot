@@ -24,6 +24,8 @@ export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
     }
     setIsLoading(true);
     try {
+      // Уведомляем об успешном запуске флоу (до редиректа)
+      onSuccess?.();
       await startVKPKCEAuth({
         appId,
         redirectUri,
