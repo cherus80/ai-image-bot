@@ -33,7 +33,7 @@ export const HomePage: React.FC = () => {
       details: 'Общайтесь с AI и описывайте изменения естественным языком',
       path: '/editing',
       gradient: 'from-pink-500 to-orange-500',
-      cost: '1 кредит за запрос + 1 за генерацию',
+      cost: '1 кредит за запрос + 2 за генерацию',
     },
   ];
 

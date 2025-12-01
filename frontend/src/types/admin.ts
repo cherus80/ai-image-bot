@@ -262,3 +262,17 @@ export interface UpdateFittingPromptRequest {
   prompt?: string;
   use_default?: boolean;
 }
+
+// ============================================================================
+// Fallback (kie.ai / OpenRouter)
+// ============================================================================
+
+export interface FallbackSettings {
+  use_kie_ai: boolean;
+  disable_fallback: boolean;
+}
+
+export interface UpdateFallbackSettingsRequest {
+  use_kie_ai?: boolean;
+  disable_fallback?: boolean;
+}

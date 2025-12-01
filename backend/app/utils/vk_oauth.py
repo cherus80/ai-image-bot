@@ -291,7 +291,7 @@ def exchange_vk_authorization_code_pkce(code: str, code_verifier: str, redirect_
         raise VKOAuthError("VK OAuth is not configured (missing VK_APP_ID)")
 
     try:
-        url = "https://id.vk.ru/oauth2/auth"
+        url = "https://id.vk.com/oauth2/auth"
         data = {
             "grant_type": "authorization_code",
             "code": code,

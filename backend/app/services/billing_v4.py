@@ -1,7 +1,7 @@
 """
 Billing v4: Freemium + Subscription + Credits.
 
-Приоритет списаний: подписка → freemium → кредиты. Администраторы пропускаются.
+Приоритет списаний: подписка → кредиты → freemium. Администраторы пропускаются.
 """
 
 from datetime import datetime, timezone, timedelta
@@ -51,6 +51,9 @@ class BillingV4Service:
             logger.info("Billing v4: admin bypass for user %s", user.id)
             return self._response(user, "admin", cost, LedgerEntryType.TRYON, None)
 
+        source: Optional[LedgerSource] = None
+        entry_type = LedgerEntryType.TRYON
+
         # Idempotency guard (optional)
         if idempotency_key and settings.BILLING_LEDGER_ENABLED:
             existing = await self.session.scalar(
@@ -60,18 +63,15 @@ class BillingV4Service:
                 logger.warning("Billing v4: duplicate charge_generation idempotency_key=%s", idempotency_key)
                 return self._response(user, existing.source.value, cost, existing.type, existing.source)
 
-        source: Optional[LedgerSource] = None
-        entry_type = LedgerEntryType.TRYON
-
         if self._subscription_available(user):
             user.subscription_ops_used += 1
             source = LedgerSource.SUBSCRIPTION
-        elif self._freemium_available(user):
-            user.freemium_actions_used += 1
-            source = LedgerSource.FREEMIUM
         elif user.balance_credits >= cost:
             user.balance_credits -= cost
             source = LedgerSource.CREDITS
+        elif self._freemium_available(user):
+            user.freemium_actions_used += 1
+            source = LedgerSource.FREEMIUM
         else:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,

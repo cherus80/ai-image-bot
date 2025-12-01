@@ -15,7 +15,7 @@ interface VKSignInButtonProps {
 export function VKSignInButton({ onSuccess, onError }: VKSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const appId = import.meta.env.VITE_VK_APP_ID;
-  const redirectUri = `${window.location.origin}/vk/callback`;
+  const redirectUri = import.meta.env.VITE_VK_REDIRECT_URI || `${window.location.origin}/vk/callback`;
 
   const handleClick = async () => {
     if (!appId) {

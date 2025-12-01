@@ -44,6 +44,19 @@ type StartVKPKCEAuthOptions = {
   storageKey?: string;
 };
 
+const DEFAULT_STORAGE_KEY = 'vk_pkce';
+
+const buildStorageKey = (storageKey: string, state: string) => `${storageKey}:${state}`;
+
+const persistPKCEPayload = (
+  storageKey: string,
+  state: string,
+  payload: Record<string, unknown>,
+) => {
+  localStorage.setItem(buildStorageKey(storageKey, state), JSON.stringify(payload));
+  localStorage.setItem(`${storageKey}:latest`, state);
+};
+
 /**
  * Starts VK ID PKCE authorization by redirecting to id.vk.ru/authorize.
  * Stores verifier/state/nonce in localStorage for later exchange.
@@ -52,26 +65,24 @@ export const startVKPKCEAuth = async ({
   appId,
   redirectUri,
   scope = 'email phone',
-  storageKey = 'vk_pkce',
+  storageKey = DEFAULT_STORAGE_KEY,
 }: StartVKPKCEAuthOptions) => {
+  const authBaseUrl = import.meta.env.VITE_VK_AUTH_URL || 'https://id.vk.com/authorize';
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await generateCodeChallenge(codeVerifier);
   const state = generateRandomString(32);
   const nonce = generateRandomString(16);
   const deviceId = getOrCreateDeviceId();
 
-  localStorage.setItem(
-    storageKey,
-    JSON.stringify({
-      code_verifier: codeVerifier,
-      state,
-      nonce,
-      device_id: deviceId,
-      ts: Date.now(),
-    })
-  );
+  persistPKCEPayload(storageKey, state, {
+    code_verifier: codeVerifier,
+    state,
+    nonce,
+    device_id: deviceId,
+    ts: Date.now(),
+  });
 
-  const authUrl = new URL('https://id.vk.ru/authorize');
+  const authUrl = new URL(authBaseUrl);
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('client_id', appId);
   authUrl.searchParams.set('redirect_uri', redirectUri);

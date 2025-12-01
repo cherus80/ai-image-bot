@@ -16,6 +16,7 @@ import { AddCreditsModal } from '../components/admin/AddCreditsModal';
 import { DeleteUserModal } from '../components/admin/DeleteUserModal';
 import { MakeAdminModal } from '../components/admin/MakeAdminModal';
 import { FittingPrompts } from '../components/admin/FittingPrompts';
+import { FallbackSettings } from '../components/admin/FallbackSettings';
 import { Layout } from '../components/common/Layout';
 
 interface User {
@@ -31,7 +32,7 @@ interface User {
 }
 
 export const AdminPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'prompts'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'prompts' | 'fallback'>('dashboard');
 
   // Модальные окна
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -112,6 +113,18 @@ export const AdminPage: React.FC = () => {
               >
                 ✏️ Промпты примерки
               </button>
+              <button
+                onClick={() => setActiveTab('fallback')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                  ${activeTab === 'fallback'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                🛡️ Fallback
+              </button>
             </nav>
           </div>
         </div>
@@ -128,6 +141,7 @@ export const AdminPage: React.FC = () => {
             />
           )}
           {activeTab === 'prompts' && <FittingPrompts />}
+          {activeTab === 'fallback' && <FallbackSettings />}
         </div>
 
         {/* Модальные окна */}

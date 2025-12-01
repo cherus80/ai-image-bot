@@ -21,6 +21,8 @@ import type {
   FittingPromptListResponse,
   FittingPromptItem,
   UpdateFittingPromptRequest,
+  FallbackSettings,
+  UpdateFallbackSettingsRequest,
 } from '../types/admin';
 
 // ============================================================================
@@ -193,6 +195,22 @@ export const exportPaymentsCSV = async (params?: PaymentExportRequest): Promise<
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
+};
+
+// ============================================================================
+// Fallback settings (kie.ai / OpenRouter)
+// ============================================================================
+
+export const getFallbackSettings = async (): Promise<FallbackSettings> => {
+  const response = await apiClient.get<FallbackSettings>('/api/v1/admin/fallback');
+  return response.data;
+};
+
+export const updateFallbackSettings = async (
+  payload: UpdateFallbackSettingsRequest
+): Promise<FallbackSettings> => {
+  const response = await apiClient.post<FallbackSettings>('/api/v1/admin/fallback', payload);
+  return response.data;
 };
 
 /**

@@ -89,7 +89,7 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Header */}
       <header className="sticky top-0 z-20 backdrop-blur-md bg-white/70 border-b border-white/20 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             {/* Left side: Back button + Title */}
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {showBackButton && location.pathname !== '/' && (
@@ -122,10 +122,10 @@ export const Layout: React.FC<LayoutProps> = ({
             </div>
 
             {/* Right side: Balance + Hamburger menu */}
-            <div className="flex items-center space-x-3 ml-3">
+            <div className="flex items-center gap-3 ml-0 sm:ml-3 w-full sm:w-auto justify-end">
               {showBalance && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                  <Card variant="gradient" padding="sm" className="border border-primary-200">
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full sm:w-auto">
+                  <Card variant="gradient" padding="sm" className="border border-primary-200 w-full sm:w-auto">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-primary-700">{user?.balance_credits ?? 0}</p>
                       <p className="text-xs text-primary-600 font-semibold whitespace-nowrap">кредитов</p>

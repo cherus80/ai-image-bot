@@ -199,6 +199,24 @@ class AdminUsersRequest(BaseModel):
     filter_active: bool | None = Field(default=None, description="Фильтр по активности")
 
 
+# ============================================================================
+# Настройки fallback (kie.ai / OpenRouter)
+# ============================================================================
+
+class FallbackSettingsResponse(BaseModel):
+    """Текущие настройки fallback для генерации."""
+
+    use_kie_ai: bool = Field(..., description="Использовать kie.ai как основной сервис")
+    disable_fallback: bool = Field(..., description="Запретить fallback на OpenRouter при ошибках kie.ai")
+
+
+class UpdateFallbackSettingsRequest(BaseModel):
+    """Запрос на обновление настроек fallback (частичное обновление)."""
+
+    use_kie_ai: Optional[bool] = Field(default=None, description="Переключить использование kie.ai")
+    disable_fallback: Optional[bool] = Field(default=None, description="Запретить fallback на OpenRouter")
+
+
 class PaymentExportRequest(BaseModel):
     """Параметры для экспорта платежей."""
     date_from: datetime | None = Field(default=None, description="Начальная дата")

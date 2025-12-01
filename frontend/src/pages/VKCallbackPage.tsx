@@ -9,8 +9,34 @@ type PKCECache = {
   device_id?: string;
   ts?: number;
 };
-
 const PKCE_STORAGE_KEY = 'vk_pkce';
+
+const loadPkceFromStorage = (stateParam?: string): PKCECache | null => {
+  // Пытаемся найти запись по state, иначе — по последнему сохраненному
+  const stateKey = stateParam || localStorage.getItem(`${PKCE_STORAGE_KEY}:latest`) || undefined;
+  if (!stateKey) return null;
+
+  const raw = localStorage.getItem(`${PKCE_STORAGE_KEY}:${stateKey}`);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as PKCECache;
+    return parsed?.code_verifier ? parsed : null;
+  } catch (err) {
+    console.error('PKCE storage parse error', err);
+    return null;
+  }
+};
+
+const clearPkceFromStorage = (stateParam?: string) => {
+  const stateKey = stateParam || localStorage.getItem(`${PKCE_STORAGE_KEY}:latest`) || undefined;
+  if (stateKey) {
+    localStorage.removeItem(`${PKCE_STORAGE_KEY}:${stateKey}`);
+  }
+  if (!stateParam) {
+    localStorage.removeItem(`${PKCE_STORAGE_KEY}:latest`);
+  }
+};
 
 export function VKCallbackPage() {
   const location = useLocation();
@@ -21,6 +47,7 @@ export function VKCallbackPage() {
 
   useEffect(() => {
     const run = async () => {
+      const redirectUri = import.meta.env.VITE_VK_REDIRECT_URI || `${window.location.origin}/vk/callback`;
       const params = new URLSearchParams(location.search);
       const code = params.get('code');
       const state = params.get('state') || undefined;
@@ -31,29 +58,21 @@ export function VKCallbackPage() {
         return;
       }
 
-      const cachedRaw = localStorage.getItem(PKCE_STORAGE_KEY);
-      if (!cachedRaw) {
-        setMessage('PKCE данные не найдены. Попробуйте снова начать вход.');
-        return;
-      }
-
-      let cached: PKCECache | null = null;
-      try {
-        cached = JSON.parse(cachedRaw) as PKCECache;
-      } catch (err) {
-        console.error('Не удалось распарсить PKCE кэш', err);
-        setMessage('Ошибка обработки PKCE данных. Попробуйте снова.');
+      const cached = loadPkceFromStorage(state);
+      if (!cached) {
+        setMessage('Данные входа устарели. Начните авторизацию заново.');
+        clearPkceFromStorage(state);
         return;
       }
 
       if (cached.state && state && cached.state !== state) {
         setMessage('Неверный state параметр. Попробуйте снова.');
+        clearPkceFromStorage(state);
         return;
       }
 
       try {
         clearError();
-        const redirectUri = `${window.location.origin}/vk/callback`;
         await loginWithVKPKCE({
           code,
           code_verifier: cached.code_verifier,
@@ -62,7 +81,7 @@ export function VKCallbackPage() {
           nonce: cached.nonce,
           device_id: deviceId || cached.device_id,
         });
-        localStorage.removeItem(PKCE_STORAGE_KEY);
+        clearPkceFromStorage(state);
         navigate('/', { replace: true });
       } catch (err: any) {
         console.error('VK PKCE callback error', err);

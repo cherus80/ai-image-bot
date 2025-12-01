@@ -5,11 +5,14 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // Base API URL from environment variable
+// Normalize API base: remove trailing slash and optional '/api' suffix to avoid double '/api/api'.
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
   (typeof window !== 'undefined' ? window.location.origin : '') ||
   'http://localhost:8000'
-).replace(/\/$/, '');
+)
+  .replace(/\/$/, '')
+  .replace(/\/api$/, '');
 
 // Create axios instance
 export const apiClient = axios.create({

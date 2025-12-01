@@ -53,6 +53,8 @@ from app.schemas.admin import (
     FittingPromptListResponse,
     FittingPromptItem,
     UpdateFittingPromptRequest,
+    FallbackSettingsResponse,
+    UpdateFallbackSettingsRequest,
 )
 from app.utils.tax import (
     calculate_npd_tax,
@@ -67,6 +69,39 @@ from app.services.fitting_prompts import (
 )
 
 router = APIRouter()
+
+
+# ============================================================================
+# Fallback settings (kie.ai / OpenRouter)
+# ============================================================================
+
+
+@router.get("/fallback", response_model=FallbackSettingsResponse)
+async def get_fallback_settings(admin: AdminUser) -> FallbackSettingsResponse:
+    """Получить текущие настройки fallback (только ADMIN)."""
+    return FallbackSettingsResponse(
+        use_kie_ai=settings.USE_KIE_AI,
+        disable_fallback=settings.KIE_AI_DISABLE_FALLBACK,
+    )
+
+
+@router.post("/fallback", response_model=FallbackSettingsResponse)
+async def update_fallback_settings(
+    payload: UpdateFallbackSettingsRequest,
+    admin: AdminUser,
+) -> FallbackSettingsResponse:
+    """Обновить настройки fallback (частично). Применяется сразу, без перезапуска."""
+
+    if payload.use_kie_ai is not None:
+        settings.USE_KIE_AI = payload.use_kie_ai
+
+    if payload.disable_fallback is not None:
+        settings.KIE_AI_DISABLE_FALLBACK = payload.disable_fallback
+
+    return FallbackSettingsResponse(
+        use_kie_ai=settings.USE_KIE_AI,
+        disable_fallback=settings.KIE_AI_DISABLE_FALLBACK,
+    )
 
 
 # ============================================================================

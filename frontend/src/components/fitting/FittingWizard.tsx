@@ -86,8 +86,8 @@ export const FittingWizard: React.FC = () => {
             className="mb-8"
           >
             <Card variant="glass" padding="lg">
-              <div className="flex items-center justify-between mb-4">
-                <div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
+                <div className="min-w-0">
                   <h2 className="text-lg font-bold gradient-text">
                     {stepTitles[currentStep]}
                   </h2>
@@ -95,7 +95,7 @@ export const FittingWizard: React.FC = () => {
                     Шаг {getStepNumber()} из {totalSteps}
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 justify-start sm:justify-end">
                   {[1, 2, 3].map((step) => (
                     <div
                       key={step}
