@@ -9,8 +9,10 @@ const base64UrlEncode = (buffer: ArrayBuffer) => {
     .replace(/=+$/, '');
 };
 
-export const generateRandomString = (length = 64) => {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+export const generateRandomString = (
+  length = 64,
+  charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~',
+) => {
   let result = '';
   const values = crypto.getRandomValues(new Uint8Array(length));
   for (let i = 0; i < length; i += 1) {
@@ -18,6 +20,9 @@ export const generateRandomString = (length = 64) => {
   }
   return result;
 };
+
+// VK может модифицировать state, убирая точки, поэтому для state исключаем "." из набора.
+const STATE_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 export const generateCodeVerifier = () => generateRandomString(64);
 
@@ -70,8 +75,8 @@ export const startVKPKCEAuth = async ({
   const authBaseUrl = import.meta.env.VITE_VK_AUTH_URL || 'https://id.vk.com/authorize';
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await generateCodeChallenge(codeVerifier);
-  const state = generateRandomString(32);
-  const nonce = generateRandomString(16);
+  const state = generateRandomString(32, STATE_CHARSET);
+  const nonce = generateRandomString(16, STATE_CHARSET);
   const deviceId = getOrCreateDeviceId();
 
   persistPKCEPayload(storageKey, state, {
