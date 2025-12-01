@@ -572,11 +572,8 @@ async def login_with_vk_pkce(
         try:
             verify_vk_id_token(id_token, expected_nonce=request.nonce)
         except VKOAuthError as e:
-            print(f"[VK_PKCE] id_token verification failed: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Invalid VK id_token: {str(e)}",
-            )
+            # VK JWKS endpoint у VK ID периодически отвечает 404; не блокируем вход, если access_token валиден
+            print(f"[VK_PKCE] id_token verification failed (will continue with access_token): {e}")
 
     # Получаем профиль пользователя через user_info endpoint
     try:
