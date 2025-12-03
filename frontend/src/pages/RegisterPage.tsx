@@ -70,7 +70,7 @@ export function RegisterPage() {
       ) {
         navigate('/verify-required', { replace: true });
       } else {
-        navigate('/');
+        navigate('/app');
       }
     } catch (err) {
       // Error handled in store
@@ -95,7 +95,7 @@ export function RegisterPage() {
     ) {
       navigate('/verify-required', { replace: true });
     } else {
-      navigate('/');
+      navigate('/app');
     }
   };
 
@@ -117,7 +117,7 @@ export function RegisterPage() {
     ) {
       navigate('/verify-required', { replace: true });
     } else {
-      navigate('/');
+      navigate('/app');
     }
   };
 
@@ -294,6 +294,17 @@ export function RegisterPage() {
             >
               {isLoading ? 'Создание аккаунта...' : 'Создать аккаунт'}
             </button>
+            <p className="mt-3 text-xs text-gray-600 text-center">
+              Регистрируясь, вы подтверждаете согласие с{' '}
+              <a href="/oferta" className="text-blue-600 hover:text-blue-500 underline">
+                офертой
+              </a>{' '}
+              и{' '}
+              <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">
+                политикой конфиденциальности
+              </a>
+              .
+            </p>
           </form>
         </div>
       </div>

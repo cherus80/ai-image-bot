@@ -36,7 +36,7 @@ export function LoginPage() {
       ) {
         navigate('/verify-required', { replace: true });
       } else {
-        navigate('/');
+        navigate('/app');
       }
     } catch (err) {
       // Error is set in store
@@ -52,7 +52,7 @@ export function LoginPage() {
     ) {
       navigate('/verify-required', { replace: true });
     } else {
-      navigate('/');
+      navigate('/app');
     }
   };
 
@@ -65,7 +65,7 @@ export function LoginPage() {
     ) {
       navigate('/verify-required', { replace: true });
     } else {
-      navigate('/');
+      navigate('/app');
     }
   };
 
@@ -163,6 +163,17 @@ export function LoginPage() {
             >
               {isLoading ? 'Вход...' : 'Войти'}
             </button>
+            <p className="mt-3 text-xs text-gray-600 text-center">
+              Входя, вы подтверждаете согласие с{' '}
+              <a href="/oferta" className="text-blue-600 hover:text-blue-500 underline">
+                офертой
+              </a>{' '}
+              и{' '}
+              <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">
+                политикой конфиденциальности
+              </a>
+              .
+            </p>
           </form>
         </div>
       </div>

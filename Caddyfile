@@ -1,5 +1,5 @@
 {
-    email cherus09@mail.ru
+    email ai-generator@mix4.ru
     # Отключаем попытки on-demand, используем обычный ACME
     acme_ca https://acme-v02.api.letsencrypt.org/directory
 }
@@ -43,4 +43,9 @@ ai-generator.mix4.ru {
     request_body {
         max_size 20MB
     }
+}
+
+# Принудительный редирект HTTP → HTTPS
+http://ai-generator.mix4.ru {
+    redir https://ai-generator.mix4.ru{uri} permanent
 }

@@ -12,6 +12,11 @@ import MockPaymentEmulator from './pages/MockPaymentEmulator';
 import { HistoryPage } from './pages/HistoryPage';
 import { VerifyRequiredPage } from './pages/VerifyRequiredPage';
 import { VKCallbackPage } from './pages/VKCallbackPage';
+import { OfertaPage } from './pages/OfertaPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { LandingPage } from './pages/LandingPage';
+import { PricingPage } from './pages/PricingPage';
+import { ContactsPage } from './pages/ContactsPage';
 
 function App() {
   return (
@@ -24,8 +29,15 @@ function App() {
         <Route path="/verify-required" element={<VerifyRequiredPage />} />
         <Route path="/vk/callback" element={<VKCallbackPage />} />
 
-        {/* Главная страница - выбор функции */}
-        <Route path="/" element={<HomePage />} />
+        {/* Публичные страницы */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/contacts" element={<ContactsPage />} />
+        <Route path="/oferta" element={<OfertaPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+
+        {/* Главная страница приложения (после входа) */}
+        <Route path="/app" element={<HomePage />} />
 
         {/* Функция 1: Примерка одежды */}
         <Route path="/fitting" element={<FittingPage />} />

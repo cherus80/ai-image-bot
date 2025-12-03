@@ -53,7 +53,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         </svg>
       ),
       label: 'Главная',
-      onClick: () => handleNavigate('/'),
+      onClick: () => handleNavigate('/app'),
     },
     {
       icon: (

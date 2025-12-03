@@ -19,6 +19,7 @@ import io
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Annotated
+import logging
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response
 import sqlalchemy as sa
@@ -69,6 +70,7 @@ from app.services.fitting_prompts import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -836,8 +838,16 @@ async def add_user_credits(
     await db.commit()
     await db.refresh(user)
 
-    # Логируем действие (можно добавить отдельную таблицу CreditTransaction)
-    # Для простоты пропускаем логирование в отдельную таблицу
+    # Логируем действие
+    logger.info(
+        "Admin %s (%s) added %s credits to user_id=%s (new_balance=%s, reason=%s)",
+        admin.id,
+        getattr(admin, "email", "unknown"),
+        request.amount,
+        user.id,
+        user.balance_credits,
+        request.reason,
+    )
 
     return AddCreditsResponse(
         success=True,
@@ -1146,6 +1156,14 @@ async def make_user_admin(
     await db.commit()
     await db.refresh(user)
 
+    logger.info(
+        "SuperAdmin %s (%s) granted ADMIN role to user_id=%s email=%s",
+        super_admin.id,
+        getattr(super_admin, "email", "unknown"),
+        user.id,
+        user.email,
+    )
+
     return MakeAdminResponse(
         success=True,
         user_id=user.id,
@@ -1201,6 +1219,15 @@ async def delete_user(
     # Удалить пользователя (cascade удалит связанные данные)
     await db.delete(user)
     await db.commit()
+
+    logger.warning(
+        "Admin %s (%s) deleted user_id=%s email=%s role=%s",
+        admin.id,
+        getattr(admin, "email", "unknown"),
+        user.id,
+        user.email,
+        user.role.value if hasattr(user, "role") else "unknown",
+    )
 
     return DeleteUserResponse(
         success=True,
