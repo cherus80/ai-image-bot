@@ -1,4 +1,4 @@
-"""add_billing_v4_ledger_and_ops
+"""add_billing_ledger_and_ops
 
 Revision ID: 5c1cce7df3e4
 Revises: 646ff6770cea

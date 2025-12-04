@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import CurrentUser, DBSession
 from app.core.config import settings
 from app.models.user import User, AuthProvider, UserRole
-from app.services.billing_v4 import BillingV5Service
+from app.services.billing_v5 import BillingV5Service
 from app.schemas.auth_web import (
     RegisterRequest,
     LoginRequest,

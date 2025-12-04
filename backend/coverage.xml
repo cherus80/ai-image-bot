@@ -2425,7 +2425,7 @@
 						<line number="325" hits="0"/>
 					</lines>
 				</class>
-				<class name="billing_v4.py" filename="services/billing_v4.py" complexity="0" line-rate="0.9519" branch-rate="0">
+				<class name="billing_v5.py" filename="services/billing_v5.py" complexity="0" line-rate="0.9519" branch-rate="0">
 					<methods/>
 					<lines>
 						<line number="7" hits="1"/>

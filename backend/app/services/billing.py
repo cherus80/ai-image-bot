@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.user import User
 from app.models.payment import Payment
-from app.services.billing_v4 import BillingV5Service
+from app.services.billing_v5 import BillingV5Service
 
 
 logger = logging.getLogger(__name__)

@@ -507,11 +507,11 @@ def sample_png_bytes() -> bytes:
     )
 
 
-# ==================== Billing v4 Fixtures ====================
+# ==================== Billing v5 Fixtures ====================
 
 @pytest.fixture
-async def test_user_with_subscription_v4(test_db):
-    """Create a test user with active subscription (Billing v4)."""
+async def test_user_with_subscription_v5(test_db):
+    """Create a test user with active subscription (Billing v5)."""
     from app.models.user import User, SubscriptionType, UserRole
 
     user = User(
@@ -537,12 +537,12 @@ async def test_user_with_subscription_v4(test_db):
 
 
 @pytest.fixture
-async def test_user_freemium_v4(test_db):
-    """Create a test user with only freemium (Billing v4)."""
+async def test_user_freemium_v5(test_db):
+    """Create a test user with only freemium (Billing v5)."""
     from app.models.user import User, UserRole
 
     user = User(
-        email="freemium_v4@example.com",
+        email="freemium_v5@example.com",
         first_name="Freemium",
         last_name="User",
         balance_credits=0,
@@ -563,12 +563,12 @@ async def test_user_freemium_v4(test_db):
 
 
 @pytest.fixture
-async def test_user_credits_only_v4(test_db):
-    """Create a test user with only credits (Billing v4)."""
+async def test_user_credits_only_v5(test_db):
+    """Create a test user with only credits (Billing v5)."""
     from app.models.user import User, UserRole
 
     user = User(
-        email="credits_v4@example.com",
+        email="credits_v5@example.com",
         first_name="Credits",
         last_name="User",
         balance_credits=20,
@@ -589,12 +589,12 @@ async def test_user_credits_only_v4(test_db):
 
 
 @pytest.fixture
-async def test_user_no_funds_v4(test_db):
-    """Create a test user with no funds (Billing v4)."""
+async def test_user_no_funds_v5(test_db):
+    """Create a test user with no funds (Billing v5)."""
     from app.models.user import User, UserRole
 
     user = User(
-        email="nofunds_v4@example.com",
+        email="nofunds_v5@example.com",
         first_name="NoFunds",
         last_name="User",
         balance_credits=0,
@@ -615,12 +615,12 @@ async def test_user_no_funds_v4(test_db):
 
 
 @pytest.fixture
-async def test_admin_user_v4(test_db):
-    """Create an admin test user (Billing v4)."""
+async def test_admin_user_v5(test_db):
+    """Create an admin test user (Billing v5)."""
     from app.models.user import User, UserRole
 
     user = User(
-        email="admin_v4@example.com",
+        email="admin_v5@example.com",
         first_name="Admin",
         last_name="User",
         balance_credits=0,
@@ -639,12 +639,12 @@ async def test_admin_user_v4(test_db):
 
 
 @pytest.fixture
-async def test_user_expired_subscription_v4(test_db):
-    """Create a test user with expired subscription (Billing v4)."""
+async def test_user_expired_subscription_v5(test_db):
+    """Create a test user with expired subscription (Billing v5)."""
     from app.models.user import User, SubscriptionType, UserRole
 
     user = User(
-        email="expired_sub_v4@example.com",
+        email="expired_sub_v5@example.com",
         first_name="Expired",
         last_name="Subscription",
         balance_credits=0,
@@ -687,4 +687,4 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "file: mark test as file handling related")
     config.addinivalue_line("markers", "credits: mark test as credits management related")
     config.addinivalue_line("markers", "chat: mark test as chat/messaging related")
-    config.addinivalue_line("markers", "billing: mark test as billing v4 related")
+    config.addinivalue_line("markers", "billing: mark test as billing v5 related")

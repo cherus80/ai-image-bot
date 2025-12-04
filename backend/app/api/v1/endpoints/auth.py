@@ -26,7 +26,7 @@ from app.schemas.auth import (
 )
 from app.utils.jwt import create_user_access_token
 from app.utils.telegram import TelegramInitDataError, validate_telegram_init_data
-from app.services.billing_v4 import BillingV5Service
+from app.services.billing_v5 import BillingV5Service
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

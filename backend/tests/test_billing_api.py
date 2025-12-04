@@ -1,5 +1,5 @@
 """
-Integration тесты для Billing v4 API endpoints
+Integration тесты для Billing v5 API endpoints
 
 Покрытие:
 - GET /api/v1/billing/state
@@ -25,20 +25,20 @@ class TestBillingStateEndpoint:
     async def test_billing_state_with_subscription(
         self,
         test_client: AsyncClient,
-        test_user_with_subscription_v4: User,
+        test_user_with_subscription_v5: User,
     ):
         """Получение состояния для пользователя с подпиской"""
         # Arrange
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_with_subscription_v4.id}
+            data={"user_id": test_user_with_subscription_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
-        # Enable Billing v4
+        # Enable Billing v5
         import os
-        os.environ["BILLING_V4_ENABLED"] = "true"
+        os.environ["BILLING_V5_ENABLED"] = "true"
 
         # Act
         response = await test_client.get("/api/v1/billing/state")
@@ -47,7 +47,7 @@ class TestBillingStateEndpoint:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["billing_v4_enabled"] is True
+        assert data["billing_v5_enabled"] is True
         assert data["balance_credits"] >= 0
         assert data["subscription_type"] == "basic"
         assert data["subscription_ops_limit"] == 80
@@ -60,19 +60,19 @@ class TestBillingStateEndpoint:
     async def test_billing_state_freemium_user(
         self,
         test_client: AsyncClient,
-        test_user_freemium_v4: User,
+        test_user_freemium_v5: User,
     ):
         """Получение состояния для freemium пользователя"""
         # Arrange
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_freemium_v4.id}
+            data={"user_id": test_user_freemium_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
         import os
-        os.environ["BILLING_V4_ENABLED"] = "true"
+        os.environ["BILLING_V5_ENABLED"] = "true"
 
         # Act
         response = await test_client.get("/api/v1/billing/state")
@@ -81,7 +81,7 @@ class TestBillingStateEndpoint:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["billing_v4_enabled"] is True
+        assert data["billing_v5_enabled"] is True
         assert data["balance_credits"] == 0
         assert data["subscription_type"] is None
         assert data["freemium_ops_used"] == 2
@@ -99,26 +99,26 @@ class TestBillingStateEndpoint:
     async def test_billing_state_disabled(
         self,
         test_client: AsyncClient,
-        test_user_freemium_v4: User,
+        test_user_freemium_v5: User,
     ):
-        """Ошибка 400 когда Billing v4 отключен"""
+        """Ошибка 400 когда Billing v5 отключен"""
         # Arrange
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_freemium_v4.id}
+            data={"user_id": test_user_freemium_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
         import os
-        os.environ["BILLING_V4_ENABLED"] = "false"
+        os.environ["BILLING_V5_ENABLED"] = "false"
 
         # Act
         response = await test_client.get("/api/v1/billing/state")
 
         # Assert
         assert response.status_code == 400
-        assert "Billing v4 is disabled" in response.json()["detail"]
+        assert "Billing v5 is disabled" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -130,14 +130,14 @@ class TestBillingLedgerEndpoint:
     async def test_ledger_empty(
         self,
         test_client: AsyncClient,
-        test_user_freemium_v4: User,
+        test_user_freemium_v5: User,
     ):
         """Пустой ledger для нового пользователя"""
         # Arrange
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_freemium_v4.id}
+            data={"user_id": test_user_freemium_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
@@ -156,13 +156,13 @@ class TestBillingLedgerEndpoint:
     async def test_ledger_with_entries(
         self,
         test_client: AsyncClient,
-        test_user_credits_only_v4: User,
+        test_user_credits_only_v5: User,
         test_db,
     ):
         """Ledger с записями"""
         # Arrange: создаем записи в ledger
         entry1 = CreditsLedger(
-            user_id=test_user_credits_only_v4.id,
+            user_id=test_user_credits_only_v5.id,
             type=LedgerEntryType.TRYON,
             amount=-2,
             source=LedgerSource.CREDITS,
@@ -170,7 +170,7 @@ class TestBillingLedgerEndpoint:
             idempotency_key="key-1",
         )
         entry2 = CreditsLedger(
-            user_id=test_user_credits_only_v4.id,
+            user_id=test_user_credits_only_v5.id,
             type=LedgerEntryType.ASSISTANT,
             amount=-1,
             source=LedgerSource.CREDITS,
@@ -185,7 +185,7 @@ class TestBillingLedgerEndpoint:
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_credits_only_v4.id}
+            data={"user_id": test_user_credits_only_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
@@ -214,14 +214,14 @@ class TestBillingLedgerEndpoint:
     async def test_ledger_pagination(
         self,
         test_client: AsyncClient,
-        test_user_credits_only_v4: User,
+        test_user_credits_only_v5: User,
         test_db,
     ):
         """Пагинация ledger"""
         # Arrange: создаем много записей
         for i in range(25):
             entry = CreditsLedger(
-                user_id=test_user_credits_only_v4.id,
+                user_id=test_user_credits_only_v5.id,
                 type=LedgerEntryType.TRYON,
                 amount=-2,
                 source=LedgerSource.CREDITS,
@@ -233,7 +233,7 @@ class TestBillingLedgerEndpoint:
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_credits_only_v4.id}
+            data={"user_id": test_user_credits_only_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
@@ -258,14 +258,14 @@ class TestBillingLedgerEndpoint:
     async def test_ledger_disabled(
         self,
         test_client: AsyncClient,
-        test_user_freemium_v4: User,
+        test_user_freemium_v5: User,
     ):
         """Ошибка 400 когда ledger отключен"""
         # Arrange
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_freemium_v4.id}
+            data={"user_id": test_user_freemium_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
@@ -284,13 +284,13 @@ class TestBillingLedgerEndpoint:
 @pytest.mark.integration
 @pytest.mark.billing
 class TestBillingIntegrationWithFitting:
-    """Тесты интеграции Billing v4 с fitting endpoints"""
+    """Тесты интеграции Billing v5 с fitting endpoints"""
 
     @pytest.mark.skip(reason="Requires full Celery integration and file handling")
     async def test_fitting_with_subscription(
         self,
         test_client: AsyncClient,
-        test_user_with_subscription_v4: User,
+        test_user_with_subscription_v5: User,
         test_db,
         sample_jpeg_bytes,
     ):
@@ -300,15 +300,15 @@ class TestBillingIntegrationWithFitting:
         from io import BytesIO
 
         token = create_access_token(
-            data={"user_id": test_user_with_subscription_v4.id}
+            data={"user_id": test_user_with_subscription_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
         import os
-        os.environ["BILLING_V4_ENABLED"] = "true"
+        os.environ["BILLING_V5_ENABLED"] = "true"
 
-        initial_ops_used = test_user_with_subscription_v4.subscription_ops_used
-        initial_credits = test_user_with_subscription_v4.balance_credits
+        initial_ops_used = test_user_with_subscription_v5.subscription_ops_used
+        initial_credits = test_user_with_subscription_v5.balance_credits
 
         # Mock file upload
         files = {
@@ -336,7 +336,7 @@ class TestBillingIntegrationWithFitting:
     async def test_fitting_not_enough_credits(
         self,
         test_client: AsyncClient,
-        test_user_no_funds_v4: User,
+        test_user_no_funds_v5: User,
         test_db,
         sample_jpeg_bytes,
     ):
@@ -346,12 +346,12 @@ class TestBillingIntegrationWithFitting:
         from io import BytesIO
 
         token = create_access_token(
-            data={"user_id": test_user_no_funds_v4.id}
+            data={"user_id": test_user_no_funds_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
         import os
-        os.environ["BILLING_V4_ENABLED"] = "true"
+        os.environ["BILLING_V5_ENABLED"] = "true"
 
         files = {
             "user_photo": ("user.jpg", BytesIO(sample_jpeg_bytes), "image/jpeg"),
@@ -380,13 +380,13 @@ class TestBillingIntegrationWithFitting:
 @pytest.mark.integration
 @pytest.mark.billing
 class TestBillingIntegrationWithEditing:
-    """Тесты интеграции Billing v4 с editing endpoints"""
+    """Тесты интеграции Billing v5 с editing endpoints"""
 
     @pytest.mark.skip(reason="Requires full Celery integration and file handling")
     async def test_editing_assistant_credits_only(
         self,
         test_client: AsyncClient,
-        test_user_credits_only_v4: User,
+        test_user_credits_only_v5: User,
         test_db,
     ):
         """Ассистент списывает только кредиты"""
@@ -394,14 +394,14 @@ class TestBillingIntegrationWithEditing:
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_credits_only_v4.id}
+            data={"user_id": test_user_credits_only_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
         import os
-        os.environ["BILLING_V4_ENABLED"] = "true"
+        os.environ["BILLING_V5_ENABLED"] = "true"
 
-        initial_credits = test_user_credits_only_v4.balance_credits
+        initial_credits = test_user_credits_only_v5.balance_credits
 
         # Note: This endpoint may require session setup first
         # We'll test the concept
@@ -453,7 +453,7 @@ class TestBillingResetScenarios:
         test_client.headers["Authorization"] = f"Bearer {token}"
 
         import os
-        os.environ["BILLING_V4_ENABLED"] = "true"
+        os.environ["BILLING_V5_ENABLED"] = "true"
 
         # Act
         response = await test_client.get("/api/v1/billing/state")
@@ -475,19 +475,19 @@ class TestBillingAdminBypass:
     async def test_admin_unlimited_access(
         self,
         test_client: AsyncClient,
-        test_admin_user_v4: User,
+        test_admin_user_v5: User,
     ):
         """Админ имеет неограниченный доступ"""
         # Arrange
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_admin_user_v4.id}
+            data={"user_id": test_admin_user_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 
         import os
-        os.environ["BILLING_V4_ENABLED"] = "true"
+        os.environ["BILLING_V5_ENABLED"] = "true"
 
         # Act: получаем состояние
         response = await test_client.get("/api/v1/billing/state")
@@ -509,13 +509,13 @@ class TestBillingIdempotency:
     async def test_duplicate_idempotency_key(
         self,
         test_client: AsyncClient,
-        test_user_credits_only_v4: User,
+        test_user_credits_only_v5: User,
         test_db,
     ):
         """Дублирующийся idempotency_key не создает дубликаты"""
         # Arrange: создаем существующую запись
         existing_entry = CreditsLedger(
-            user_id=test_user_credits_only_v4.id,
+            user_id=test_user_credits_only_v5.id,
             type=LedgerEntryType.TRYON,
             amount=-2,
             source=LedgerSource.CREDITS,
@@ -529,7 +529,7 @@ class TestBillingIdempotency:
         from app.utils.jwt import create_access_token
 
         token = create_access_token(
-            data={"user_id": test_user_credits_only_v4.id}
+            data={"user_id": test_user_credits_only_v5.id}
         )
         test_client.headers["Authorization"] = f"Bearer {token}"
 

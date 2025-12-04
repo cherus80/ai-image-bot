@@ -288,12 +288,12 @@ def generate_editing_task(
 
                 # ✅ СПИСЫВАЕМ КРЕДИТЫ ПОСЛЕ УСПЕШНОЙ ГЕНЕРАЦИИ
                 generation_cost = settings.BILLING_GENERATION_COST_CREDITS
-                billing_v4_enabled = settings.BILLING_V4_ENABLED
+                billing_v5_enabled = settings.BILLING_V5_ENABLED
 
                 try:
-                    if billing_v4_enabled:
-                        from app.services.billing_v4 import BillingV4Service
-                        billing = BillingV4Service(session)
+                    if billing_v5_enabled:
+                        from app.services.billing_v5 import BillingV5Service
+                        billing = BillingV5Service(session)
                         charge_info = await billing.charge_generation(
                             user_id,
                             kind="edit",
@@ -312,7 +312,7 @@ def generate_editing_task(
                                 else 0
                             )
                             await session.commit()
-                        logger.info(f"Charged {generation_cost} credits for generation {generation_id} (Billing v4)")
+                        logger.info(f"Charged {generation_cost} credits for generation {generation_id} (Billing v5)")
                     else:
                         # Billing v3
                         from app.services.credits import deduct_credits

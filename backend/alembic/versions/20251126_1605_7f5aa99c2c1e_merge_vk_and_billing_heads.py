@@ -1,4 +1,4 @@
-"""Merge billing v4 and VK auth heads."""
+"""Merge billing v5 and VK auth heads."""
 
 from alembic import op  # noqa: F401
 import sqlalchemy as sa  # noqa: F401

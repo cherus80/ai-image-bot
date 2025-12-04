@@ -14,7 +14,7 @@ from app.core.config import settings
 from app.models.credits_ledger import CreditsLedger
 from app.models.user import User
 from app.schemas.billing import BillingState, LedgerResponse, LedgerItem
-from app.services.billing_v4 import BillingV5Service
+from app.services.billing_v5 import BillingV5Service
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ async def get_billing_state(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> BillingState:
-    if not settings.BILLING_V4_ENABLED:
+    if not settings.BILLING_V5_ENABLED:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Billing v5 is disabled",

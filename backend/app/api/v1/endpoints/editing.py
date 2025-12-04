@@ -33,7 +33,7 @@ from app.schemas.editing import (
     ChatHistoryMessage,
 )
 from app.services.credits import deduct_credits, check_user_can_perform_action
-from app.services.billing_v4 import BillingV4Service
+from app.services.billing_v5 import BillingV5Service
 from app.services.chat import (
     create_chat_session,
     get_chat_session,
@@ -167,11 +167,11 @@ async def send_message(
     """
     Отправить сообщение AI-ассистенту и получить 3 варианта промптов.
     """
-    billing_v4_enabled = settings.BILLING_V4_ENABLED
-    assistant_cost = settings.BILLING_ASSISTANT_COST_CREDITS if billing_v4_enabled else 1
+    billing_v5_enabled = settings.BILLING_V5_ENABLED
+    assistant_cost = settings.BILLING_ASSISTANT_COST_CREDITS if billing_v5_enabled else 1
 
     # Проверяем баланс, но НЕ списываем кредиты (списание будет после успешной генерации)
-    if not billing_v4_enabled:
+    if not billing_v5_enabled:
         # Только проверка баланса для старой модели
         can_perform, reason = await check_user_can_perform_action(
             user=current_user,
@@ -184,7 +184,7 @@ async def send_message(
                 detail=reason or "Insufficient credits"
             )
     else:
-        # Для Billing v4 проверяем наличие кредитов
+        # Для Billing v5 проверяем наличие кредитов
         if not getattr(current_user, "is_admin", False) and current_user.balance_credits < assistant_cost:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -232,13 +232,13 @@ async def send_message(
             )
 
             # ✅ СПИСЫВАЕМ КРЕДИТЫ ПОСЛЕ УСПЕШНОЙ ГЕНЕРАЦИИ ПРОМПТОВ
-            if billing_v4_enabled:
-                billing = BillingV4Service(db)
+            if billing_v5_enabled:
+                billing = BillingV5Service(db)
                 await billing.charge_assistant(
                     current_user.id,
                     meta={"feature": "editing_assistant", "session_id": str(request.session_id)},
                 )
-                logger.info(f"Charged {assistant_cost} credits for AI assistant (Billing v4)")
+                logger.info(f"Charged {assistant_cost} credits for AI assistant (Billing v5)")
             else:
                 # Billing v3
                 await deduct_credits(
@@ -325,11 +325,11 @@ async def generate_image(
     """
     Сгенерировать отредактированное изображение по промпту.
     """
-    billing_v4_enabled = settings.BILLING_V4_ENABLED
-    generation_cost = settings.BILLING_GENERATION_COST_CREDITS if billing_v4_enabled else 2
+    billing_v5_enabled = settings.BILLING_V5_ENABLED
+    generation_cost = settings.BILLING_GENERATION_COST_CREDITS if billing_v5_enabled else 2
 
     # Проверяем баланс, но НЕ списываем кредиты (списание будет в Celery task после успеха)
-    if not billing_v4_enabled:
+    if not billing_v5_enabled:
         # Только проверка баланса для старой модели
         can_perform, reason = await check_user_can_perform_action(
             user=current_user,
@@ -342,7 +342,7 @@ async def generate_image(
                 detail=reason or "Insufficient credits"
             )
     else:
-        billing = BillingV4Service(db)
+        billing = BillingV5Service(db)
         can_use_actions = billing._has_active_plan(current_user) and billing._actions_remaining(current_user) > 0  # type: ignore[attr-defined]
         if not (getattr(current_user, "is_admin", False) or can_use_actions or current_user.balance_credits >= generation_cost):
             raise HTTPException(

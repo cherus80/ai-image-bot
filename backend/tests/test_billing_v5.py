@@ -1,5 +1,5 @@
 """
-Unit тесты для BillingV4Service
+Unit тесты для BillingV5Service
 
 Покрытие:
 - Приоритет списаний (подписка → freemium → кредиты)
@@ -17,7 +17,7 @@ from datetime import datetime, timezone, timedelta
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi import HTTPException
 
-from app.services.billing_v4 import BillingV4Service
+from app.services.billing_v5 import BillingV5Service
 from app.models.user import User, UserRole, SubscriptionType
 from app.models.credits_ledger import (
     CreditsLedger,
@@ -64,7 +64,7 @@ def create_mock_user(**kwargs):
 
 
 @pytest.mark.asyncio
-class TestBillingV4ChargeGeneration:
+class TestBillingV5ChargeGeneration:
     """Тесты списания генерации (charge_generation)"""
 
     async def test_priority_subscription_first(self, mock_db_session):
@@ -81,7 +81,7 @@ class TestBillingV4ChargeGeneration:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -104,7 +104,7 @@ class TestBillingV4ChargeGeneration:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -126,7 +126,7 @@ class TestBillingV4ChargeGeneration:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -147,7 +147,7 @@ class TestBillingV4ChargeGeneration:
         )
 
         mock_db_session.scalar = AsyncMock(return_value=user)
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
@@ -167,7 +167,7 @@ class TestBillingV4ChargeGeneration:
         )
 
         mock_db_session.scalar = AsyncMock(return_value=user)
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -187,7 +187,7 @@ class TestBillingV4ChargeGeneration:
         )
 
         mock_db_session.scalar = AsyncMock(return_value=user)
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -210,7 +210,7 @@ class TestBillingV4ChargeGeneration:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -233,7 +233,7 @@ class TestBillingV4ChargeGeneration:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -244,7 +244,7 @@ class TestBillingV4ChargeGeneration:
 
 
 @pytest.mark.asyncio
-class TestBillingV4ChargeAssistant:
+class TestBillingV5ChargeAssistant:
     """Тесты списания ассистента (charge_assistant)"""
 
     async def test_assistant_only_credits(self, mock_db_session):
@@ -261,7 +261,7 @@ class TestBillingV4ChargeAssistant:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_assistant(user.id)
@@ -284,7 +284,7 @@ class TestBillingV4ChargeAssistant:
         )
 
         mock_db_session.scalar = AsyncMock(return_value=user)
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
@@ -302,7 +302,7 @@ class TestBillingV4ChargeAssistant:
         )
 
         mock_db_session.scalar = AsyncMock(return_value=user)
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_assistant(user.id)
@@ -313,7 +313,7 @@ class TestBillingV4ChargeAssistant:
 
 
 @pytest.mark.asyncio
-class TestBillingV4Ledger:
+class TestBillingV5Ledger:
     """Тесты журнала операций (ledger)"""
 
     async def test_ledger_entry_creation(self, mock_db_session):
@@ -336,7 +336,7 @@ class TestBillingV4Ledger:
                 ledger_entries.append(entry)
 
         mock_db_session.add = Mock(side_effect=capture_add)
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         with patch('app.core.config.settings.BILLING_LEDGER_ENABLED', True):
@@ -369,7 +369,7 @@ class TestBillingV4Ledger:
 
         # First call returns user, second call returns existing ledger
         mock_db_session.scalar = AsyncMock(side_effect=[user, existing_ledger])
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         with patch('app.core.config.settings.BILLING_LEDGER_ENABLED', True):
@@ -392,7 +392,7 @@ class TestBillingV4Ledger:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         with patch('app.core.config.settings.BILLING_LEDGER_ENABLED', False):
@@ -403,7 +403,7 @@ class TestBillingV4Ledger:
 
 
 @pytest.mark.asyncio
-class TestBillingV4ResetLimits:
+class TestBillingV5ResetLimits:
     """Тесты сброса лимитов"""
 
     async def test_reset_freemium_after_30_days(self, mock_db_session):
@@ -419,7 +419,7 @@ class TestBillingV4ResetLimits:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         await service.charge_generation(user.id)
@@ -444,7 +444,7 @@ class TestBillingV4ResetLimits:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         await service.charge_generation(user.id)
@@ -466,7 +466,7 @@ class TestBillingV4ResetLimits:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         await service.charge_generation(user.id)
@@ -488,7 +488,7 @@ class TestBillingV4ResetLimits:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         await service.charge_generation(user.id)
@@ -499,7 +499,7 @@ class TestBillingV4ResetLimits:
 
 
 @pytest.mark.asyncio
-class TestBillingV4SubscriptionLimitNormalization:
+class TestBillingV5SubscriptionLimitNormalization:
     """Тесты нормализации лимитов подписки"""
 
     async def test_normalize_pro_to_standard(self, mock_db_session):
@@ -516,7 +516,7 @@ class TestBillingV4SubscriptionLimitNormalization:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         await service.charge_generation(user.id)
@@ -538,7 +538,7 @@ class TestBillingV4SubscriptionLimitNormalization:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         await service.charge_generation(user.id)
@@ -548,7 +548,7 @@ class TestBillingV4SubscriptionLimitNormalization:
 
 
 @pytest.mark.asyncio
-class TestBillingV4RaceConditions:
+class TestBillingV5RaceConditions:
     """Тесты race conditions (параллельные списания)"""
 
     async def test_concurrent_charges_no_negative_balance(self, mock_db_session):
@@ -562,7 +562,7 @@ class TestBillingV4RaceConditions:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act: первая попытка должна пройти
         result1 = await service.charge_generation(user.id)
@@ -579,14 +579,14 @@ class TestBillingV4RaceConditions:
 
 
 @pytest.mark.asyncio
-class TestBillingV4UserNotFound:
+class TestBillingV5UserNotFound:
     """Тесты обработки отсутствующего пользователя"""
 
     async def test_user_not_found_error(self, mock_db_session):
         """Ошибка 404 при отсутствии пользователя"""
         # Arrange
         mock_db_session.scalar = AsyncMock(return_value=None)
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
@@ -597,7 +597,7 @@ class TestBillingV4UserNotFound:
 
 
 @pytest.mark.asyncio
-class TestBillingV4CustomCost:
+class TestBillingV5CustomCost:
     """Тесты кастомной стоимости"""
 
     async def test_custom_generation_cost(self, mock_db_session):
@@ -611,7 +611,7 @@ class TestBillingV4CustomCost:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id, cost_credits=5)
@@ -629,7 +629,7 @@ class TestBillingV4CustomCost:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_assistant(user.id, cost_credits=3)
@@ -640,7 +640,7 @@ class TestBillingV4CustomCost:
 
 
 @pytest.mark.asyncio
-class TestBillingV4EdgeCases:
+class TestBillingV5EdgeCases:
     """Тесты граничных случаев"""
 
     async def test_generation_with_exact_credits(self, mock_db_session):
@@ -654,7 +654,7 @@ class TestBillingV4EdgeCases:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -672,7 +672,7 @@ class TestBillingV4EdgeCases:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_assistant(user.id)
@@ -694,7 +694,7 @@ class TestBillingV4EdgeCases:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)
@@ -715,7 +715,7 @@ class TestBillingV4EdgeCases:
 
         mock_db_session.scalar = AsyncMock(return_value=user)
         mock_db_session.add = Mock()
-        service = BillingV4Service(mock_db_session)
+        service = BillingV5Service(mock_db_session)
 
         # Act
         result = await service.charge_generation(user.id)

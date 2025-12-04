@@ -28,7 +28,7 @@ from app.schemas.fitting import (
     FittingResult,
 )
 from app.services.credits import deduct_credits, check_user_can_perform_action
-from app.services.billing_v4 import BillingV4Service
+from app.services.billing_v5 import BillingV5Service
 from app.services.file_validator import validate_image_file
 from app.services.file_storage import save_upload_file, get_file_by_id
 from app.tasks.fitting import generate_fitting_task
@@ -102,8 +102,8 @@ async def generate_fitting(
     """
     Запустить генерацию примерки.
     """
-    billing_v4_enabled = settings.BILLING_V4_ENABLED
-    credits_cost = settings.BILLING_GENERATION_COST_CREDITS if billing_v4_enabled else 2
+    billing_v5_enabled = settings.BILLING_V5_ENABLED
+    credits_cost = settings.BILLING_GENERATION_COST_CREDITS if billing_v5_enabled else 2
     charge_info = None
 
     # Проверка существования файлов
@@ -134,8 +134,8 @@ async def generate_fitting(
             detail=f"Item photo not found: {str(e)}"
         )
 
-    if billing_v4_enabled:
-        billing = BillingV4Service(db)
+    if billing_v5_enabled:
+        billing = BillingV5Service(db)
         charge_info = await billing.charge_generation(
             current_user.id,
             meta={
@@ -171,7 +171,7 @@ async def generate_fitting(
         status="pending",
         credits_spent=(
             credits_cost
-            if billing_v4_enabled and charge_info and charge_info.get("payment_source") == "credits"
+            if billing_v5_enabled and charge_info and charge_info.get("payment_source") == "credits"
             else 0
         ),
     )

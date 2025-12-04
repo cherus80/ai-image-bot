@@ -184,7 +184,7 @@ class User(Base, TimestampMixin):
         comment="Дата активации текущей подписки",
     )
 
-    # Лимиты подписки (Billing v4)
+    # Лимиты подписки (Billing v5)
     subscription_ops_limit: Mapped[int] = mapped_column(
         Integer,
         default=0,

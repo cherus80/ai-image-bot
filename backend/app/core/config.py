@@ -108,7 +108,7 @@ class Settings(BaseSettings):
     PAYMENT_MOCK_MODE: bool = Field(default=False, description="Enable payment mock mode for local testing")
 
     # Монетизация
-    BILLING_V4_ENABLED: bool = Field(
+    BILLING_V5_ENABLED: bool = Field(
         default=True,
         description="Включить биллинг v5 (действия по подписке + кредиты, без freemium)",
     )

@@ -1,4 +1,4 @@
-"""Pydantic схемы для Billing v4."""
+"""Pydantic схемы для Billing v5."""
 
 from datetime import datetime
 from typing import Optional, Literal

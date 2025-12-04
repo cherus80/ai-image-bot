@@ -270,7 +270,7 @@ def generate_fitting_task(
                     f"service={service_used}, aspect_ratio={aspect_ratio}"
                 )
 
-                if not settings.BILLING_V4_ENABLED:
+                if not settings.BILLING_V5_ENABLED:
                     user = await session.get(User, user_id)
                     if user:
                         from app.services.credits import deduct_credits
