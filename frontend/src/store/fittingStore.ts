@@ -17,6 +17,7 @@ import {
   pollFittingStatus,
 } from '../api/fitting';
 import { useAuthStore } from './authStore';
+import toast from 'react-hot-toast';
 
 interface FittingState {
   // State: загруженные файлы
@@ -190,6 +191,14 @@ export const useFittingStore = create<FittingState>((set, get) => ({
         response.task_id,
         (status) => {
           get().updateProgress(status);
+        },
+        {
+          slowWarningMs: 60000,
+          onSlowWarning: () =>
+            toast(
+              'Генерация может занять до 3 минут из-за нагрузки на сервис. Приложение продолжает ждать ответ.',
+              { icon: '⏳' }
+            ),
         }
       );
 

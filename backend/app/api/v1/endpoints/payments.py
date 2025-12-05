@@ -21,6 +21,7 @@ from app.db.session import get_db
 from app.api.dependencies import get_current_user, require_verified_email
 from app.models.user import User
 from app.models.payment import Payment
+from app.models.referral import Referral
 from app.schemas.payment import (
     PaymentCreateRequest,
     PaymentCreateResponse,
@@ -41,10 +42,74 @@ from app.services.billing import (
     SUBSCRIPTION_TARIFFS,
     CREDITS_PACKAGES,
 )
+from app.services.billing_v5 import BillingV5Service
 
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+async def _award_referral_bonus(db: AsyncSession, referred_user_id: int, payment_id: str) -> None:
+    """Начислить бонус рефереру после первой успешной покупки приглашённого пользователя."""
+    try:
+        stmt = (
+            select(Referral)
+            .where(Referral.referred_id == referred_user_id, Referral.is_awarded.is_(False))
+            .with_for_update()
+        )
+        referral = await db.scalar(stmt)
+        if not referral:
+            return
+
+        referrer_stmt = (
+            select(User)
+            .where(User.id == referral.referrer_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        referrer = await db.scalar(referrer_stmt)
+        if not referrer:
+            logger.warning(
+                "Referrer %s not found for referral %s",
+                referral.referrer_id,
+                referral.id,
+            )
+            return
+
+        bonus_credits = referral.credits_awarded or 0
+        if bonus_credits <= 0:
+            referral.is_awarded = True
+            await db.commit()
+            return
+
+        billing_v5 = BillingV5Service(db)
+        await billing_v5.award_credits(
+            referrer,
+            bonus_credits,
+            idempotency_key=f"referral_bonus_{referral.id}",
+            meta={
+                "source": "referral_first_purchase",
+                "referred_user_id": referred_user_id,
+                "payment_id": payment_id,
+            },
+        )
+
+        referral.is_awarded = True
+        await db.commit()
+        logger.info(
+            "Referral bonus %s credits awarded to user %s for referral %s",
+            bonus_credits,
+            referrer.id,
+            referral.id,
+        )
+    except Exception as e:
+        await db.rollback()
+        logger.error(
+            "Failed to award referral bonus for user %s: %s",
+            referred_user_id,
+            e,
+            exc_info=True,
+        )
 
 
 @router.post("/create", response_model=PaymentCreateResponse)
@@ -257,6 +322,8 @@ async def yukassa_webhook(
                     idempotency_key=idempotency_key,
                 )
                 logger.info(f"Subscription awarded: {tariff_id} to user {user_id}")
+
+            await _award_referral_bonus(db, user_id, payment_id)
 
         # Обработка других событий (опционально)
         elif event == "payment.canceled":

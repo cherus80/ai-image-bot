@@ -5,7 +5,7 @@
 """
 
 from typing import Optional
-from pydantic import Field, field_validator
+from pydantic import Field, FieldValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -84,11 +84,19 @@ class Settings(BaseSettings):
         default=True,
         description="Использовать kie.ai как основной сервис (fallback на OpenRouter при ошибках)",
     )
+    GENERATION_PRIMARY_PROVIDER: str = Field(
+        default="kie_ai",
+        description="Основной провайдер генерации (kie_ai или openrouter)",
+    )
+    GENERATION_FALLBACK_PROVIDER: Optional[str] = Field(
+        default="openrouter",
+        description="Запасной провайдер для генерации (None — без fallback)",
+    )
     KIE_AI_API_KEY: Optional[str] = Field(default=None, description="API key for kie.ai (optional)")
     KIE_AI_BASE_URL: str = Field(default="https://api.kie.ai/v1")
     KIE_AI_TIMEOUT: int = Field(
-        default=90,
-        description="Timeout для kie.ai запросов в секундах (среднее время обработки ~80s)",
+        default=180,
+        description="Timeout для kie.ai запросов в секундах (среднее время обработки ~150s)",
     )
     KIE_AI_POLL_INTERVAL: int = Field(
         default=5,
@@ -266,6 +274,18 @@ class Settings(BaseSettings):
         if not 0 <= v <= 1:
             raise ValueError("Rate must be between 0 and 1")
         return v
+
+    @field_validator("GENERATION_PRIMARY_PROVIDER", "GENERATION_FALLBACK_PROVIDER")
+    @classmethod
+    def validate_generation_provider(cls, v: Optional[str], info: FieldValidationInfo) -> Optional[str]:
+        """Валидация названий провайдеров генерации."""
+        if v is None:
+            return None
+        allowed = {"kie_ai", "openrouter"}
+        normalized = v.lower()
+        if normalized not in allowed:
+            raise ValueError(f"{info.field_name} must be one of {allowed} or null")
+        return normalized
 
     @property
     def admin_email_list(self) -> list[str]:

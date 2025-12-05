@@ -267,12 +267,21 @@ export interface UpdateFittingPromptRequest {
 // Fallback (kie.ai / OpenRouter)
 // ============================================================================
 
+export type GenerationProvider = 'kie_ai' | 'openrouter';
+
 export interface FallbackSettings {
-  use_kie_ai: boolean;
-  disable_fallback: boolean;
+  primary_provider: GenerationProvider;
+  fallback_provider: GenerationProvider | null;
+  available_providers: GenerationProvider[];
+  // Legacy поля для совместимости
+  use_kie_ai?: boolean;
+  disable_fallback?: boolean;
 }
 
 export interface UpdateFallbackSettingsRequest {
+  primary_provider?: GenerationProvider;
+  fallback_provider?: GenerationProvider | null;
+  // Legacy поля для совместимости
   use_kie_ai?: boolean;
   disable_fallback?: boolean;
 }

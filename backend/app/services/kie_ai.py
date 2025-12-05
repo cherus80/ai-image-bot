@@ -54,7 +54,7 @@ class KieAIClient:
     MODEL_NAME = "google/nano-banana-edit"  # согласно актуальной документации
 
     DEFAULT_POLL_INTERVAL = 5
-    DEFAULT_MAX_POLLS = 24  # ~120s, должно хватить даже с запасом
+    DEFAULT_MAX_POLLS = 36  # ~180s с интервалом 5 секунд
 
     SUPPORTED_ASPECT_RATIOS = [
         "1:1",

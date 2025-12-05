@@ -152,82 +152,103 @@ def generate_fitting_task(
                 public_item_photo_url = to_public_url(f"uploads/{item_photo_path.name}")
 
                 # Генерация изображения с виртуальной примеркой
-                # Используем kie.ai как primary, OpenRouter как fallback
+                # Порядок провайдеров: primary -> fallback (если задан)
                 generated_image_url = None
                 service_used = None
+                generation_errors: list[str] = []
+                user_photo_base64 = None
+                item_photo_base64 = None
 
-                # Попытка 1: kie.ai (если включен feature flag)
-                if settings.USE_KIE_AI and settings.KIE_AI_API_KEY:
-                    logger.info("Attempting virtual try-on with kie.ai...")
-                    try:
-                        # Progress callback для обновления прогресса во время polling
-                        async def progress_callback(status: str, progress_pct: int):
-                            # Mapping статусов kie.ai к прогрессу
-                            # waiting=10%, queuing=30%, generating=60%, success=80%
-                            actual_progress = 50 + int(progress_pct * 0.3)  # 50-80%
-                            await update_generation_status(
-                                session,
-                                generation_id,
-                                "processing",
-                                progress=actual_progress
+                primary_provider = (
+                    settings.GENERATION_PRIMARY_PROVIDER
+                    or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
+                )
+                fallback_provider = None if settings.KIE_AI_DISABLE_FALLBACK else settings.GENERATION_FALLBACK_PROVIDER
+
+                providers_chain = []
+                for candidate in (primary_provider, fallback_provider):
+                    if candidate and candidate not in providers_chain:
+                        providers_chain.append(candidate)
+
+                if not providers_chain:
+                    providers_chain.append("openrouter")
+
+                for provider in providers_chain:
+                    if provider == "kie_ai":
+                        if not settings.KIE_AI_API_KEY:
+                            generation_errors.append("kie_ai: API ключ не задан, пропускаем")
+                            continue
+
+                        logger.info("Attempting virtual try-on with kie.ai...")
+                        try:
+                            async def progress_callback(status: str, progress_pct: int):
+                                # Mapping статусов kie.ai к прогрессу
+                                # waiting=10%, queuing=30%, generating=60%, success=80%
+                                actual_progress = 50 + int(progress_pct * 0.3)  # 50-80%
+                                await update_generation_status(
+                                    session,
+                                    generation_id,
+                                    "processing",
+                                    progress=actual_progress
+                                )
+
+                            async with KieAIClient() as kie_ai_client:
+                                await update_generation_status(session, generation_id, "processing", progress=55)
+
+                                generated_image_url = await kie_ai_client.generate_virtual_tryon(
+                                    user_photo_url=public_user_photo_url,
+                                    item_photo_url=public_item_photo_url,
+                                    prompt=prompt,
+                                    image_size=aspect_ratio,
+                                    progress_callback=progress_callback,
+                                )
+
+                            service_used = "kie_ai"
+                            logger.info("kie.ai virtual try-on successful")
+                            break
+
+                        except (KieAIError, KieAITimeoutError, KieAITaskFailedError, Exception) as kie_error:
+                            error_text = f"{type(kie_error).__name__}: {kie_error}"
+                            generation_errors.append(f"kie_ai: {error_text}")
+                            logger.warning(
+                                "kie.ai try-on failed: %s. %s",
+                                error_text,
+                                "Fallback to next provider..." if fallback_provider else "No fallback configured",
                             )
+                            generated_image_url = None
+                            continue
 
-                        kie_ai_client = KieAIClient()
-                        await update_generation_status(session, generation_id, "processing", progress=55)
+                    elif provider == "openrouter":
+                        try:
+                            if user_photo_base64 is None or item_photo_base64 is None:
+                                user_photo_base64 = image_to_base64_data_url(user_photo_path)
+                                item_photo_base64 = image_to_base64_data_url(item_photo_path)
 
-                        generated_image_url = await kie_ai_client.generate_virtual_tryon(
-                            user_photo_url=public_user_photo_url,
-                            item_photo_url=public_item_photo_url,
-                            prompt=prompt,
-                            image_size=aspect_ratio,
-                            progress_callback=progress_callback,
-                        )
+                            async with OpenRouterClient() as openrouter_client:
+                                await update_generation_status(session, generation_id, "processing", progress=60)
 
-                        await kie_ai_client.close()
-                        service_used = "kie_ai"
-                        logger.info("kie.ai virtual try-on successful")
+                                generated_image_url = await openrouter_client.generate_virtual_tryon(
+                                    user_photo_data=user_photo_base64,
+                                    item_photo_data=item_photo_base64,
+                                    prompt=prompt,
+                                    aspect_ratio=aspect_ratio,
+                                )
+                            service_used = "openrouter"
+                            logger.info("OpenRouter virtual try-on successful")
+                            break
 
-                    except (KieAIError, KieAITimeoutError, KieAITaskFailedError, Exception) as kie_error:
-                        logger.warning(
-                            f"kie.ai try-on failed: {type(kie_error).__name__}: {kie_error}. "
-                            f"Falling back to OpenRouter..."
-                        )
-                        if settings.KIE_AI_DISABLE_FALLBACK:
-                            # Прерываемся, чтобы протестировать kie.ai без OpenRouter
-                            raise
-                        generated_image_url = None  # Reset для fallback
+                        except OpenRouterError as or_error:
+                            generation_errors.append(f"openrouter: {or_error}")
+                            logger.error("OpenRouter try-on failed: %s", or_error)
+                            generated_image_url = None
+                            continue
 
-                # Попытка 2: OpenRouter (fallback или primary если kie.ai отключен)
-                if service_used == "kie_ai" and settings.KIE_AI_DISABLE_FALLBACK and not generated_image_url:
-                    raise ValueError("kie.ai failed and fallback is disabled")
+                    else:
+                        generation_errors.append(f"{provider}: unsupported provider")
 
                 if not generated_image_url:
-                    if service_used is None:
-                        logger.info("Using OpenRouter as primary service (kie.ai disabled or not configured)")
-                    else:
-                        logger.info("Falling back to OpenRouter after kie.ai failure")
-
-                    try:
-                        user_photo_base64 = image_to_base64_data_url(user_photo_path)
-                        item_photo_base64 = image_to_base64_data_url(item_photo_path)
-
-                        openrouter_client = OpenRouterClient()
-                        await update_generation_status(session, generation_id, "processing", progress=60)
-
-                        generated_image_url = await openrouter_client.generate_virtual_tryon(
-                            user_photo_data=user_photo_base64,
-                            item_photo_data=item_photo_base64,
-                            prompt=prompt,
-                            aspect_ratio=aspect_ratio,
-                        )
-
-                        await openrouter_client.close()
-                        service_used = "openrouter"
-                        logger.info("OpenRouter virtual try-on successful")
-
-                    except OpenRouterError as or_error:
-                        logger.error(f"OpenRouter try-on failed: {or_error}")
-                        raise ValueError(f"Virtual try-on failed on all services: {or_error}")
+                    details = "; ".join(generation_errors) if generation_errors else "no providers available"
+                    raise ValueError(f"Virtual try-on failed on all services: {details}")
 
                 if not generated_image_url:
                     raise ValueError("Virtual try-on failed: no image URL generated")

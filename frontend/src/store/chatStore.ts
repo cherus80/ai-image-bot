@@ -20,6 +20,7 @@ import {
   pollEditingStatus,
 } from '../api/editing';
 import { useAuthStore } from './authStore';
+import toast from 'react-hot-toast';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 
@@ -270,6 +271,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
         response.task_id,
         (status) => {
           get().updateGenerationProgress(status);
+        },
+        {
+          slowWarningMs: 60000,
+          onSlowWarning: () =>
+            toast(
+              'Генерация может занять до 3 минут из-за нагрузки на сервис. Приложение продолжает ждать ответ.',
+              { icon: '⏳' }
+            ),
         }
       );
 

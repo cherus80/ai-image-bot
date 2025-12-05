@@ -8,6 +8,7 @@ Pydantic схемы для админки.
 """
 
 from datetime import datetime
+from enum import Enum
 from decimal import Decimal
 from typing import Optional
 from pydantic import BaseModel, Field, FieldValidationInfo, field_validator
@@ -203,9 +204,26 @@ class AdminUsersRequest(BaseModel):
 # Настройки fallback (kie.ai / OpenRouter)
 # ============================================================================
 
+class GenerationProvider(str, Enum):
+    """Доступные провайдеры генерации изображений."""
+
+    KIE_AI = "kie_ai"
+    OPENROUTER = "openrouter"
+
+
 class FallbackSettingsResponse(BaseModel):
     """Текущие настройки fallback для генерации."""
 
+    primary_provider: GenerationProvider = Field(..., description="Основной провайдер генерации")
+    fallback_provider: Optional[GenerationProvider] = Field(
+        default=None,
+        description="Запасной провайдер (None — без автоматического переключения)",
+    )
+    available_providers: list[GenerationProvider] = Field(
+        default_factory=lambda: [GenerationProvider.KIE_AI, GenerationProvider.OPENROUTER],
+        description="Список поддерживаемых провайдеров",
+    )
+    # Поля для обратной совместимости (старый UI)
     use_kie_ai: bool = Field(..., description="Использовать kie.ai как основной сервис")
     disable_fallback: bool = Field(..., description="Запретить fallback на OpenRouter при ошибках kie.ai")
 
@@ -213,6 +231,14 @@ class FallbackSettingsResponse(BaseModel):
 class UpdateFallbackSettingsRequest(BaseModel):
     """Запрос на обновление настроек fallback (частичное обновление)."""
 
+    primary_provider: Optional[GenerationProvider] = Field(
+        default=None, description="Установить основной провайдер генерации"
+    )
+    fallback_provider: Optional[GenerationProvider] = Field(
+        default=None,
+        description="Установить запасной провайдер (null — отключить fallback)",
+    )
+    # Legacy-флаги для совместимости
     use_kie_ai: Optional[bool] = Field(default=None, description="Переключить использование kie.ai")
     disable_fallback: Optional[bool] = Field(default=None, description="Запретить fallback на OpenRouter")
 

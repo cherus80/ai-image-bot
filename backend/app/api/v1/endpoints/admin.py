@@ -55,6 +55,7 @@ from app.schemas.admin import (
     FittingPromptItem,
     UpdateFittingPromptRequest,
     FallbackSettingsResponse,
+    GenerationProvider,
     UpdateFallbackSettingsRequest,
 )
 from app.utils.tax import (
@@ -77,13 +78,39 @@ logger = logging.getLogger(__name__)
 # Fallback settings (kie.ai / OpenRouter)
 # ============================================================================
 
+_GENERATION_PROVIDERS = {"kie_ai", "openrouter"}
+
+
+def _normalize_provider(provider: str | None, field_name: str) -> str | None:
+    if provider is None:
+        return None
+    normalized = provider.lower()
+    if normalized not in _GENERATION_PROVIDERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported provider '{provider}' for {field_name}. "
+                   f"Use one of: {', '.join(sorted(_GENERATION_PROVIDERS))}",
+        )
+    return normalized
+
+
+def _ensure_fallback_consistency() -> None:
+    """Гарантируем, что fallback не совпадает с primary."""
+    if settings.GENERATION_FALLBACK_PROVIDER == settings.GENERATION_PRIMARY_PROVIDER:
+        settings.GENERATION_FALLBACK_PROVIDER = None
+
 
 @router.get("/fallback", response_model=FallbackSettingsResponse)
 async def get_fallback_settings(admin: AdminUser) -> FallbackSettingsResponse:
     """Получить текущие настройки fallback (только ADMIN)."""
+    _ensure_fallback_consistency()
+
     return FallbackSettingsResponse(
-        use_kie_ai=settings.USE_KIE_AI,
-        disable_fallback=settings.KIE_AI_DISABLE_FALLBACK,
+        primary_provider=settings.GENERATION_PRIMARY_PROVIDER,
+        fallback_provider=settings.GENERATION_FALLBACK_PROVIDER,
+        available_providers=[GenerationProvider.KIE_AI, GenerationProvider.OPENROUTER],
+        use_kie_ai=settings.GENERATION_PRIMARY_PROVIDER == "kie_ai",
+        disable_fallback=settings.GENERATION_FALLBACK_PROVIDER is None,
     )
 
 
@@ -94,15 +121,48 @@ async def update_fallback_settings(
 ) -> FallbackSettingsResponse:
     """Обновить настройки fallback (частично). Применяется сразу, без перезапуска."""
 
+    # Новый формат: primary/fallback
+    if "primary_provider" in payload.model_fields_set:
+        settings.GENERATION_PRIMARY_PROVIDER = _normalize_provider(
+            payload.primary_provider, "primary_provider"
+        ) or settings.GENERATION_PRIMARY_PROVIDER
+        settings.USE_KIE_AI = settings.GENERATION_PRIMARY_PROVIDER == "kie_ai"
+
+    if "fallback_provider" in payload.model_fields_set:
+        settings.GENERATION_FALLBACK_PROVIDER = _normalize_provider(
+            payload.fallback_provider, "fallback_provider"
+        )
+        settings.KIE_AI_DISABLE_FALLBACK = settings.GENERATION_FALLBACK_PROVIDER is None
+
+    # Legacy флаги для совместимости
     if payload.use_kie_ai is not None:
         settings.USE_KIE_AI = payload.use_kie_ai
+        settings.GENERATION_PRIMARY_PROVIDER = "kie_ai" if payload.use_kie_ai else "openrouter"
 
     if payload.disable_fallback is not None:
         settings.KIE_AI_DISABLE_FALLBACK = payload.disable_fallback
+        if payload.disable_fallback:
+            settings.GENERATION_FALLBACK_PROVIDER = None
+        elif settings.GENERATION_FALLBACK_PROVIDER is None:
+            # Если явно включили fallback, но не указали провайдера — используем противоположный
+            settings.GENERATION_FALLBACK_PROVIDER = (
+                "openrouter" if settings.GENERATION_PRIMARY_PROVIDER == "kie_ai" else "kie_ai"
+            )
+
+    _ensure_fallback_consistency()
+
+    # Если fallback отключён, сбрасываем признак disable_fallback в соответствии с новым значением
+    if settings.GENERATION_FALLBACK_PROVIDER is None:
+        settings.KIE_AI_DISABLE_FALLBACK = True
+    else:
+        settings.KIE_AI_DISABLE_FALLBACK = False
 
     return FallbackSettingsResponse(
-        use_kie_ai=settings.USE_KIE_AI,
-        disable_fallback=settings.KIE_AI_DISABLE_FALLBACK,
+        primary_provider=settings.GENERATION_PRIMARY_PROVIDER,
+        fallback_provider=settings.GENERATION_FALLBACK_PROVIDER,
+        available_providers=[GenerationProvider.KIE_AI, GenerationProvider.OPENROUTER],
+        use_kie_ai=settings.GENERATION_PRIMARY_PROVIDER == "kie_ai",
+        disable_fallback=settings.GENERATION_FALLBACK_PROVIDER is None,
     )
 
 

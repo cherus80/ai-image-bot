@@ -104,10 +104,23 @@ export const getFittingHistory = async (
 export const pollFittingStatus = async (
   taskId: string,
   onProgress: (status: FittingStatusResponse) => void,
-  intervalMs: number = 2000,
-  maxAttempts: number = 150 // 5 минут максимум (150 * 2сек)
+  options: {
+    intervalMs?: number;
+    maxAttempts?: number;
+    slowWarningMs?: number;
+    onSlowWarning?: () => void;
+  } = {}
 ): Promise<FittingResult> => {
   let attempts = 0;
+  const {
+    intervalMs = 2000,
+    maxAttempts = 150,
+    slowWarningMs = 60000,
+    onSlowWarning,
+  } = options;
+
+  const startedAt = Date.now();
+  let warnedSlow = false;
 
   return new Promise((resolve, reject) => {
     const poll = async () => {
@@ -123,6 +136,12 @@ export const pollFittingStatus = async (
           const result = await getFittingResult(taskId);
           resolve(result);
           return;
+        }
+
+        // Сообщение о долгой генерации
+        if (!warnedSlow && Date.now() - startedAt >= slowWarningMs) {
+          warnedSlow = true;
+          onSlowWarning?.();
         }
 
         // Если превышено количество попыток

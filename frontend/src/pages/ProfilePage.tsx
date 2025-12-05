@@ -99,41 +99,39 @@ export const ProfilePage: React.FC = () => {
     });
   };
 
-  const freemiumLimit = 0;
-  const freemiumRemaining = 0;
-  const freemiumUsed = 0;
-  const freemiumProgress = 0;
-  const freemiumResetAt = null;
-  const freemiumExpiresAt = null;
-  const hasFreemium = false;
-  const hasPaidSubscription = !!user.subscription_type && user.subscription_type !== 'none';
-  const trialCredits = 10;
-  const subscriptionLabel = hasPaidSubscription
+  const subscriptionExpiresAt = user.subscription_expires_at
+    ? new Date(user.subscription_expires_at)
+    : null;
+  const hasActiveSubscription =
+    !!user.subscription_type &&
+    user.subscription_type !== 'none' &&
+    !!subscriptionExpiresAt &&
+    subscriptionExpiresAt > new Date();
+
+  const actionsRemaining =
+    user.subscription_ops_remaining ??
+    (user.subscription_ops_limit != null && user.subscription_ops_used != null
+      ? Math.max(user.subscription_ops_limit - user.subscription_ops_used, 0)
+      : null);
+
+  const subscriptionLabel = hasActiveSubscription
     ? user.subscription_type
-    : 'Не активна';
+    : 'Нет активной подписки';
+  const daysLeft = subscriptionExpiresAt
+    ? Math.max(
+        Math.ceil((subscriptionExpiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+        0
+      )
+    : null;
 
   // Получение статуса подписки
   const getSubscriptionStatus = () => {
-    if (hasPaidSubscription) {
-      const expiresAt = user.subscription_expires_at
-        ? new Date(user.subscription_expires_at)
-        : null;
-
-      if (!expiresAt) {
-        return `Подписка: ${user.subscription_type}`;
-      }
-
-      const now = new Date();
-      const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-      return `Подписка: ${user.subscription_type} (${daysLeft} дн.)`;
-    }
-
-    if (hasFreemium) {
-      const expiresText = freemiumExpiresAt
-        ? ` до ${formatDate(freemiumExpiresAt.toISOString())}`
-        : '';
-      return `Приветственный пакет: осталось ${freemiumRemaining} из ${freemiumLimit}${expiresText}`;
+    if (hasActiveSubscription && subscriptionExpiresAt) {
+      const daysText = daysLeft !== null ? `${daysLeft} дн.` : null;
+      const actionsText =
+        actionsRemaining != null ? `действий осталось: ${actionsRemaining}` : null;
+      const details = [actionsText, daysText].filter(Boolean).join(' · ');
+      return `Активна до ${formatDate(subscriptionExpiresAt.toISOString())}${details ? ` · ${details}` : ''}`;
     }
 
     return 'Нет активной подписки';
@@ -238,7 +236,7 @@ export const ProfilePage: React.FC = () => {
                 <div className="flex-1">
                   <div className="text-sm text-primary-900 font-semibold">Приветственный бонус активен</div>
                   <div className="text-xs text-gray-600">
-                    Вам начислено {trialCredits} приветственных кредитов при регистрации. Сначала тратятся бонусные кредиты, затем подписка или оплаченные пакеты.
+                    Вам начислены приветственные кредиты при регистрации. Сначала тратятся бонусные кредиты, затем подписка или оплаченные пакеты.
                   </div>
                 </div>
                 <div className="text-right">
@@ -320,78 +318,35 @@ export const ProfilePage: React.FC = () => {
                   {subscriptionLabel}
                 </div>
                 <p className="text-primary-100 text-sm font-medium">{getSubscriptionStatus()}</p>
-                {hasFreemium && !hasPaidSubscription && (
+                {hasActiveSubscription ? (
+                  <div className="mt-4 space-y-2">
+                    {actionsRemaining != null && (
+                      <div className="inline-flex items-center px-3 py-1 rounded-lg bg-white/15 text-xs font-semibold">
+                        Осталось действий по подписке: {actionsRemaining}
+                      </div>
+                    )}
+                    {daysLeft !== null && (
+                      <div className="text-xs text-primary-50">
+                        До завершения подписки: {daysLeft} дн.
+                      </div>
+                    )}
+                  </div>
+                ) : (
                   <div className="mt-4">
-                    <div className="text-xs text-primary-50 mb-2 font-semibold">
-                      Бесплатные кредиты списываются в первую очередь
-                    </div>
-                    <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-white/90"
-                        style={{ width: `${freemiumProgress}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[11px] text-primary-50 mt-1">
-                      <span>Использовано {freemiumUsed}</span>
-                      <span>Осталось {freemiumRemaining}</span>
-                    </div>
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      onClick={() => setShowPaymentWizard(true)}
+                      className="bg-white/10 text-white hover:bg-white/20"
+                    >
+                      Подключить подписку
+                    </Button>
                   </div>
                 )}
               </div>
             </Card>
           </motion.div>
         </div>
-
-        {/* Freemium счётчик */}
-        {hasFreemium && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card variant="default" padding="none" className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-success-500 to-success-600" />
-              <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-white rounded-full filter blur-3xl opacity-10 -ml-32 -mt-32" />
-
-              <div className="relative z-10 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold mb-2 flex items-center">
-                      <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                      </svg>
-                      Бесплатные кредиты за регистрацию
-                    </h2>
-                    <p className="text-success-100 text-base mb-1">
-                      <span className="font-bold text-2xl">{freemiumRemaining}</span>
-                      {' '}из {freemiumLimit} осталось
-                    </p>
-                    <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden mt-2">
-                      <div
-                        className="h-full bg-white"
-                        style={{ width: `${freemiumProgress}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs text-success-50 mt-1">
-                      <span>Использовано {freemiumUsed}</span>
-                      <span>Осталось {freemiumRemaining}</span>
-                    </div>
-                    {freemiumExpiresAt && (
-                      <p className="text-success-200 text-xs">
-                        Доступны до {formatDate(freemiumExpiresAt.toISOString())}
-                      </p>
-                    )}
-                  </div>
-                  <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                    <div className="text-4xl font-bold">
-                      {freemiumRemaining}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        )}
 
         {/* Кнопка покупки */}
         <motion.div
@@ -602,7 +557,7 @@ export const ProfilePage: React.FC = () => {
                   />
                 </div>
                 <p className="text-xs text-dark-600 mt-3 font-medium bg-accent-50 border border-accent-200 rounded-lg p-3">
-                  💰 Приглашайте друзей и получайте +10 кредитов за каждого активного реферала!
+                  💰 Приглашайте друзей: бонус начисляется после первой покупки приглашённого пользователя.
                 </p>
               </Card>
 
@@ -627,7 +582,7 @@ export const ProfilePage: React.FC = () => {
                               @{referral.username || `user_${referral.telegram_id}`}
                             </div>
                             <div className="text-xs text-gray-600">
-                              {referral.is_awarded ? 'Активный' : 'Ожидает первого действия'}
+                              {referral.is_awarded ? 'Активный' : 'Ожидает первой покупки'}
                             </div>
                           </div>
                         </div>
