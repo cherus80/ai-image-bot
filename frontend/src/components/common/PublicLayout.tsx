@@ -22,11 +22,13 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-white/40 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-105 transition">
-              AI
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="AI Media Generator"
+              className="w-12 h-12 rounded-2xl shadow-lg border border-white object-contain bg-white"
+            />
             <div>
-              <p className="text-sm text-dark-600">AI Media Generator</p>
+              <p className="text-sm text-dark-600 font-semibold">AI Media Generator</p>
               <p className="text-xs text-dark-400">Примерка и редактирование</p>
             </div>
           </Link>
@@ -69,7 +71,10 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
       <footer className="bg-white border-t border-white/60">
         <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-dark-600">
           <div>
-            <p className="font-semibold text-dark-800 mb-2">AI Media Generator</p>
+            <div className="flex items-center gap-3 mb-3">
+              <img src="/logo.jpg" alt="AI Media Generator" className="w-10 h-10 rounded-xl border border-white shadow-sm object-contain" />
+              <p className="font-semibold text-dark-800">AI Media Generator</p>
+            </div>
             <p>Виртуальная примерка и AI-редактирование изображений.</p>
           </div>
           <div className="space-y-1">

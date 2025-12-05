@@ -70,28 +70,31 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">Войдите в свой аккаунт</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 px-4 py-10">
+      <div className="max-w-xl w-full bg-white rounded-3xl border border-white/70 shadow-2xl p-8 space-y-8">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-extrabold text-dark-900">Войдите в свой аккаунт</h2>
+          <p className="text-sm text-dark-600">
             Или{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/register" className="font-semibold text-primary-700 hover:text-primary-800">
               создайте новый аккаунт
             </Link>
           </p>
         </div>
 
-        <div className="mt-8 space-y-6">
+        <div className="space-y-6">
           {/* OAuth Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="w-full">
-              <GoogleSignInButton
-                onSuccess={handleGoogleSuccess}
-                onError={(err) => console.error(err)}
-                text="signin_with"
-                size="large"
-              />
+              <div className="w-full h-14 rounded-xl border border-slate-200 bg-white shadow-sm flex items-center justify-center px-2">
+                <GoogleSignInButton
+                  onSuccess={handleGoogleSuccess}
+                  onError={(err) => console.error(err)}
+                  text="signin_with"
+                  size="large"
+                  width={260}
+                />
+              </div>
             </div>
             <div className="w-full">
               <VKSignInButton
@@ -104,24 +107,24 @@ export function LoginPage() {
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-slate-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">Или продолжите с email</span>
+              <span className="px-2 bg-white text-slate-500">Или продолжите с email</span>
             </div>
           </div>
 
           {/* Error message */}
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
+            <div className="rounded-xl bg-red-50 border border-red-100 p-4">
               <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
           {/* Email/Password Form */}
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="block text-sm font-semibold text-slate-800">
                 Email адрес
               </label>
               <input
@@ -130,15 +133,15 @@ export function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 shadow-inner focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 text-slate-800"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
-              {formErrors.email && <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>}
+              {formErrors.email && <p className="text-sm text-red-600">{formErrors.email}</p>}
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-800">
                 Пароль
               </label>
               <input
@@ -147,29 +150,29 @@ export function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 shadow-inner focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 text-slate-800"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
               {formErrors.password && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+                <p className="text-sm text-red-600">{formErrors.password}</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 inline-flex items-center justify-center rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-400/30 hover:shadow-blue-400/50 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Вход...' : 'Войти'}
             </button>
-            <p className="mt-3 text-xs text-gray-600 text-center">
+            <p className="text-xs text-slate-500 text-center leading-relaxed">
               Входя, вы подтверждаете согласие с{' '}
-              <a href="/oferta" className="text-blue-600 hover:text-blue-500 underline">
+              <a href="/oferta" className="text-primary-700 hover:text-primary-800 underline">
                 офертой
               </a>{' '}
               и{' '}
-              <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">
+              <a href="/privacy" className="text-primary-700 hover:text-primary-800 underline">
                 политикой конфиденциальности
               </a>
               .

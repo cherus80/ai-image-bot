@@ -110,6 +110,7 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 60
 - Валидация форм
 - Обработка ошибок
 - Редирект на главную после успешного входа
+- UI (2025-12-05): карточный фон, единый стиль полей и CTA; кнопки Google/VK одинаковой высоты/ширины на десктопе и мобильных.
 
 **RegisterPage** (`frontend/src/pages/RegisterPage.tsx`):
 - Email/Password форма регистрации
