@@ -82,7 +82,7 @@ export function VKCallbackPage() {
           device_id: deviceId || cached.device_id,
         });
         clearPkceFromStorage(state);
-        navigate('/', { replace: true });
+        navigate('/app', { replace: true });
       } catch (err: any) {
         console.error('VK PKCE callback error', err);
         const errMsg = err?.response?.data?.detail || err?.message || 'Не удалось завершить вход';
