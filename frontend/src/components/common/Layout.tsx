@@ -75,7 +75,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
   const defaultIcon = (
     <img
-      src="/logo.jpg"
+      src="/logo.png"
       alt="AI Media Generator"
       className="w-10 h-10 rounded-lg object-contain bg-white shadow-lg border border-white"
     />

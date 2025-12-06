@@ -23,7 +23,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-3 group">
             <img
-              src="/logo.jpg"
+              src="/logo.png"
               alt="AI Media Generator"
               className="w-12 h-12 rounded-2xl shadow-lg border border-white object-contain bg-white"
             />
@@ -72,7 +72,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
         <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-dark-600">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <img src="/logo.jpg" alt="AI Media Generator" className="w-10 h-10 rounded-xl border border-white shadow-sm object-contain" />
+              <img src="/logo.png" alt="AI Media Generator" className="w-10 h-10 rounded-xl border border-white shadow-sm object-contain" />
               <p className="font-semibold text-dark-800">AI Media Generator</p>
             </div>
             <p>Виртуальная примерка и AI-редактирование изображений.</p>
