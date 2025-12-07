@@ -267,7 +267,7 @@ async def get_dashboard_stats(
     active_subscriptions_basic = await db.scalar(
         select(func.count(User.id)).where(
             and_(
-                User.subscription_type == SubscriptionType.BASIC,
+                User.subscription_type == SubscriptionType.BASIC.value,
                 User.subscription_end > now
             )
         )
@@ -275,7 +275,7 @@ async def get_dashboard_stats(
     active_subscriptions_pro = await db.scalar(
         select(func.count(User.id)).where(
             and_(
-                User.subscription_type.in_([SubscriptionType.PRO, SubscriptionType.STANDARD]),
+                User.subscription_type.in_([SubscriptionType.PRO.value, SubscriptionType.STANDARD.value]),
                 User.subscription_end > now
             )
         )
@@ -283,7 +283,7 @@ async def get_dashboard_stats(
     active_subscriptions_premium = await db.scalar(
         select(func.count(User.id)).where(
             and_(
-                User.subscription_type == SubscriptionType.PREMIUM,
+                User.subscription_type == SubscriptionType.PREMIUM.value,
                 User.subscription_end > now
             )
         )

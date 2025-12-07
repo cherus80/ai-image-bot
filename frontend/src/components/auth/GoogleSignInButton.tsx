@@ -68,7 +68,9 @@ export function GoogleSignInButton({
             logo_alignment: 'left',
           };
 
-          config.width = width ?? 280;
+          if (width) {
+            config.width = width;
+          }
 
           window.google.accounts.id.renderButton(buttonRef.current, config);
 
@@ -76,7 +78,11 @@ export function GoogleSignInButton({
           const renderedButton = buttonRef.current.querySelector('div[role="button"]') as HTMLDivElement | null;
           if (renderedButton) {
             renderedButton.style.width = '100%';
-            renderedButton.style.height = '100%';
+            renderedButton.style.maxWidth = '320px';
+            renderedButton.style.height = '48px';
+            renderedButton.style.borderRadius = '12px';
+            renderedButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+            renderedButton.style.border = '1px solid rgb(226 232 240)';
           }
         }
         return true;
