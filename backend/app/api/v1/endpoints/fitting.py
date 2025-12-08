@@ -32,6 +32,7 @@ from app.services.billing_v5 import BillingV5Service
 from app.services.file_validator import validate_image_file
 from app.services.file_storage import save_upload_file, get_file_by_id
 from app.tasks.fitting import generate_fitting_task
+from app.utils.runtime_config import get_generation_providers_for_worker
 
 
 router = APIRouter()
@@ -180,13 +181,7 @@ async def generate_fitting(
     await db.commit()
     await db.refresh(generation)
 
-    primary_provider = (
-        settings.GENERATION_PRIMARY_PROVIDER
-        or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
-    )
-    fallback_provider = None if settings.KIE_AI_DISABLE_FALLBACK else settings.GENERATION_FALLBACK_PROVIDER
-    if fallback_provider == primary_provider:
-        fallback_provider = None
+    primary_provider, fallback_provider, disable_fallback = get_generation_providers_for_worker()
 
     # Запуск Celery задачи с передачей credits_cost
     task = generate_fitting_task.apply_async(
@@ -199,7 +194,7 @@ async def generate_fitting(
             "credits_cost": credits_cost,  # Передаём стоимость в задачу
             "primary_provider": primary_provider,
             "fallback_provider": fallback_provider,
-            "disable_fallback": settings.KIE_AI_DISABLE_FALLBACK,
+            "disable_fallback": disable_fallback,
         }
     )
 

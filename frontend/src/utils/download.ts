@@ -16,20 +16,6 @@ export const downloadImage = async (url: string, filename: string): Promise<void
     throw new Error('Пустой URL изображения');
   }
 
-  // Прямая попытка через <a download> (лучше для Safari/iOS)
-  try {
-    const link = document.createElement('a');
-    link.href = targetUrl;
-    link.download = filename;
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    return;
-  } catch {
-    // если не сработало — идём на fetch-блоб ниже
-  }
-
   // Быстрый путь для data URL
   if (targetUrl.startsWith('data:image')) {
     const link = document.createElement('a');
@@ -39,6 +25,25 @@ export const downloadImage = async (url: string, filename: string): Promise<void
     link.click();
     link.remove();
     return;
+  }
+
+  const isSameOrigin = targetUrl.startsWith(window.location.origin);
+
+  // Попытка прямого скачивания для своего домена
+  if (isSameOrigin) {
+    try {
+      const link = document.createElement('a');
+      link.href = targetUrl;
+      link.download = filename;
+      link.rel = 'noopener noreferrer';
+      link.target = '_self';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return;
+    } catch {
+      // попробуем fetch-блоб ниже
+    }
   }
 
   const response = await fetch(targetUrl, {
@@ -56,6 +61,8 @@ export const downloadImage = async (url: string, filename: string): Promise<void
   const link = document.createElement('a');
   link.href = blobUrl;
   link.download = filename;
+  link.rel = 'noopener noreferrer';
+  link.target = '_self';
   document.body.appendChild(link);
   link.click();
   link.remove();

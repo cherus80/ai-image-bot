@@ -86,7 +86,7 @@ export function LoginPage() {
 
         <div className="space-y-6">
           {/* OAuth Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 max-[420px]:grid-cols-1 gap-3">
             <GoogleSignInButton
               onSuccess={handleGoogleSuccess}
               onError={(err) => console.error(err)}

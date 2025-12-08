@@ -31,9 +31,33 @@ export function GoogleSignInButton({
 }: GoogleSignInButtonProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isReady, setIsReady] = useState<boolean>(Boolean(window.google?.accounts?.id));
   const { loginWithGoogle } = useAuth();
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  const ensureScriptLoaded = () => {
+    if (window.google?.accounts?.id) return Promise.resolve(true);
+    return new Promise<boolean>((resolve) => {
+      const existing = document.querySelector<HTMLScriptElement>('script[data-gis-sdk]');
+      if (existing && (existing as any)._gisReady) {
+        resolve(true);
+        return;
+      }
+      const script = existing || document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.dataset.gisSdk = '1';
+      (script as any)._gisReady = false;
+      script.onload = () => {
+        (script as any)._gisReady = true;
+        resolve(true);
+      };
+      script.onerror = () => resolve(false);
+      if (!existing) document.head.appendChild(script);
+    });
+  };
 
   useEffect(() => {
     // Проверка, настроен ли client ID
@@ -43,15 +67,17 @@ export function GoogleSignInButton({
       return;
     }
 
-    // Ожидание загрузки Google Identity Services
-    const initializeGoogle = () => {
-      if (!window.google?.accounts?.id) {
-        console.warn('Google Identity Services ещё не загружен, повторная попытка...');
-        return false;
+    let cancelled = false;
+
+    const init = async () => {
+      const loaded = await ensureScriptLoaded();
+      if (!loaded || cancelled || !window.google?.accounts?.id) {
+        console.error('Google Identity Services не удалось загрузить');
+        onError?.('Google вход недоступен');
+        return;
       }
 
       try {
-        // Инициализация Google входа
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: handleCredentialResponse,
@@ -59,9 +85,8 @@ export function GoogleSignInButton({
           cancel_on_tap_outside: true,
         });
 
-        // Отрисовка кнопки
         if (buttonRef.current) {
-          // Гарантируем одинаковую геометрию с VK кнопкой
+          buttonRef.current.innerHTML = '';
           buttonRef.current.style.height = '48px';
           buttonRef.current.style.minHeight = '48px';
           buttonRef.current.style.maxHeight = '48px';
@@ -74,15 +99,11 @@ export function GoogleSignInButton({
             text,
             shape,
             logo_alignment: 'left',
+            width,
           };
-
-          if (width) {
-            config.width = width;
-          }
 
           window.google.accounts.id.renderButton(buttonRef.current, config);
 
-          // Растянуть кнопку на всю ширину/высоту контейнера
           const renderedButton = buttonRef.current.querySelector('div[role="button"]') as HTMLDivElement | null;
           if (renderedButton) {
             renderedButton.style.width = '100%';
@@ -106,36 +127,18 @@ export function GoogleSignInButton({
             }
           }
         }
-        return true;
+        setIsReady(true);
       } catch (error) {
         console.error('Ошибка инициализации Google входа:', error);
-        return false;
+        onError?.('Google вход недоступен');
       }
     };
 
-    // Попытка инициализации сразу
-    if (initializeGoogle()) {
-      return;
-    }
+    init();
 
-    // Если не загружен, повторять с интервалом
-    let retryCount = 0;
-    const maxRetries = 10;
-    const retryInterval = 500; // 500ms
-
-    const intervalId = setInterval(() => {
-      retryCount++;
-
-      if (initializeGoogle()) {
-        clearInterval(intervalId);
-      } else if (retryCount >= maxRetries) {
-        clearInterval(intervalId);
-        console.error('Google Identity Services не удалось загрузить после нескольких попыток');
-        onError?.('Google вход недоступен');
-      }
-    }, retryInterval);
-
-    return () => clearInterval(intervalId);
+    return () => {
+      cancelled = true;
+    };
   }, [clientId, theme, size, text, width, shape]);
 
   const handleCredentialResponse = async (response: GoogleSignInResponse) => {
@@ -166,9 +169,9 @@ export function GoogleSignInButton({
     );
   }
 
-  if (!window.google?.accounts?.id) {
+  if (!isReady) {
     return (
-      <div className="flex items-center justify-center p-3 border border-gray-300 rounded-md bg-gray-50">
+      <div className="flex items-center justify-center p-3 h-12 min-h-[48px] max-h-[48px] border border-gray-200 rounded-lg bg-white shadow-sm">
         <span className="text-sm text-gray-500">Загрузка Google входа...</span>
       </div>
     );
