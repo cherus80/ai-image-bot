@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     # JWT настройки
     JWT_SECRET_KEY: str = Field(..., description="Secret key for JWT tokens")
     JWT_ALGORITHM: str = Field(default="HS256")
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60)
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60 * 24 * 30)
 
     # OpenRouter API (GPT-4.1 Mini для промптов, Nano Banana для генерации)
     OPENROUTER_API_KEY: Optional[str] = Field(default=None, description="API key for OpenRouter (optional)")

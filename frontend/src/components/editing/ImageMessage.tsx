@@ -6,6 +6,7 @@
 import React from 'react';
 import toast from 'react-hot-toast';
 import type { ChatMessage } from '../../types/editing';
+import { downloadImage, resolveAbsoluteUrl } from '../../utils/download';
 
 interface ImageMessageProps {
   message: ChatMessage;
@@ -18,49 +19,18 @@ export const ImageMessage: React.FC<ImageMessageProps> = ({ message }) => {
     return null;
   }
 
-  const getAbsoluteUrl = (url: string) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    const base = window.location.origin.replace(/\/$/, '');
-    const normalized = url.startsWith('/') ? url : `/${url}`;
-    return `${base}${normalized}`;
-  };
-
   const handleDownload = async () => {
-    const downloadUrl = getAbsoluteUrl(message.image_url!);
-
     try {
-      const response = await fetch(downloadUrl, { mode: 'cors' });
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `edited-image-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadImage(message.image_url!, `edited-image-${Date.now()}.png`);
       toast.success('Изображение скачивается');
     } catch (error) {
-      try {
-        const fallbackLink = document.createElement('a');
-        fallbackLink.href = downloadUrl;
-        fallbackLink.target = '_blank';
-        fallbackLink.rel = 'noopener noreferrer';
-        fallbackLink.download = `edited-image-${Date.now()}.png`;
-        document.body.appendChild(fallbackLink);
-        fallbackLink.click();
-        document.body.removeChild(fallbackLink);
-        toast.success('Скачивание открыто в новом окне');
-      } catch (fallbackError) {
-        console.error('Не удалось скачать изображение:', fallbackError);
-        toast.error('Не удалось скачать изображение');
-      }
+      console.error('Не удалось скачать изображение:', error);
+      toast.error('Не удалось скачать изображение');
     }
   };
 
   const handleShare = async () => {
-    const shareUrl = getAbsoluteUrl(message.image_url!);
+    const shareUrl = resolveAbsoluteUrl(message.image_url!);
 
     if (window.Telegram?.WebApp?.openTelegramLink) {
       const tgLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`;

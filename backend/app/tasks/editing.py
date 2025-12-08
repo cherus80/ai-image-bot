@@ -60,6 +60,9 @@ def generate_editing_task(
     session_id: str,
     base_image_url: str,
     prompt: str,
+    primary_provider: str | None = None,
+    fallback_provider: str | None = None,
+    disable_fallback: bool | None = None,
 ) -> dict:
     """
     Celery задача для генерации редактирования изображения.
@@ -142,14 +145,25 @@ def generate_editing_task(
                 generation_errors: list[str] = []
                 base_image_data = None
 
-                primary_provider = (
-                    settings.GENERATION_PRIMARY_PROVIDER
+                resolved_primary = (
+                    primary_provider
+                    or settings.GENERATION_PRIMARY_PROVIDER
                     or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
                 )
-                fallback_provider = None if settings.KIE_AI_DISABLE_FALLBACK else settings.GENERATION_FALLBACK_PROVIDER
+                resolved_primary = resolved_primary.lower()
+
+                resolved_fallback = (
+                    None
+                    if disable_fallback is True or settings.KIE_AI_DISABLE_FALLBACK
+                    else (fallback_provider or settings.GENERATION_FALLBACK_PROVIDER)
+                )
+                if resolved_fallback:
+                    resolved_fallback = resolved_fallback.lower()
+                if resolved_fallback == resolved_primary:
+                    resolved_fallback = None
 
                 providers_chain = []
-                for candidate in (primary_provider, fallback_provider):
+                for candidate in (resolved_primary, resolved_fallback):
                     if candidate and candidate not in providers_chain:
                         providers_chain.append(candidate)
 

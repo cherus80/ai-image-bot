@@ -61,7 +61,10 @@ def generate_fitting_task(
     user_photo_url: str,
     item_photo_url: str,
     accessory_zone: Optional[str] = None,
-    credits_cost: int = 2  # Стоимость в кредитах (передаётся из endpoint)
+    credits_cost: int = 2,  # Стоимость в кредитах (передаётся из endpoint)
+    primary_provider: str | None = None,
+    fallback_provider: str | None = None,
+    disable_fallback: bool | None = None,
 ) -> dict:
     """
     Celery задача для генерации примерки.
@@ -159,14 +162,25 @@ def generate_fitting_task(
                 user_photo_base64 = None
                 item_photo_base64 = None
 
-                primary_provider = (
-                    settings.GENERATION_PRIMARY_PROVIDER
+                resolved_primary = (
+                    primary_provider
+                    or settings.GENERATION_PRIMARY_PROVIDER
                     or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
                 )
-                fallback_provider = None if settings.KIE_AI_DISABLE_FALLBACK else settings.GENERATION_FALLBACK_PROVIDER
+                resolved_primary = resolved_primary.lower()
+
+                resolved_fallback = (
+                    None
+                    if disable_fallback is True or settings.KIE_AI_DISABLE_FALLBACK
+                    else (fallback_provider or settings.GENERATION_FALLBACK_PROVIDER)
+                )
+                if resolved_fallback:
+                    resolved_fallback = resolved_fallback.lower()
+                if resolved_fallback == resolved_primary:
+                    resolved_fallback = None
 
                 providers_chain = []
-                for candidate in (primary_provider, fallback_provider):
+                for candidate in (resolved_primary, resolved_fallback):
                     if candidate and candidate not in providers_chain:
                         providers_chain.append(candidate)
 

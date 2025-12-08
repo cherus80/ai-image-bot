@@ -99,11 +99,6 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       >
         {isSelected ? 'Выбрано' : 'Выбрать тариф'}
       </button>
-
-      {/* Информация о стоимости за действие */}
-      <div className="mt-3 text-center text-xs text-gray-500">
-        ~{(tariff.price / tariff.actions_count).toFixed(2)} {tariff.currency} за действие
-      </div>
     </div>
   );
 };

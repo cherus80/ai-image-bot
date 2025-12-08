@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useFittingStore } from '../../store/fittingStore';
 import toast from 'react-hot-toast';
+import { downloadImage, resolveAbsoluteUrl } from '../../utils/download';
 
 interface FittingResultProps {
   onNewFitting: () => void;
@@ -20,53 +21,22 @@ export const FittingResult: React.FC<FittingResultProps> = ({ onNewFitting }) =>
     return null;
   }
 
-  const getAbsoluteUrl = (url: string) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    const base = window.location.origin.replace(/\/$/, '');
-    const normalized = url.startsWith('/') ? url : `/${url}`;
-    return `${base}${normalized}`;
-  };
-
   const handleDownload = async () => {
     if (!result.image_url) return;
 
-    const downloadUrl = getAbsoluteUrl(result.image_url);
-
     try {
-      const response = await fetch(downloadUrl, { mode: 'cors' });
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `fitting-${result.task_id}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      await downloadImage(result.image_url, `fitting-${result.task_id}.png`);
       toast.success('Изображение скачано!');
     } catch (error) {
-      try {
-        const fallbackLink = document.createElement('a');
-        fallbackLink.href = downloadUrl;
-        fallbackLink.target = '_blank';
-        fallbackLink.rel = 'noopener noreferrer';
-        fallbackLink.download = `fitting-${result.task_id}.png`;
-        document.body.appendChild(fallbackLink);
-        fallbackLink.click();
-        document.body.removeChild(fallbackLink);
-        toast.success('Скачивание началось в новом окне');
-      } catch (fallbackError) {
-        console.error('Не удалось скачать изображение:', fallbackError);
-        toast.error('Ошибка при скачивании изображения');
-      }
+      console.error('Не удалось скачать изображение:', error);
+      toast.error('Ошибка при скачивании изображения');
     }
   };
 
   const handleShare = async () => {
     if (!result.image_url) return;
 
-    const shareUrl = getAbsoluteUrl(result.image_url);
+    const shareUrl = resolveAbsoluteUrl(result.image_url);
 
     // Telegram WebApp Share
     if (window.Telegram?.WebApp?.openTelegramLink) {

@@ -15,15 +15,17 @@ interface GoogleSignInButtonProps {
   theme?: 'outline' | 'filled_blue' | 'filled_black';
   size?: 'large' | 'medium' | 'small';
   width?: number;
+  shape?: GoogleSignInButtonConfig['shape'];
   className?: string;
 }
 
 export function GoogleSignInButton({
   onSuccess,
   onError,
-  text = 'signin_with',
-  theme = 'outline',
+  text = 'continue_with',
+  theme = 'filled_black',
   size = 'large',
+  shape = 'pill',
   width,
   className,
 }: GoogleSignInButtonProps) {
@@ -70,7 +72,7 @@ export function GoogleSignInButton({
             theme,
             size,
             text,
-            shape: 'rectangular',
+            shape,
             logo_alignment: 'left',
           };
 
@@ -88,10 +90,20 @@ export function GoogleSignInButton({
             renderedButton.style.minHeight = '48px';
             renderedButton.style.height = '48px';
             renderedButton.style.borderRadius = '12px';
-            renderedButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
-            renderedButton.style.border = '1px solid rgb(226 232 240)';
+            renderedButton.style.boxShadow = '0 10px 25px rgba(99,102,241,0.18)';
+            renderedButton.style.background = 'linear-gradient(135deg, #4338ca, #6366f1)';
+            renderedButton.style.color = '#fff';
+            renderedButton.style.border = '1px solid rgba(255, 255, 255, 0.16)';
+            renderedButton.style.fontWeight = '700';
+            renderedButton.style.letterSpacing = '0.01em';
             renderedButton.style.display = 'flex';
             renderedButton.style.alignItems = 'center';
+
+            const label = renderedButton.querySelector('span');
+            if (label) {
+              label.style.color = '#fff';
+              label.style.fontWeight = '700';
+            }
           }
         }
         return true;
@@ -124,7 +136,7 @@ export function GoogleSignInButton({
     }, retryInterval);
 
     return () => clearInterval(intervalId);
-  }, [clientId, theme, size, text, width]);
+  }, [clientId, theme, size, text, width, shape]);
 
   const handleCredentialResponse = async (response: GoogleSignInResponse) => {
     setIsLoading(true);

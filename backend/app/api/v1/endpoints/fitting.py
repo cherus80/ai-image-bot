@@ -180,14 +180,27 @@ async def generate_fitting(
     await db.commit()
     await db.refresh(generation)
 
+    primary_provider = (
+        settings.GENERATION_PRIMARY_PROVIDER
+        or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
+    )
+    fallback_provider = None if settings.KIE_AI_DISABLE_FALLBACK else settings.GENERATION_FALLBACK_PROVIDER
+    if fallback_provider == primary_provider:
+        fallback_provider = None
+
     # Запуск Celery задачи с передачей credits_cost
-    task = generate_fitting_task.delay(
-        generation_id=generation.id,
-        user_id=current_user.id,
-        user_photo_url=generation.user_photo_url,
-        item_photo_url=generation.item_photo_url,
-        accessory_zone=request.accessory_zone,
-        credits_cost=credits_cost,  # Передаём стоимость в задачу
+    task = generate_fitting_task.apply_async(
+        kwargs={
+            "generation_id": generation.id,
+            "user_id": current_user.id,
+            "user_photo_url": generation.user_photo_url,
+            "item_photo_url": generation.item_photo_url,
+            "accessory_zone": request.accessory_zone,
+            "credits_cost": credits_cost,  # Передаём стоимость в задачу
+            "primary_provider": primary_provider,
+            "fallback_provider": fallback_provider,
+            "disable_fallback": settings.KIE_AI_DISABLE_FALLBACK,
+        }
     )
 
     # Обновление task_id в БД

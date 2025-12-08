@@ -92,8 +92,11 @@ export const LandingPage: React.FC = () => {
               <a href="#faq" className="text-slate-600 hover:text-secondary-500 transition-colors">FAQ</a>
             </nav>
 
-            <div className="flex items-center gap-4 text-sm font-semibold">
-              <Link to="/login" className="hidden md:block text-slate-600 hover:text-secondary-500 transition-colors">
+            <div className="flex items-center gap-3 text-sm font-semibold">
+              <Link
+                to="/login"
+                className="text-slate-700 hover:text-secondary-500 transition-colors px-3 py-2 rounded-full bg-white/70 border border-slate-200 shadow-sm"
+              >
                 Войти
               </Link>
               <Link

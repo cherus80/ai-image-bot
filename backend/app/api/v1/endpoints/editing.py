@@ -378,6 +378,14 @@ async def generate_image(
             f"Created generation {generation.id} for user {current_user.id}"
         )
 
+        primary_provider = (
+            settings.GENERATION_PRIMARY_PROVIDER
+            or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
+        )
+        fallback_provider = None if settings.KIE_AI_DISABLE_FALLBACK else settings.GENERATION_FALLBACK_PROVIDER
+        if fallback_provider == primary_provider:
+            fallback_provider = None
+
         # Запуск Celery задачи
         task = generate_editing_task.apply_async(
             args=[
@@ -387,6 +395,11 @@ async def generate_image(
                 chat_session.base_image_url,
                 request.prompt,
             ],
+            kwargs={
+                "primary_provider": primary_provider,
+                "fallback_provider": fallback_provider,
+                "disable_fallback": settings.KIE_AI_DISABLE_FALLBACK,
+            },
             task_id=str(generation.id),
         )
 
