@@ -25,7 +25,12 @@ from app.tasks.utils import (
     update_generation_status,
     image_to_base64_data_url,
 )
-from app.utils.image_utils import determine_image_size_for_fitting, convert_iphone_format_to_png
+from app.utils.image_utils import (
+    determine_image_size_for_fitting,
+    convert_iphone_format_to_png,
+    ensure_upright_image,
+)
+from app.utils.runtime_config import get_generation_providers_for_worker
 from app.services.fitting_prompts import get_prompt_for_zone
 
 logger = logging.getLogger(__name__)
@@ -126,6 +131,8 @@ def generate_fitting_task(
                 logger.info("Checking if iPhone format conversion is needed...")
                 user_photo_path = convert_iphone_format_to_png(user_photo_path)
                 item_photo_path = convert_iphone_format_to_png(item_photo_path)
+                user_photo_path = ensure_upright_image(user_photo_path)
+                item_photo_path = ensure_upright_image(item_photo_path)
                 logger.info(f"Using photos: user={user_photo_path.name}, item={item_photo_path.name}")
 
                 # Обновление прогресса
@@ -162,21 +169,12 @@ def generate_fitting_task(
                 user_photo_base64 = None
                 item_photo_base64 = None
 
-                resolved_primary = (
-                    primary_provider
-                    or settings.GENERATION_PRIMARY_PROVIDER
-                    or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
-                )
-                resolved_primary = resolved_primary.lower()
-
-                resolved_fallback = (
-                    None
-                    if disable_fallback is True or settings.KIE_AI_DISABLE_FALLBACK
-                    else (fallback_provider or settings.GENERATION_FALLBACK_PROVIDER)
-                )
-                if resolved_fallback:
-                    resolved_fallback = resolved_fallback.lower()
-                if resolved_fallback == resolved_primary:
+                resolved_primary, resolved_fallback, disable_from_store = get_generation_providers_for_worker()
+                if primary_provider:
+                    resolved_primary = primary_provider.lower()
+                if fallback_provider:
+                    resolved_fallback = fallback_provider.lower()
+                if disable_fallback is True or disable_from_store:
                     resolved_fallback = None
 
                 providers_chain = []

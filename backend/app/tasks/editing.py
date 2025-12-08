@@ -25,7 +25,12 @@ from app.tasks.utils import (
     extract_file_id_from_url,
     image_to_base64_data_url,
 )
-from app.utils.image_utils import determine_image_size_for_editing, convert_iphone_format_to_png
+from app.utils.image_utils import (
+    determine_image_size_for_editing,
+    convert_iphone_format_to_png,
+    ensure_upright_image,
+)
+from app.utils.runtime_config import get_generation_providers_for_worker
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +121,7 @@ def generate_editing_task(
                 # Конвертация iPhone форматов (MPO/HEIC/HEIF) в PNG если необходимо
                 logger.info("Checking if iPhone format conversion is needed...")
                 base_image_path = convert_iphone_format_to_png(base_image_path)
+                base_image_path = ensure_upright_image(base_image_path)
                 logger.info(f"Using base image: {base_image_path.name}")
 
                 logger.info(
@@ -145,21 +151,14 @@ def generate_editing_task(
                 generation_errors: list[str] = []
                 base_image_data = None
 
-                resolved_primary = (
-                    primary_provider
-                    or settings.GENERATION_PRIMARY_PROVIDER
-                    or ("kie_ai" if settings.USE_KIE_AI else "openrouter")
-                )
-                resolved_primary = resolved_primary.lower()
-
-                resolved_fallback = (
-                    None
-                    if disable_fallback is True or settings.KIE_AI_DISABLE_FALLBACK
-                    else (fallback_provider or settings.GENERATION_FALLBACK_PROVIDER)
-                )
-                if resolved_fallback:
-                    resolved_fallback = resolved_fallback.lower()
-                if resolved_fallback == resolved_primary:
+                resolved_primary, resolved_fallback, disable_from_store = get_generation_providers_for_worker()
+                if primary_provider:
+                    resolved_primary = primary_provider.lower()
+                if fallback_provider:
+                    resolved_fallback = fallback_provider.lower()
+                if disable_fallback is True:
+                    resolved_fallback = None
+                elif disable_from_store:
                     resolved_fallback = None
 
                 providers_chain = []

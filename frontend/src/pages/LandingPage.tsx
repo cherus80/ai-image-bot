@@ -75,14 +75,16 @@ export const LandingPage: React.FC = () => {
     <div className="landing-page bg-slate-50 text-slate-900">
       <header className="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <Link to="/" className="flex items-center gap-3">
+          <div className="flex justify-between items-center h-20 gap-3">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
               <img
                 src="/logo.png"
                 alt="AI Media Generator"
-                className="w-16 h-16 rounded-2xl shadow-md object-contain bg-white/70 p-2 border border-white"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-md object-contain bg-white/70 p-2 border border-white flex-shrink-0"
               />
-              <span className="font-bold text-xl text-slate-800 tracking-tight">AI Media Generator</span>
+              <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight leading-tight truncate">
+                AI Media Generator
+              </span>
             </Link>
 
             <nav className="hidden md:flex space-x-8 text-sm font-medium">
@@ -92,16 +94,16 @@ export const LandingPage: React.FC = () => {
               <a href="#faq" className="text-slate-600 hover:text-secondary-500 transition-colors">FAQ</a>
             </nav>
 
-            <div className="flex items-center gap-3 text-sm font-semibold">
+            <div className="flex items-center gap-2 sm:gap-4 text-sm font-semibold flex-shrink-0">
               <Link
                 to="/login"
-                className="text-slate-700 hover:text-secondary-500 transition-colors px-3 py-2 rounded-full bg-white/70 border border-slate-200 shadow-sm"
+                className="text-slate-700 hover:text-secondary-500 transition-colors px-3 py-2 rounded-full bg-white/80 border border-slate-200 shadow-sm whitespace-nowrap"
               >
                 Войти
               </Link>
               <Link
                 to="/register"
-                className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-6 py-2.5 rounded-full transition-all transform hover:scale-[1.02] shadow-lg"
+                className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-5 sm:px-6 py-2.5 rounded-full transition-all transform hover:scale-[1.02] shadow-lg whitespace-nowrap"
               >
                 Регистрация
               </Link>

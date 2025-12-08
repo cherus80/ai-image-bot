@@ -69,6 +69,7 @@ from app.services.fitting_prompts import (
     reset_prompt as reset_fitting_prompt,
     PROMPT_ZONES,
 )
+from app.utils.runtime_config import set_generation_providers
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -156,6 +157,16 @@ async def update_fallback_settings(
         settings.KIE_AI_DISABLE_FALLBACK = True
     else:
         settings.KIE_AI_DISABLE_FALLBACK = False
+
+    # Сохраняем выбранные провайдеры для Celery воркеров (через Redis)
+    try:
+        await set_generation_providers(
+            primary=settings.GENERATION_PRIMARY_PROVIDER,
+            fallback=settings.GENERATION_FALLBACK_PROVIDER,
+            disable_fallback=settings.KIE_AI_DISABLE_FALLBACK,
+        )
+    except Exception as e:
+        logger.warning("Failed to persist generation providers to runtime store: %s", e)
 
     return FallbackSettingsResponse(
         primary_provider=settings.GENERATION_PRIMARY_PROVIDER,

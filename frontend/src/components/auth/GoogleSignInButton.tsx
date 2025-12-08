@@ -23,7 +23,7 @@ export function GoogleSignInButton({
   onSuccess,
   onError,
   text = 'continue_with',
-  theme = 'filled_black',
+  theme = 'outline',
   size = 'large',
   shape = 'pill',
   width,
@@ -90,10 +90,10 @@ export function GoogleSignInButton({
             renderedButton.style.minHeight = '48px';
             renderedButton.style.height = '48px';
             renderedButton.style.borderRadius = '12px';
-            renderedButton.style.boxShadow = '0 10px 25px rgba(99,102,241,0.18)';
-            renderedButton.style.background = 'linear-gradient(135deg, #4338ca, #6366f1)';
-            renderedButton.style.color = '#fff';
-            renderedButton.style.border = '1px solid rgba(255, 255, 255, 0.16)';
+            renderedButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+            renderedButton.style.background = '#ffffff';
+            renderedButton.style.color = '#0f172a';
+            renderedButton.style.border = '1px solid rgb(226 232 240)';
             renderedButton.style.fontWeight = '700';
             renderedButton.style.letterSpacing = '0.01em';
             renderedButton.style.display = 'flex';
@@ -101,7 +101,7 @@ export function GoogleSignInButton({
 
             const label = renderedButton.querySelector('span');
             if (label) {
-              label.style.color = '#fff';
+              label.style.color = '#0f172a';
               label.style.fontWeight = '700';
             }
           }

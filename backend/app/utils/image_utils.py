@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 from typing import Tuple
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,30 @@ def get_image_dimensions(file_path: str | Path) -> Tuple[int, int]:
     except Exception as e:
         logger.error(f"Failed to read image dimensions from {file_path}: {e}")
         raise ValueError(f"Cannot read image: {e}") from e
+
+
+def ensure_upright_image(file_path: str | Path) -> Path:
+    """
+    Auto-rotate image according to EXIF orientation so итоговое изображение не было перевёрнутым.
+
+    Сохраняет поверх исходного файла (формат сохраняем как исходный).
+    """
+    path = Path(file_path)
+    if not path.exists():
+        raise IOError(f"File not found: {file_path}")
+
+    try:
+        with Image.open(path) as img:
+            oriented = ImageOps.exif_transpose(img)
+            if oriented is img:
+                return path
+
+            oriented.save(path, format=img.format or "JPEG")
+            logger.info("Applied EXIF orientation to %s", path.name)
+            return path
+    except Exception as e:
+        logger.warning("Failed to auto-orient image %s: %s", path, e)
+        return path
 
 
 def calculate_aspect_ratio(width: int, height: int, tolerance: float = 0.05) -> str:
