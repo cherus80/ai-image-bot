@@ -110,7 +110,7 @@ export const ImageMessage: React.FC<ImageMessageProps> = ({ message }) => {
           </p>
 
           {/* Изображение */}
-          <div className="relative rounded-lg overflow-hidden bg-gray-200">
+          <div className="relative rounded-lg overflow-hidden bg-gray-200 max-w-[420px]">
             <img
               src={resolvedImageUrl}
               alt="Generated result"

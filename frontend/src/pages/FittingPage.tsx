@@ -22,7 +22,6 @@ export const FittingPage: React.FC = () => {
       <Layout
         title="Виртуальная примерка"
         subtitle="Примерьте одежду на своё фото"
-        backTo="/"
         gradient="from-purple-500 to-blue-500"
         icon={
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

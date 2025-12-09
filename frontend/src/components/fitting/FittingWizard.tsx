@@ -174,6 +174,10 @@ export const FittingWizard: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <p className="text-xs text-gray-500 mt-4">
+        Результат генерируется внешними AI-сервисами (kie.ai / OpenRouter) и может отличаться от ожиданий пользователя. Сервис не несёт ответственности за расхождения.
+      </p>
     </div>
   );
 };

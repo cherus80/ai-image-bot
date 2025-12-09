@@ -159,7 +159,6 @@ export const EditingPage: React.FC = () => {
       <Layout
         title="AI Редактор"
         subtitle="Умный ассистент для фото"
-        backTo="/"
         gradient="from-pink-500 to-orange-500"
         icon={
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
