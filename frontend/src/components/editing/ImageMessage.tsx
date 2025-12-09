@@ -114,7 +114,7 @@ export const ImageMessage: React.FC<ImageMessageProps> = ({ message }) => {
             <img
               src={resolvedImageUrl}
               alt="Generated result"
-              className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+              className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity object-contain max-h-80"
               onClick={handleZoom}
               loading="lazy"
               onError={() => toast.error('Не удалось загрузить изображение')}

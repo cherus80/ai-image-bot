@@ -90,19 +90,17 @@ export const EditingPage: React.FC = () => {
 
     setDecisionLoadingTarget('original');
     try {
+      // Сначала отправляем генерацию, только после успеха показываем статус
+      await generateImage(pendingPrompt);
+
       addMessage({
         role: 'user',
         content: pendingPrompt,
       });
       addMessage({
         role: 'assistant',
-        content:
-          'Отправляю запрос как есть. Списание: 2 кредита за генерацию.',
+        content: 'Отправляю запрос как есть. Списание: 2 кредита за генерацию.',
       });
-
-      console.log('[EditingPage] Calling generateImage...');
-      await generateImage(pendingPrompt);
-      console.log('[EditingPage] generateImage completed successfully');
 
       toast.success('Промпт отправлен без AI-ассистента');
       setShowPromptDecision(false);

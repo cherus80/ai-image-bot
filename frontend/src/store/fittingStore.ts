@@ -79,8 +79,8 @@ export const useFittingStore = create<FittingState>((set, get) => ({
 
     try {
       // Валидация на клиенте
-      if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
-        throw new Error('Поддерживаются только JPEG, PNG и WebP форматы');
+      if (!file.type.match(/^image\/(jpeg|png|webp|heic|heif|mpo)$/)) {
+        throw new Error('Поддерживаются JPEG, PNG, WebP, HEIC/HEIF, MPO');
       }
 
       if (file.size > 10 * 1024 * 1024) {
@@ -118,8 +118,8 @@ export const useFittingStore = create<FittingState>((set, get) => ({
 
     try {
       // Валидация на клиенте
-      if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
-        throw new Error('Поддерживаются только JPEG, PNG и WebP форматы');
+      if (!file.type.match(/^image\/(jpeg|png|webp|heic|heif|mpo)$/)) {
+        throw new Error('Поддерживаются JPEG, PNG, WebP, HEIC/HEIF, MPO');
       }
 
       if (file.size > 10 * 1024 * 1024) {
