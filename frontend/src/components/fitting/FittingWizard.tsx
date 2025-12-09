@@ -3,7 +3,7 @@
  * Управляет навигацией между шагами и процессом генерации
  */
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Step1UserPhoto } from './Step1UserPhoto';
 import { Step2ItemPhoto } from './Step2ItemPhoto';
@@ -23,9 +23,15 @@ export interface FittingWizardHandle {
 export const FittingWizard = forwardRef<FittingWizardHandle>((_, ref) => {
   const [currentStep, setCurrentStep] = useState<WizardStep>('user_photo');
   const { startGeneration, result, isGenerating } = useFittingStore();
+  const skipSyncRef = useRef(false);
 
   // Если есть результат или идёт генерация, синхронизируем шаг — защищает от случайного сброса на шаг 1
   useEffect(() => {
+    if (skipSyncRef.current) {
+      skipSyncRef.current = false;
+      return;
+    }
+
     if (isGenerating && currentStep !== 'generating') {
       setCurrentStep('generating');
       return;
@@ -56,14 +62,17 @@ export const FittingWizard = forwardRef<FittingWizardHandle>((_, ref) => {
   useImperativeHandle(ref, () => ({
     goBack: () => {
       if (currentStep === 'result') {
+        skipSyncRef.current = true;
         setCurrentStep('zone');
         return true;
       }
       if (currentStep === 'zone' || currentStep === 'generating') {
+        skipSyncRef.current = true;
         setCurrentStep('item_photo');
         return true;
       }
       if (currentStep === 'item_photo') {
+        skipSyncRef.current = true;
         setCurrentStep('user_photo');
         return true;
       }
@@ -199,7 +208,7 @@ export const FittingWizard = forwardRef<FittingWizardHandle>((_, ref) => {
       </div>
 
       <p className="text-xs text-dark-400 mt-4 text-center">
-        Результат создаётся внешним AI-сервисом и может отличаться от ваших ожиданий. Проверьте итог перед скачиванием или публикацией.
+        Сервис "AI Image Generator" не несёт ответственности за результаты сгенерированных изображений, так как генерация происходит на сторонних ресурсах с помощью ИИ.
       </p>
     </div>
   );
