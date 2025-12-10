@@ -118,6 +118,46 @@ def generate_editing_task(
                 base_image_id = extract_file_id_from_url(base_image_url)
                 base_image_path = get_file_by_id(base_image_id)
                 if not base_image_path:
+                    logger.warning(
+                        "Base image %s not found locally for generation %s, trying to re-download",
+                        base_image_url,
+                        generation_id,
+                    )
+                    try:
+                        download_url = to_public_url(base_image_url)
+                        raw_bytes, ext, content_type = await download_image_bytes(download_url)
+                        normalized_bytes, normalized_ext = normalize_image_bytes(raw_bytes, ext)
+
+                        file_id, saved_url, _ = await save_upload_file_by_content(
+                            content=normalized_bytes,
+                            user_id=user_id,
+                            filename=f"editing_base_{generation_id}.{normalized_ext}",
+                            content_type=content_type or f"image/{normalized_ext}",
+                        )
+                        base_image_path = get_file_by_id(file_id)
+                        base_image_url = saved_url
+
+                        # Синхронизируем base_image_url в чат-сессии, чтобы следующие генерации использовали локальную копию
+                        chat_record = await session.execute(
+                            select(ChatHistory).where(
+                                ChatHistory.session_id == session_id,
+                                ChatHistory.user_id == user_id,
+                            )
+                        )
+                        chat = chat_record.scalar_one_or_none()
+                        if chat:
+                            chat.base_image_url = saved_url
+                            await session.commit()
+
+                        logger.info(
+                            "Re-saved base image for editing generation %s to %s",
+                            generation_id,
+                            base_image_url,
+                        )
+                    except Exception as fetch_err:
+                        raise ValueError("Base image not found for editing and re-download failed") from fetch_err
+
+                if not base_image_path:
                     raise ValueError("Base image not found for editing")
 
                 # Конвертация iPhone форматов (MPO/HEIC/HEIF) в PNG если необходимо

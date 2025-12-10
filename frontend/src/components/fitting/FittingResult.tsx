@@ -221,7 +221,7 @@ export const FittingResult: React.FC<FittingResultProps> = ({ onNewFitting }) =>
         </div>
 
         <p className="text-xs text-gray-500 mb-4">
-          Сервис "AI Image Generator" не несёт ответственности за результаты сгенерированных изображений, так как генерация происходит на сторонних ресурсах с помощью ИИ.
+          Результат генерируется внешним AI-сервисом и может отличаться от ваших ожиданий!
         </p>
 
         {/* New fitting button */}

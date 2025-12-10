@@ -303,7 +303,7 @@ async def get_fitting_result(
             status="failed",
             image_url=None,
             has_watermark=False,
-            error_message="Generation failed. Please try again.",
+            error_message=generation.error_message or "Generation failed. Please try again.",
             credits_spent=generation.credits_spent,
             created_at=generation.created_at.isoformat(),
         )
