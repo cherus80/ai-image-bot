@@ -88,6 +88,7 @@ def generate_editing_task(
 
     async def _run_generation():
         """Async функция для выполнения генерации"""
+        base_image_url_local = base_image_url  # избегаем UnboundLocal при переопределении в блоках ниже
         async with async_session() as session:
             try:
                 # Обновление статуса: processing
@@ -115,16 +116,16 @@ def generate_editing_task(
                 )
 
                 # Подготовка исходного изображения
-                base_image_id = extract_file_id_from_url(base_image_url)
+                base_image_id = extract_file_id_from_url(base_image_url_local)
                 base_image_path = get_file_by_id(base_image_id)
                 if not base_image_path:
                     logger.warning(
                         "Base image %s not found locally for generation %s, trying to re-download",
-                        base_image_url,
+                        base_image_url_local,
                         generation_id,
                     )
                     try:
-                        download_url = to_public_url(base_image_url)
+                        download_url = to_public_url(base_image_url_local)
                         raw_bytes, ext, content_type = await download_image_bytes(download_url)
                         normalized_bytes, normalized_ext = normalize_image_bytes(raw_bytes, ext)
 
@@ -135,7 +136,7 @@ def generate_editing_task(
                             content_type=content_type or f"image/{normalized_ext}",
                         )
                         base_image_path = get_file_by_id(file_id)
-                        base_image_url = saved_url
+                        base_image_url_local = saved_url
 
                         # Синхронизируем base_image_url в чат-сессии, чтобы следующие генерации использовали локальную копию
                         chat_record = await session.execute(
@@ -152,7 +153,7 @@ def generate_editing_task(
                         logger.info(
                             "Re-saved base image for editing generation %s to %s",
                             generation_id,
-                            base_image_url,
+                            base_image_url_local,
                         )
                     except Exception as fetch_err:
                         raise ValueError("Base image not found for editing and re-download failed") from fetch_err
@@ -176,7 +177,7 @@ def generate_editing_task(
                 logger.info(f"Determined aspect ratio for editing: {aspect_ratio}")
 
                 # Публичный URL для kie.ai (требуются HTTP ссылки, не base64)
-                public_base_image_url = to_public_url(base_image_url or str(base_image_path))
+                public_base_image_url = to_public_url(base_image_url_local or str(base_image_path))
 
                 # Обновление прогресса
                 await update_generation_status(
