@@ -73,6 +73,7 @@ class YuKassaClient:
         self.shop_id = shop_id
         self.secret_key = secret_key
         self.return_url = return_url or f"{settings.FRONTEND_URL}/payment/success"
+        self.idempotency_header = settings.YOOKASSA_IDEMPOTENCY_HEADER or "Idempotence-Key"
 
         # HTTP клиент с Basic Auth
         auth_string = f"{shop_id}:{secret_key}"
@@ -151,7 +152,7 @@ class YuKassaClient:
                 "/payments",
                 json=payload,
                 headers={
-                    "Idempotence-Key": idempotency_key,
+                    self.idempotency_header: idempotency_key,
                 },
             )
 
@@ -234,13 +235,18 @@ class YuKassaClient:
             Документация: https://yookassa.ru/developers/using-api/webhooks#verifying
         """
         try:
-            # Вычисляем HMAC SHA-256
-            secret_bytes = self.secret_key.encode("utf-8")
+            secret = settings.YUKASSA_WEBHOOK_SECRET or self.secret_key
+            if not secret:
+                logger.error("YuKassa webhook secret is not configured")
+                return False
+
+            # Документация: base64(HMAC_SHA256(payload, webhook_secret))
+            secret_bytes = secret.encode("utf-8")
             payload_bytes = payload.encode("utf-8")
 
-            expected_signature = hmac.new(
-                secret_bytes, payload_bytes, hashlib.sha256
-            ).hexdigest()
+            expected_signature = base64.b64encode(
+                hmac.new(secret_bytes, payload_bytes, hashlib.sha256).digest()
+            ).decode("utf-8")
 
             # Сравниваем подписи (constant-time comparison)
             return hmac.compare_digest(expected_signature, signature)

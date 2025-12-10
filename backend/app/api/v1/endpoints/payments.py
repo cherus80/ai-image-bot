@@ -12,6 +12,7 @@ Endpoints:
 import logging
 from uuid import uuid4
 from typing import Optional
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlalchemy import select, desc
@@ -20,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.api.dependencies import get_current_user, require_verified_email
 from app.models.user import User
-from app.models.payment import Payment
+from app.models.payment import Payment, PaymentStatus, PaymentType
 from app.models.referral import Referral
 from app.schemas.payment import (
     PaymentCreateRequest,
@@ -135,11 +136,10 @@ async def create_payment(
     - Кредиты: пакеты 20 / 50 / 100 / 250 кредитов
     """
     try:
-        # Определяем tariff_id
+        # Определяем tariff_id и параметры тарифа
         if request.payment_type == "subscription":
             tariff_id = request.subscription_type
         else:
-            # Находим пакет по количеству кредитов
             tariff_id = None
             for pkg_id, pkg in CREDITS_PACKAGES.items():
                 if pkg.get("credits_amount") == request.credits_amount:
@@ -167,26 +167,12 @@ async def create_payment(
         # Генерация idempotency_key
         idempotency_key = str(uuid4())
 
-        # Создание записи в БД
-        payment = Payment(
-            user_id=current_user.id,
-            payment_id="",  # Будет заполнен после ответа ЮKassa
-            amount=amount,
-            payment_type=request.payment_type,
-            subscription_type=request.subscription_type,
-            credits_amount=request.credits_amount if request.payment_type == "credits" else None,
-            status="pending",
-            idempotency_key=idempotency_key,
-        )
-        db.add(payment)
-        await db.flush()
-
         # Метаданные для ЮKassa (для webhook)
         metadata = {
             "user_id": str(current_user.id),
-            "payment_db_id": str(payment.id),
             "payment_type": request.payment_type,
             "tariff_id": tariff_id,
+            "credits_amount": request.credits_amount,
         }
 
         # Создание платежа в ЮKassa
@@ -198,8 +184,20 @@ async def create_payment(
             metadata=metadata,
         )
 
-        # Обновление payment_id
-        payment.payment_id = yukassa_payment["id"]
+        # Создание записи в БД после успешного ответа ЮKassa
+        payment = Payment(
+            user_id=current_user.id,
+            yookassa_id=yukassa_payment["id"],
+            amount=amount,
+            payment_type=PaymentType(request.payment_type),
+            status=PaymentStatus.PENDING,
+            idempotency_key=idempotency_key,
+            description=description,
+            extra_data=json.dumps(metadata),
+        )
+        payment.calculate_taxes_and_commissions()
+
+        db.add(payment)
         await db.commit()
         await db.refresh(payment)
 
@@ -299,6 +297,14 @@ async def yukassa_webhook(
             # Генерация idempotency_key из webhook
             idempotency_key = f"webhook_{payment_id}"
 
+            # Ставим статус платежа в succeeded (если найдём запись)
+            stmt = select(Payment).where(Payment.yookassa_id == payment_id)
+            result = await db.execute(stmt)
+            existing_payment = result.scalar_one_or_none()
+            if existing_payment:
+                existing_payment.status = PaymentStatus.SUCCEEDED
+                existing_payment.completed_at = existing_payment.completed_at or existing_payment.updated_at
+
             # Начисление кредитов или подписки
             if payment_type == "credits":
                 credits = calculate_credits_for_tariff(payment_type, tariff_id)
@@ -328,12 +334,12 @@ async def yukassa_webhook(
         # Обработка других событий (опционально)
         elif event == "payment.canceled":
             # Обновляем статус в БД
-            stmt = select(Payment).where(Payment.payment_id == payment_id)
+            stmt = select(Payment).where(Payment.yookassa_id == payment_id)
             result = await db.execute(stmt)
             payment = result.scalar_one_or_none()
 
             if payment:
-                payment.status = "canceled"
+                payment.status = PaymentStatus.CANCELLED
                 await db.commit()
                 logger.info(f"Payment canceled: {payment_id}")
 
@@ -462,7 +468,7 @@ async def get_payment_status(
     Возвращает статус платежа из БД.
     """
     stmt = select(Payment).where(
-        Payment.payment_id == payment_id,
+        Payment.yookassa_id == payment_id,
         Payment.user_id == current_user.id,
     )
     result = await db.execute(stmt)
@@ -472,12 +478,14 @@ async def get_payment_status(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Payment not found",
-        )
+    )
 
     return PaymentStatusResponse(
         payment_id=payment.payment_id,
         status=payment.status,
         amount=payment.amount,
         created_at=payment.created_at,
-        completed_at=payment.completed_at,
+        completed_at=getattr(payment, "completed_at", None) or (
+            payment.updated_at if payment.status == PaymentStatus.SUCCEEDED else None
+        ),
     )

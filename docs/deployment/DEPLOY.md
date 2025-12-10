@@ -162,7 +162,7 @@ OPENROUTER_MODEL=anthropic/claude-3-haiku-20240307
 # YooKassa
 YUKASSA_SHOP_ID=<ВАШ_SHOP_ID>
 YUKASSA_SECRET_KEY=<ВАШ_SECRET_KEY>
-YUKASSA_WEBHOOK_SECRET=<СЛУЧАЙНЫЙ_КЛЮЧ_ДЛЯ_WEBHOOK>
+YUKASSA_WEBHOOK_SECRET=<СЕКРЕТ_ДЛЯ_WEBHOOK_ИЛИ_API_SECRET_ЕСЛИ_ОТДЕЛЬНОГО_НЕТ>
 
 # JWT
 JWT_SECRET_KEY=<СГЕНЕРИРУЙТЕ_СЛУЧАЙНЫЙ_КЛЮЧ_64_СИМВОЛА>
@@ -205,7 +205,7 @@ openssl rand -hex 32
 # Для ADMIN_SECRET_KEY (32 символа)
 openssl rand -hex 16
 
-# Для YUKASSA_WEBHOOK_SECRET
+# Для YUKASSA_WEBHOOK_SECRET (если в кабинете есть отдельный webhook secret)
 openssl rand -hex 24
 ```
 
@@ -394,6 +394,8 @@ https://your-domain.com/api/v1/payments/webhook
 ### 5. Сохранить
 
 ЮKassa начнёт отправлять уведомления о платежах на ваш сервер.
+
+> Примечание: если в кабинете нет отдельного «секрета уведомлений», используйте `YUKASSA_SECRET_KEY` и проставьте его же в `YUKASSA_WEBHOOK_SECRET`.
 
 ### 6. Проверка webhook
 

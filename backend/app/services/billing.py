@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.user import User
-from app.models.payment import Payment
+from app.models.payment import Payment, PaymentStatus
 from app.services.billing_v5 import BillingV5Service
 
 
@@ -238,7 +238,7 @@ async def award_credits(
         IdempotencyViolationError: Если платёж уже обработан
     """
     # Проверка существования платежа
-    stmt = select(Payment).where(Payment.payment_id == payment_id)
+    stmt = select(Payment).where(Payment.yookassa_id == payment_id)
     result = await session.execute(stmt)
     payment = result.scalar_one_or_none()
 
@@ -246,7 +246,7 @@ async def award_credits(
         raise PaymentNotFoundError(f"Payment {payment_id} not found")
 
     # Проверка идемпотентности
-    if payment.status == "succeeded" and payment.idempotency_key == idempotency_key:
+    if payment.status == PaymentStatus.SUCCEEDED and payment.idempotency_key == idempotency_key:
         logger.warning(
             f"Payment {payment_id} already processed (idempotency key: {idempotency_key})"
         )
@@ -268,7 +268,7 @@ async def award_credits(
         raise ValueError(f"User {user_id} not found")
 
     # Обновление платежа заранее, commit произойдёт внутри биллинга
-    payment.status = "succeeded"
+    payment.status = PaymentStatus.SUCCEEDED
     payment.completed_at = datetime.utcnow()
     payment.idempotency_key = idempotency_key
     payment.credits_awarded = credits
@@ -317,7 +317,7 @@ async def award_subscription(
         IdempotencyViolationError: Если платёж уже обработан
     """
     # Проверка существования платежа
-    stmt = select(Payment).where(Payment.payment_id == payment_id)
+    stmt = select(Payment).where(Payment.yookassa_id == payment_id)
     result = await session.execute(stmt)
     payment = result.scalar_one_or_none()
 
@@ -325,7 +325,7 @@ async def award_subscription(
         raise PaymentNotFoundError(f"Payment {payment_id} not found")
 
     # Проверка идемпотентности
-    if payment.status == "succeeded" and payment.idempotency_key == idempotency_key:
+    if payment.status == PaymentStatus.SUCCEEDED and payment.idempotency_key == idempotency_key:
         logger.warning(
             f"Payment {payment_id} already processed (idempotency key: {idempotency_key})"
         )
@@ -346,7 +346,7 @@ async def award_subscription(
     if not user:
         raise ValueError(f"User {user_id} not found")
 
-    payment.status = "succeeded"
+    payment.status = PaymentStatus.SUCCEEDED
     payment.completed_at = datetime.utcnow()
     payment.idempotency_key = idempotency_key
     payment.subscription_type_awarded = subscription_type

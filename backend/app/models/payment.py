@@ -185,6 +185,44 @@ class Payment(Base, TimestampMixin):
             f"amount={self.amount}, status={self.status})>"
         )
 
+    # Совместимость с схемами/эндпоинтами, которые ожидают поле payment_id
+    @property
+    def payment_id(self) -> str:
+        return self.yookassa_id
+
+    @payment_id.setter
+    def payment_id(self, value: str) -> None:
+        self.yookassa_id = value
+
+    @property
+    def completed_at(self):
+        """
+        Псевдо-время завершения: используем updated_at, если платёж успешен.
+        (Поле не хранится в БД, но нужно для сериализации ответов.)
+        """
+        if hasattr(self, "_completed_at"):
+            return self._completed_at
+        try:
+            if self.status == PaymentStatus.SUCCEEDED:
+                return getattr(self, "updated_at", None)
+        except Exception:
+            return None
+        return None
+
+    @completed_at.setter
+    def completed_at(self, value):
+        # Храним только в объекте, без записи в БД
+        self._completed_at = value
+
+    # Алиасы для выдачи истории платежей
+    @property
+    def subscription_type(self) -> Optional[str]:
+        return self.subscription_type_awarded
+
+    @property
+    def credits_amount(self) -> Optional[int]:
+        return self.credits_awarded
+
     def calculate_taxes_and_commissions(self) -> None:
         """
         Расчёт налогов и комиссий.

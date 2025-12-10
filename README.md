@@ -62,7 +62,7 @@ cp .env.example .env
 **Обязательные переменные:**
 - `TELEGRAM_BOT_TOKEN` — токен бота от [@BotFather](https://t.me/BotFather)
 - `OPENROUTER_API_KEY` — API ключ [OpenRouter](https://openrouter.ai) (используется для примерки и AI ассистента)
-- `YUKASSA_SHOP_ID`, `YUKASSA_SECRET_KEY` — ЮKassa credentials
+- `YUKASSA_SHOP_ID`, `YUKASSA_SECRET_KEY` — ЮKassa credentials (если в кабинете нет отдельного webhook secret, используйте тот же ключ для `YUKASSA_WEBHOOK_SECRET`)
 - `JWT_SECRET_KEY`, `SECRET_KEY` — случайные секретные ключи
 
 ### 3. Запуск через Docker Compose
