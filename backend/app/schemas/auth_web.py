@@ -130,6 +130,13 @@ class RegisterRequest(BaseModel):
         example="Doe"
     )
 
+    consent_version: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        description="Версия формы согласия на обработку ПДн",
+        example="v1",
+    )
+
     @field_validator('password')
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
@@ -155,6 +162,13 @@ class LoginRequest(BaseModel):
         ...,
         description="Password",
         example="MySecurePass123!"
+    )
+
+    consent_version: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        description="Версия формы согласия на обработку ПДн",
+        example="v1",
     )
 
 

@@ -5,6 +5,7 @@ import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { VKSignInButton } from '../components/auth/VKSignInButton';
 import { validateRegisterForm, checkPasswordStrength, getPasswordStrengthLabel, getPasswordStrengthColor } from '../utils/passwordValidation';
 import { registerReferral } from '../api/referral';
+import { PD_CONSENT_VERSION } from '../constants/pdConsent';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ export function RegisterPage() {
         password: formData.password,
         first_name: formData.first_name || undefined,
         last_name: formData.last_name || undefined,
+        consent_version: PD_CONSENT_VERSION,
       });
 
       // Если есть реферальный код, зарегистрировать реферала

@@ -4,6 +4,7 @@ import { useAuth, useAuthStore } from '../store/authStore';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { VKSignInButton } from '../components/auth/VKSignInButton';
 import { validateLoginForm } from '../utils/passwordValidation';
+import { PD_CONSENT_VERSION } from '../constants/pdConsent';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export function LoginPage() {
     }
 
     try {
-      await loginWithEmail(formData);
+      await loginWithEmail({ ...formData, consent_version: PD_CONSENT_VERSION });
       const nextUser = useAuthStore.getState().user;
       if (
         nextUser?.email &&

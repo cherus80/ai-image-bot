@@ -12,6 +12,7 @@ from app.models.referral import Referral
 from app.models.email_verification import EmailVerificationToken
 from app.models.credits_ledger import CreditsLedger, LedgerEntryType, LedgerSource, LedgerUnit
 from app.models.fitting_prompt import FittingPrompt
+from app.models.user_consent import UserConsent
 
 __all__ = [
     "User",
@@ -29,4 +30,5 @@ __all__ = [
     "LedgerSource",
     "LedgerUnit",
     "FittingPrompt",
+    "UserConsent",
 ]

@@ -1,7 +1,7 @@
 # 🔐 Web Authentication Implementation Report
 
-**Дата**: 2025-11-18
-**Версия**: v0.12.0
+**Дата**: 2025-12-12
+**Версия**: v0.15.12
 **Статус**: ✅ Completed & Tested
 
 ---
@@ -19,6 +19,13 @@
 ---
 
 ## ✅ Реализованная функциональность
+
+### Обновление 2025-12-12 — аудит согласий на ПДн
+
+- Добавлена таблица `user_consents` с фиксацией: `user_id`, `consent_version`, `source` (register/login), IP, User-Agent, `created_at`.
+- Бэкенд принимает `consent_version` в `RegisterRequest`/`LoginRequest`, сохраняет согласие при регистрации и логине (см. `_save_pd_consent` в `backend/app/api/v1/endpoints/auth_web.py`).
+- Константа версии согласия `PD_CONSENT_VERSION` (config и фронт `frontend/src/constants/pdConsent.ts`), фронт отправляет её в запросах регистрации/логина.
+- Админ-выгрузка согласий: `GET /api/v1/admin/export/consents?format=csv|json&date_from&date_to&version` (см. `backend/app/api/v1/endpoints/admin.py`).
 
 ### 1. Backend (FastAPI)
 

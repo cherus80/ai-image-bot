@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.15.12] - 2025-12-12
+
+### Added - PD consents audit
+- Введена таблица `user_consents`: фиксируется версия формы, IP, User-Agent и источник (регистрация/логин) с таймштампом.
+- Логирование согласия при email-регистрации и логине, версия передаётся с фронта и имеет дефолт `PD_CONSENT_VERSION`.
+- Админ-выгрузка `/api/v1/admin/export/consents` (CSV/JSON) для аудита согласий.
+- Фронт отправляет `consent_version` в запросах регистрации/логина, добавлена константа версии.
+
 ## [0.15.10] - 2025-12-10
 
 ### Fixed - Editing resilience

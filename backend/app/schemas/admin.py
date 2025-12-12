@@ -186,6 +186,33 @@ class PaymentExportResponse(BaseModel):
 
 
 # ============================================================================
+# Экспорт согласий на ПДн
+# ============================================================================
+
+
+class ConsentExportItem(BaseModel):
+    """Запись о согласии на обработку ПДн."""
+
+    user_id: int
+    email: str | None = Field(None, description="Email пользователя")
+    consent_version: str = Field(..., description="Версия согласия")
+    source: str = Field(..., description="Источник (register/login)")
+    ip_address: str | None = Field(None, description="IP-адрес клиента")
+    user_agent: str | None = Field(None, description="User-Agent клиента")
+    granted_at: datetime = Field(..., description="Время фиксации согласия (UTC)")
+
+
+class ConsentExportResponse(BaseModel):
+    """Ответ для выгрузки согласий."""
+
+    consents: list[ConsentExportItem]
+    total_count: int
+    date_from: datetime | None
+    date_to: datetime | None
+    version: str | None
+
+
+# ============================================================================
 # Запросы
 # ============================================================================
 

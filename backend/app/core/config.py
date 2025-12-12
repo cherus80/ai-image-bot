@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., description="Secret key for JWT and other crypto operations")
     BACKEND_URL: str = Field(default="http://localhost:8000", description="Backend URL for file access")
     FRONTEND_URL: str = Field(default="http://localhost:5173", description="Frontend URL for redirects")
+    PD_CONSENT_VERSION: str = Field(
+        default="v1",
+        description="Текущая версия текста согласия на обработку ПДн",
+    )
 
     # База данных PostgreSQL
     POSTGRES_USER: str = Field(default="postgres")

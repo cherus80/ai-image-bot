@@ -29,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import AdminUser, SuperAdminUser, DBSession, get_current_admin
 from app.core.config import settings
 from app.db.session import get_db
-from app.models import ChatHistory, Generation, Payment, Referral, User, SubscriptionType
+from app.models import ChatHistory, Generation, Payment, Referral, User, SubscriptionType, UserConsent
 from app.schemas.admin import (
     AddCreditsRequest,
     AddCreditsResponse,
@@ -57,6 +57,8 @@ from app.schemas.admin import (
     FallbackSettingsResponse,
     GenerationProvider,
     UpdateFallbackSettingsRequest,
+    ConsentExportItem,
+    ConsentExportResponse,
 )
 from app.utils.tax import (
     calculate_npd_tax,
@@ -752,6 +754,99 @@ async def export_payments(
         media_type="text/csv",
         headers={
             "Content-Disposition": f"attachment; filename=payments_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+        }
+    )
+
+
+# ============================================================================
+# GET /api/v1/admin/export/consents — Экспорт согласий на ПДн
+# ============================================================================
+
+
+@router.get("/export/consents")
+async def export_consents(
+    admin: AdminUser,
+    db: DBSession,
+    date_from: datetime | None = Query(default=None, description="Начальная дата"),
+    date_to: datetime | None = Query(default=None, description="Конечная дата"),
+    version: str | None = Query(default=None, description="Фильтр по версии согласия"),
+    format: str = Query(default="csv", description="Формат экспорта (csv/json)"),
+):
+    """
+    Экспортировать согласия на обработку ПДн.
+
+    Требует роль: ADMIN
+    """
+    query = (
+        select(UserConsent, User)
+        .join(User, UserConsent.user_id == User.id)
+    )
+
+    if date_from:
+        query = query.where(UserConsent.created_at >= date_from)
+    if date_to:
+        query = query.where(UserConsent.created_at <= date_to)
+    if version:
+        query = query.where(UserConsent.consent_version == version)
+
+    query = query.order_by(UserConsent.created_at.desc())
+
+    result = await db.execute(query)
+    rows = result.all()
+
+    export_items = [
+        ConsentExportItem(
+            user_id=user.id,
+            email=user.email,
+            consent_version=consent.consent_version,
+            source=consent.source,
+            ip_address=consent.ip_address,
+            user_agent=consent.user_agent,
+            granted_at=consent.created_at,
+        )
+        for consent, user in rows
+    ]
+
+    if format == "json":
+        return ConsentExportResponse(
+            consents=export_items,
+            total_count=len(export_items),
+            date_from=date_from,
+            date_to=date_to,
+            version=version,
+        )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "User ID",
+        "Email",
+        "Consent Version",
+        "Source",
+        "IP Address",
+        "User-Agent",
+        "Granted At (UTC)",
+    ])
+
+    for item in export_items:
+        writer.writerow([
+            item.user_id,
+            item.email or "",
+            item.consent_version,
+            item.source,
+            item.ip_address or "",
+            item.user_agent or "",
+            item.granted_at.isoformat(),
+        ])
+
+    csv_content = output.getvalue()
+    output.close()
+
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=consents_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
         }
     )
 

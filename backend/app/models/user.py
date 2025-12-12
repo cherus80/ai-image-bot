@@ -272,6 +272,12 @@ class User(Base, TimestampMixin):
         cascade="all, delete-orphan",
     )
 
+    consents: Mapped[list["UserConsent"]] = relationship(
+        "UserConsent",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
     ledger_entries: Mapped[list["CreditsLedger"]] = relationship(
         "CreditsLedger",
         back_populates="user",

@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import CurrentUser, DBSession
 from app.core.config import settings
 from app.models.user import User, AuthProvider, UserRole
+from app.models.user_consent import UserConsent
 from app.services.billing_v5 import BillingV5Service
 from app.schemas.auth_web import (
     RegisterRequest,
@@ -65,6 +66,42 @@ _VK_PKCE_MAX_REQUESTS_PER_WINDOW = 30
 _verification_resend_hits_per_user: defaultdict[int, deque] = defaultdict(deque)
 _verification_resend_hits_per_ip: defaultdict[str, deque] = defaultdict(deque)
 _VERIFICATION_WINDOW_SEC = 3600  # 1 hour
+
+
+async def _save_pd_consent(
+    db: AsyncSession,
+    user: User,
+    consent_version: str | None,
+    source: str,
+    request: Request | None,
+) -> None:
+    """
+    Сохранить факт согласия на обработку ПДн.
+
+    Не блокирует основной поток: ошибки пишем в лог и продолжаем.
+    """
+    version = consent_version or settings.PD_CONSENT_VERSION
+    if not version:
+        return
+
+    ip = request.client.host if request and request.client else None
+    ua = request.headers.get("User-Agent") if request else None
+
+    consent = UserConsent(
+        user_id=user.id,
+        consent_version=version,
+        source=source,
+        ip_address=ip,
+        user_agent=ua,
+    )
+
+    db.add(consent)
+    try:
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        logger = logging.getLogger(__name__)
+        logger.warning("Failed to persist PD consent for user %s", user.id, exc_info=True)
 
 
 def generate_referral_code(user_id: int) -> str:
@@ -268,6 +305,14 @@ async def register_with_email(
             logger = logging.getLogger(__name__)
             logger.error(f"Failed to send verification email during registration: {e}")
 
+    await _save_pd_consent(
+        db=db,
+        user=user,
+        consent_version=request_body.consent_version,
+        source="register",
+        request=request,
+    )
+
     # Формируем ответ
     return LoginResponse(
         access_token=access_token,
@@ -278,7 +323,8 @@ async def register_with_email(
 
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
 async def login_with_email(
-    request: LoginRequest,
+    raw_request: Request,
+    payload: LoginRequest,
     db: DBSession,
 ) -> LoginResponse:
     """
@@ -297,7 +343,7 @@ async def login_with_email(
     """
     # Ищем пользователя по email
     result = await db.execute(
-        select(User).where(User.email == request.email)
+        select(User).where(User.email == payload.email)
     )
     user = result.scalar_one_or_none()
 
@@ -312,19 +358,19 @@ async def login_with_email(
     # 1) Если пароль отсутствует (старые записи) — принимаем введённый пароль и устанавливаем bcrypt.
     password_ok = False
     if not user.password_hash:
-        user.password_hash = hash_password(request.password)
+        user.password_hash = hash_password(payload.password)
         await db.commit()
         await db.refresh(user)
         password_ok = True
     else:
         # 2) Нормальная проверка bcrypt
-        password_ok = verify_password(request.password, user.password_hash)
+        password_ok = verify_password(payload.password, user.password_hash)
 
         # 3) Легаси-хэши без bcrypt-префикса: если хранимое значение не начинается с "$2"
         #    попробуем прямое сравнение и мигрируем на bcrypt.
         if not password_ok and not user.password_hash.startswith("$2"):
-            if request.password == user.password_hash:
-                user.password_hash = hash_password(request.password)
+            if payload.password == user.password_hash:
+                user.password_hash = hash_password(payload.password)
                 await db.commit()
                 await db.refresh(user)
                 password_ok = True
@@ -361,6 +407,14 @@ async def login_with_email(
     access_token = create_user_access_token(
         user_id=user.id,
         email=user.email,
+    )
+
+    await _save_pd_consent(
+        db=db,
+        user=user,
+        consent_version=payload.consent_version,
+        source="login",
+        request=raw_request,
     )
 
     # Формируем ответ
