@@ -21,6 +21,7 @@ export function RegisterPage() {
   const [formErrors, setFormErrors] = useState<any>({});
   const [showPassword, setShowPassword] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [pdConsent, setPdConsent] = useState(false);
   const oauthButtonClass =
     'rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-200';
 
@@ -42,6 +43,10 @@ export function RegisterPage() {
     const validation = validateRegisterForm(formData.email, formData.password, formData.confirmPassword);
     if (!validation.isValid) {
       setFormErrors(validation.errors);
+      return;
+    }
+    if (!pdConsent) {
+      setFormErrors({ ...validation.errors, pdConsent: 'Нужно согласиться на обработку ПДн' });
       return;
     }
 
@@ -287,6 +292,25 @@ export function RegisterPage() {
                 Показать пароли
               </label>
             </div>
+
+            <div className="flex items-start gap-2">
+              <input
+                id="pd-consent-register"
+                type="checkbox"
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                checked={pdConsent}
+                onChange={(e) => setPdConsent(e.target.checked)}
+                required
+              />
+              <label htmlFor="pd-consent-register" className="text-xs text-gray-600 leading-snug">
+                Я согласен на обработку персональных данных и принимаю{' '}
+                <a href="/oferta" className="text-blue-600 hover:text-blue-500 underline">оферту</a> и{' '}
+                <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">политику ПДн</a>.
+              </label>
+            </div>
+            {formErrors.pdConsent && (
+              <p className="text-sm text-red-600">{formErrors.pdConsent}</p>
+            )}
 
             <button
               type="submit"

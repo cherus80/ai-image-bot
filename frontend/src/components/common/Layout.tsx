@@ -173,6 +173,17 @@ export const Layout: React.FC<LayoutProps> = ({
         {children}
       </main>
 
+      <footer className="bg-white/80 border-t border-white/60">
+        <div className="max-w-6xl mx-auto px-4 py-4 text-xs text-dark-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <span>© AI Media Generator</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <a href="/oferta" className="hover:text-primary-700 underline-offset-2 hover:underline">Оферта</a>
+            <a href="/privacy" className="hover:text-primary-700 underline-offset-2 hover:underline">Политика ПДн</a>
+            <span className="text-dark-400">Cookie используются для авторизации и аналитики</span>
+          </div>
+        </div>
+      </footer>
+
       {/* Mobile Menu */}
       <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </div>

@@ -17,8 +17,11 @@ export const CreditsCard: React.FC<CreditsCardProps> = ({
   isSelected = false,
   onSelect,
 }) => {
-  const totalCredits = pkg.credits_amount + (pkg.bonus_credits || 0);
-  const hasBonus = pkg.bonus_credits && pkg.bonus_credits > 0;
+  const baseCredits = Number(pkg.credits_amount ?? 0);
+  const bonusCredits = Number(pkg.bonus_credits ?? 0);
+  const totalCredits = baseCredits + bonusCredits;
+  const hasBonus = bonusCredits > 0;
+  const creditsLabel = hasBonus ? `${totalCredits}` : `${baseCredits}`;
   const tryOnCount = Math.floor(totalCredits / 2);
   const editsWithoutAssistant = Math.floor(totalCredits / 2);
   const editsWithAssistant = Math.floor(totalCredits / 3);
@@ -49,11 +52,11 @@ export const CreditsCard: React.FC<CreditsCardProps> = ({
       <div className="text-center mb-4">
         <div className="flex items-baseline justify-center">
           <span className="text-4xl font-bold text-gray-900 max-[360px]:text-3xl">
-            {pkg.credits_amount}
+            {creditsLabel}
           </span>
           {hasBonus && (
-            <span className="ml-2 text-2xl font-semibold text-green-600 max-[360px]:text-xl">
-              +{pkg.bonus_credits}
+            <span className="ml-2 text-sm font-semibold text-green-600 max-[360px]:text-xs">
+              (+{bonusCredits} бонусных)
             </span>
           )}
         </div>

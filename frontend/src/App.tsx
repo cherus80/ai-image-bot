@@ -17,48 +17,54 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { LandingPage } from './pages/LandingPage';
 import { PricingPage } from './pages/PricingPage';
 import { ContactsPage } from './pages/ContactsPage';
+import { CookieBanner } from './components/common/CookieBanner';
+import { YandexMetrika } from './components/analytics/YandexMetrika';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Auth pages */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/verify" element={<EmailVerificationPage />} />
-        <Route path="/verify-required" element={<VerifyRequiredPage />} />
-        <Route path="/vk/callback" element={<VKCallbackPage />} />
+    <>
+      <Router>
+        <Routes>
+          {/* Auth pages */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify" element={<EmailVerificationPage />} />
+          <Route path="/verify-required" element={<VerifyRequiredPage />} />
+          <Route path="/vk/callback" element={<VKCallbackPage />} />
 
-        {/* Публичные страницы */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/contacts" element={<ContactsPage />} />
-        <Route path="/oferta" element={<OfertaPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
+          {/* Публичные страницы */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/contacts" element={<ContactsPage />} />
+          <Route path="/oferta" element={<OfertaPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
-        {/* Главная страница приложения (после входа) */}
-        <Route path="/app" element={<HomePage />} />
+          {/* Главная страница приложения (после входа) */}
+          <Route path="/app" element={<HomePage />} />
 
-        {/* Функция 1: Примерка одежды */}
-        <Route path="/fitting" element={<FittingPage />} />
+          {/* Функция 1: Примерка одежды */}
+          <Route path="/fitting" element={<FittingPage />} />
 
-        {/* Функция 2: Редактирование изображений */}
-        <Route path="/editing" element={<EditingPage />} />
+          {/* Функция 2: Редактирование изображений */}
+          <Route path="/editing" element={<EditingPage />} />
 
-        {/* Профиль пользователя */}
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/history" element={<HistoryPage />} />
+          {/* Профиль пользователя */}
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/history" element={<HistoryPage />} />
 
-        {/* Админ панель */}
-        <Route path="/admin" element={<AdminPage />} />
+          {/* Админ панель */}
+          <Route path="/admin" element={<AdminPage />} />
 
-        {/* Эмулятор платежей для тестирования */}
-        <Route path="/mock-payment-emulator" element={<MockPaymentEmulator />} />
+          {/* Эмулятор платежей для тестирования */}
+          <Route path="/mock-payment-emulator" element={<MockPaymentEmulator />} />
 
-        {/* 404 страница */}
-        <Route path="*" element={<ErrorPage />} />
-      </Routes>
-    </Router>
+          {/* 404 страница */}
+          <Route path="*" element={<ErrorPage />} />
+        </Routes>
+      </Router>
+      <CookieBanner />
+      <YandexMetrika />
+    </>
   );
 }
 

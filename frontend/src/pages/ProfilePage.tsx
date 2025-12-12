@@ -417,8 +417,8 @@ export const ProfilePage: React.FC = () => {
                     transition={{ delay: 0.1 * index }}
                   >
                     <Card variant="bordered" padding="md" hover className="bg-white/50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-start sm:items-center space-x-4 flex-1">
                           <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-xl flex items-center justify-center flex-shrink-0">
                             <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               {payment.payment_type === 'subscription' ? (
@@ -430,28 +430,28 @@ export const ProfilePage: React.FC = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-bold text-dark-900">
+                              <span className="font-bold text-dark-900 truncate">
                                 {payment.payment_type === 'subscription'
-                                  ? `Подписка ${payment.subscription_type}`
-                                  : `${payment.credits_amount} кредитов`}
+                                  ? `Подписка ${payment.subscription_type || ''}`.trim()
+                                  : payment.credits_amount
+                                    ? `${payment.credits_amount} кредитов`
+                                    : 'Покупка кредитов'}
                               </span>
                               {getPaymentStatusBadge(payment.status)}
                             </div>
                             <div className="text-xs text-dark-600 space-y-0.5">
-                              <div className="truncate">ID: {payment.payment_id}</div>
+                              <div className="break-all">ID: {payment.payment_id || '—'}</div>
                               <div>{formatDate(payment.created_at)}</div>
                             </div>
                           </div>
                         </div>
-                        <div className="text-right ml-4">
-                          <div className="font-bold text-xl text-dark-900">
+                        <div className="text-left sm:text-right sm:ml-4 flex-shrink-0">
+                          <div className="font-bold text-lg sm:text-xl text-dark-900">
                             {payment.amount} ₽
                           </div>
-                          {payment.paid_at && (
-                            <div className="text-xs text-dark-500 mt-1">
-                              Оплачено
-                            </div>
-                          )}
+                          <div className="text-xs text-dark-500 mt-1">
+                            {payment.paid_at ? 'Оплачено' : formatDate(payment.created_at)}
+                          </div>
                         </div>
                       </div>
                     </Card>

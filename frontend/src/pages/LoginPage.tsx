@@ -13,7 +13,8 @@ export function LoginPage() {
     email: '',
     password: '',
   });
-  const [formErrors, setFormErrors] = useState<{ email?: string; password?: string }>({});
+  const [pdConsent, setPdConsent] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ email?: string; password?: string; pdConsent?: string }>({});
   const oauthButtonClass =
     'rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-200';
 
@@ -25,6 +26,10 @@ export function LoginPage() {
     const validation = validateLoginForm(formData.email, formData.password);
     if (!validation.isValid) {
       setFormErrors(validation.errors);
+      return;
+    }
+    if (!pdConsent) {
+      setFormErrors({ ...validation.errors, pdConsent: 'Нужно согласиться на обработку ПДн' });
       return;
     }
 
@@ -151,14 +156,31 @@ export function LoginPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
-              {formErrors.password && (
-                <p className="text-sm text-red-600">{formErrors.password}</p>
-              )}
-            </div>
+            {formErrors.password && (
+              <p className="text-sm text-red-600">{formErrors.password}</p>
+            )}
+          </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
+          <div className="flex items-start gap-2">
+            <input
+              id="pd-consent-login"
+              type="checkbox"
+              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              checked={pdConsent}
+              onChange={(e) => setPdConsent(e.target.checked)}
+              required
+            />
+            <label htmlFor="pd-consent-login" className="text-xs text-slate-600 leading-snug">
+              Я согласен на обработку персональных данных и принимаю{' '}
+              <a href="/oferta" className="text-blue-600 hover:text-blue-500 underline">оферту</a> и{' '}
+              <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">политику ПДн</a>.
+            </label>
+          </div>
+          {formErrors.pdConsent && <p className="text-sm text-red-600">{formErrors.pdConsent}</p>}
+
+          <button
+            type="submit"
+            disabled={isLoading}
               className="w-full h-12 inline-flex items-center justify-center rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-400/30 hover:shadow-blue-400/50 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Вход...' : 'Войти'}
