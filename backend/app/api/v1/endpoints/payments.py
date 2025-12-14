@@ -365,9 +365,13 @@ async def yukassa_webhook(
 
         event = payload.get("event")
         payment_object = payload.get("object", {})
+        metadata = payment_object.get("metadata", {}) or {}
         payment_id = payment_object.get("id")
         payment_status = payment_object.get("status")
-        metadata = payment_object.get("metadata", {})
+
+        # Для refund событие несёт payment_id отдельно
+        if event == "refund.succeeded":
+            payment_id = payment_object.get("payment_id") or payment_id
 
         logger.info(f"YuKassa webhook: event={event}, payment_id={payment_id}, status={payment_status}")
 
@@ -421,22 +425,31 @@ async def yukassa_webhook(
             result = await db.execute(stmt)
             payment = result.scalar_one_or_none()
 
-            if payment:
-                # Если платёж уже был успешно завершён — отзываем начисления
-                if payment.status == PaymentStatus.SUCCEEDED:
-                    await _revoke_payment_awards(
-                        db,
-                        payment,
-                        metadata=metadata,
-                        idempotency_key=f"refund_{payment_id}",
-                    )
-                    payment.status = PaymentStatus.REFUNDED
-                else:
-                    payment.status = PaymentStatus.CANCELLED
+            if not payment:
+                logger.warning("Refund/cancel webhook: payment %s not found", payment_id)
+                return {"status": "ok"}
 
-                payment.completed_at = datetime.now(timezone.utc)
-                await db.commit()
-                logger.info(f"Payment {payment_id} marked as {payment.status}")
+            # Попытка подхватить metadata из БД, если ЮKassa не прислала
+            if not metadata and payment.extra_data:
+                try:
+                    metadata = json.loads(payment.extra_data)
+                except Exception:
+                    metadata = {}
+
+            if payment.status == PaymentStatus.SUCCEEDED:
+                await _revoke_payment_awards(
+                    db,
+                    payment,
+                    metadata=metadata,
+                    idempotency_key=f"refund_{payment_id}",
+                )
+                payment.status = PaymentStatus.REFUNDED
+            else:
+                payment.status = PaymentStatus.CANCELLED
+
+            payment.completed_at = datetime.now(timezone.utc)
+            await db.commit()
+            logger.info(f"Payment {payment_id} marked as {payment.status}")
 
         return {"status": "ok"}
 
