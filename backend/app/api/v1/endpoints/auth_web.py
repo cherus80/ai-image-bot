@@ -434,6 +434,7 @@ async def login_with_email(
 async def login_with_google(
     request: GoogleOAuthRequest,
     db: DBSession,
+    raw_request: Request,
 ) -> GoogleOAuthResponse:
     """
     Вход/Регистрация через Google OAuth.
@@ -560,6 +561,14 @@ async def login_with_google(
     access_token = create_user_access_token(
         user_id=user.id,
         email=user.email,
+    )
+
+    await _save_pd_consent(
+        db=db,
+        user=user,
+        consent_version=request.consent_version,
+        source="google",
+        request=raw_request,
     )
 
     # Формируем ответ
@@ -771,6 +780,14 @@ async def login_with_vk_pkce(
         email=user.email,
     )
 
+    await _save_pd_consent(
+        db=db,
+        user=user,
+        consent_version=request.consent_version,
+        source="vk_pkce",
+        request=raw_request,
+    )
+
     return VKOAuthResponse(
         access_token=access_token_jwt,
         token_type="bearer",
@@ -783,6 +800,7 @@ async def login_with_vk_pkce(
 async def login_with_vk(
     request: VKOAuthRequest,
     db: DBSession,
+    raw_request: Request,
 ) -> VKOAuthResponse:
     """
     Вход/Регистрация через VK ID OAuth.
@@ -933,6 +951,14 @@ async def login_with_vk(
     access_token = create_user_access_token(
         user_id=user.id,
         email=user.email,  # Может быть None, но это ок
+    )
+
+    await _save_pd_consent(
+        db=db,
+        user=user,
+        consent_version=request.consent_version,
+        source="vk",
+        request=raw_request,
     )
 
     # Формируем ответ

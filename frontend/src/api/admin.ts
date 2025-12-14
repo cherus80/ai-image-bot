@@ -23,6 +23,8 @@ import type {
   UpdateFittingPromptRequest,
   FallbackSettings,
   UpdateFallbackSettingsRequest,
+  ConsentExportResponse,
+  ConsentExportRequest,
 } from '../types/admin';
 
 // ============================================================================
@@ -251,6 +253,50 @@ export const exportGenerationsCSV = async (): Promise<void> => {
 export const getFittingPrompts = async (): Promise<FittingPromptListResponse> => {
   const response = await apiClient.get<FittingPromptListResponse>('/api/v1/admin/fitting/prompts');
   return response.data;
+};
+
+// ============================================================================
+// Согласия ПДн
+// ============================================================================
+
+export const getConsents = async (params?: ConsentExportRequest): Promise<ConsentExportResponse> => {
+  const response = await apiClient.get<ConsentExportResponse>('/api/v1/admin/export/consents', {
+    params: {
+      ...params,
+      format: 'json',
+    },
+  });
+  return response.data;
+};
+
+export const exportConsentsCSV = async (params?: ConsentExportRequest): Promise<void> => {
+  const response = await apiClient.get('/api/v1/admin/export/consents', {
+    params: {
+      ...params,
+      format: 'csv',
+    },
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = 'consents_export.csv';
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename=\"?(.+)\"?/);
+    if (filenameMatch) {
+      filename = filenameMatch[1];
+    }
+  }
+
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
 };
 
 export const updateFittingPrompt = async (

@@ -205,6 +205,13 @@ class GoogleOAuthRequest(BaseModel):
         example="eyJhbGciOiJSUzI1NiIsImtpZCI6..."
     )
 
+    consent_version: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        description="Версия формы согласия на обработку ПДн",
+        example="v1",
+    )
+
 
 class GoogleOAuthResponse(BaseModel):
     """Ответ при успешном OAuth входе"""
@@ -250,6 +257,13 @@ class VKOAuthRequest(BaseModel):
         example="550e8400-e29b-41d4-a716-446655440000"
     )
 
+    consent_version: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        description="Версия формы согласия на обработку ПДн",
+        example="v1",
+    )
+
 
 # VKOAuthResponse is identical to GoogleOAuthResponse, so we reuse it
 VKOAuthResponse = GoogleOAuthResponse
@@ -290,6 +304,13 @@ class VKOAuthPKCERequest(BaseModel):
         default=None,
         description="Device identifier from VK ID SDK",
         example="550e8400-e29b-41d4-a716-446655440000"
+    )
+
+    consent_version: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        description="Версия формы согласия на обработку ПДн",
+        example="v1",
     )
 
 

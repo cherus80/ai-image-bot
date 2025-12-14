@@ -11,14 +11,17 @@ interface VKSignInButtonProps {
   onSuccess?: () => void;
   onError?: (error: string) => void;
   className?: string;
+  disabled?: boolean;
+  consentVersion?: string;
 }
 
-export function VKSignInButton({ onSuccess, onError, className }: VKSignInButtonProps) {
+export function VKSignInButton({ onSuccess, onError, className, disabled = false }: VKSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const appId = import.meta.env.VITE_VK_APP_ID;
   const redirectUri = import.meta.env.VITE_VK_REDIRECT_URI || `${window.location.origin}/vk/callback`;
 
   const handleClick = async () => {
+    if (disabled) return;
     if (!appId) {
       onError?.('VK вход не настроен');
       return;
@@ -45,7 +48,7 @@ export function VKSignInButton({ onSuccess, onError, className }: VKSignInButton
     <button
       type="button"
       onClick={handleClick}
-      disabled={isLoading || !appId}
+      disabled={isLoading || !appId || disabled}
       className={`w-full h-12 min-h-[48px] max-h-[48px] inline-flex items-center justify-center gap-2 px-4 rounded-xl border border-slate-200 bg-white shadow-sm hover:bg-slate-50 text-sm font-semibold text-slate-900 leading-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-200 disabled:opacity-60 disabled:cursor-not-allowed transition ${className || ''}`}
     >
       <svg

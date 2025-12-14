@@ -165,11 +165,14 @@ export function RegisterPage() {
               text="signup_with"
               size="large"
               className={oauthButtonClass}
+              disabled={!pdConsent}
+              consentVersion={PD_CONSENT_VERSION}
             />
             <VKSignInButton
               onSuccess={handleVKSuccess}
               onError={(err) => console.error(err)}
               className={oauthButtonClass}
+              disabled={!pdConsent}
             />
           </div>
 

@@ -34,8 +34,8 @@ interface AuthState {
   // Actions
   registerWithEmail: (data: RegisterRequest) => Promise<void>;
   loginWithEmail: (data: LoginRequest) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<void>;
-  loginWithVK: (token: string, uuid: string) => Promise<void>;
+  loginWithGoogle: (idToken: string, consentVersion?: string) => Promise<void>;
+  loginWithVK: (token: string, uuid: string, consentVersion?: string) => Promise<void>;
   loginWithVKPKCE: (payload: VKOAuthPKCERequest) => Promise<void>;
   loginWithTelegram: () => Promise<void>; // Legacy
   logout: () => void;
@@ -154,11 +154,11 @@ export const useAuthStore = create<AuthState>()(
         },
 
         // Login with Google OAuth
-        loginWithGoogle: async (idToken: string) => {
+        loginWithGoogle: async (idToken: string, consentVersion?: string) => {
           set({ isLoading: true, error: null });
 
           try {
-            const response = await loginGoogleAPI(idToken);
+            const response = await loginGoogleAPI(idToken, consentVersion);
 
             set({
               token: response.access_token,
@@ -185,11 +185,11 @@ export const useAuthStore = create<AuthState>()(
         },
 
         // Login with VK OAuth
-        loginWithVK: async (token: string, uuid: string) => {
+        loginWithVK: async (token: string, uuid: string, consentVersion?: string) => {
           set({ isLoading: true, error: null });
 
           try {
-            const response = await loginVKAPI(token, uuid);
+            const response = await loginVKAPI(token, uuid, consentVersion);
 
             set({
               token: response.access_token,

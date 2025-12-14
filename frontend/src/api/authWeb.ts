@@ -38,8 +38,8 @@ export async function loginWithEmail(data: LoginRequest): Promise<LoginResponse>
 /**
  * Login or register with Google OAuth
  */
-export async function loginWithGoogle(idToken: string): Promise<GoogleOAuthResponse> {
-  const data: GoogleOAuthRequest = { id_token: idToken };
+export async function loginWithGoogle(idToken: string, consentVersion?: string): Promise<GoogleOAuthResponse> {
+  const data: GoogleOAuthRequest = { id_token: idToken, consent_version: consentVersion };
   const response = await client.post<GoogleOAuthResponse>('/api/v1/auth-web/google', data);
   return response.data;
 }
@@ -47,8 +47,8 @@ export async function loginWithGoogle(idToken: string): Promise<GoogleOAuthRespo
 /**
  * Login or register with VK OAuth
  */
-export async function loginWithVK(token: string, uuid: string): Promise<VKOAuthResponse> {
-  const data: VKOAuthRequest = { token, uuid };
+export async function loginWithVK(token: string, uuid: string, consentVersion?: string): Promise<VKOAuthResponse> {
+  const data: VKOAuthRequest = { token, uuid, consent_version: consentVersion };
   const response = await client.post<VKOAuthResponse>('/api/v1/auth-web/vk', data);
   return response.data;
 }

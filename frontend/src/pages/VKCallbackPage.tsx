@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { PD_CONSENT_VERSION } from '../constants/pdConsent';
 
 type PKCECache = {
   code_verifier: string;
@@ -80,6 +81,7 @@ export function VKCallbackPage() {
           state,
           nonce: cached.nonce,
           device_id: deviceId || cached.device_id,
+          consent_version: PD_CONSENT_VERSION,
         });
         clearPkceFromStorage(state);
         navigate('/app', { replace: true });

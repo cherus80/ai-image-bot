@@ -20,6 +20,12 @@
 
 ## ✅ Реализованная функциональность
 
+### Обновление 2025-12-13 — обязательное согласие при OAuth + UI выгрузка
+
+- Google/VK вход на фронте теперь требует отметку согласия на ПДн: кнопки OAuth неактивны без чекбокса, в запросы уходит `consent_version` (`PD_CONSENT_VERSION`).
+- Backend сохраняет согласие для Google/VK (включая PKCE) с фиксацией IP/User-Agent через `_save_pd_consent`.
+- В админ-панели добавлен таб «Согласия ПДн» с фильтрами по дате/версии и выгрузкой CSV/JSON через `/api/v1/admin/export/consents`.
+
 ### Обновление 2025-12-12 — аудит согласий на ПДн
 
 - Добавлена таблица `user_consents` с фиксацией: `user_id`, `consent_version`, `source` (register/login), IP, User-Agent, `created_at`.

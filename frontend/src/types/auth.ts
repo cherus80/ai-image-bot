@@ -39,6 +39,7 @@ export interface LoginRequest {
 
 export interface GoogleOAuthRequest {
   id_token: string; // Google ID token (JWT) from Google Sign-In
+  consent_version?: string;
 }
 
 export interface GoogleOAuthResponse {
@@ -55,6 +56,7 @@ export interface GoogleOAuthResponse {
 export interface VKOAuthRequest {
   token: string; // VK ID silent token
   uuid: string; // VK ID session UUID
+  consent_version?: string;
 }
 
 export interface VKOAuthPKCERequest {
@@ -64,6 +66,7 @@ export interface VKOAuthPKCERequest {
   state?: string;
   nonce?: string;
   device_id?: string;
+  consent_version?: string;
 }
 
 // VK OAuth response is identical to Google OAuth response

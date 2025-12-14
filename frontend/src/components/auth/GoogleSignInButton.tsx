@@ -17,6 +17,8 @@ interface GoogleSignInButtonProps {
   width?: number;
   shape?: GoogleSignInButtonConfig['shape'];
   className?: string;
+  disabled?: boolean;
+  consentVersion?: string;
 }
 
 export function GoogleSignInButton({
@@ -28,6 +30,8 @@ export function GoogleSignInButton({
   shape = 'rectangular',
   width,
   className,
+  disabled = false,
+  consentVersion,
 }: GoogleSignInButtonProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -219,7 +223,7 @@ export function GoogleSignInButton({
 
     try {
       // Отправка ID токена на backend
-      await loginWithGoogle(response.credential);
+      await loginWithGoogle(response.credential, consentVersion);
 
       // Успех
       onSuccess?.();
@@ -252,7 +256,10 @@ export function GoogleSignInButton({
 
   return (
     <div
-      className={`relative h-12 min-h-[48px] max-h-[48px] w-full ${className || ''}`}
+      className={`relative h-12 min-h-[48px] max-h-[48px] w-full ${className || ''} ${
+        disabled ? 'pointer-events-none opacity-60' : ''
+      }`}
+      aria-disabled={disabled}
     >
       {/* Здесь будет отрисована кнопка Google */}
       <div

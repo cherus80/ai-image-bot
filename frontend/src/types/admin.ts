@@ -148,6 +148,35 @@ export interface PaymentExportRequest {
 }
 
 // ============================================================================
+// Согласия на обработку ПДн
+// ============================================================================
+
+export interface ConsentExportItem {
+  user_id: number;
+  email: string | null;
+  consent_version: string;
+  source: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  granted_at: string;
+}
+
+export interface ConsentExportResponse {
+  consents: ConsentExportItem[];
+  total_count: number;
+  date_from: string | null;
+  date_to: string | null;
+  version: string | null;
+}
+
+export interface ConsentExportRequest {
+  date_from?: string;
+  date_to?: string;
+  version?: string;
+  format?: 'csv' | 'json';
+}
+
+// ============================================================================
 // Локальные типы для UI
 // ============================================================================
 

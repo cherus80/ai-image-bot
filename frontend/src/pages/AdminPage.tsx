@@ -17,6 +17,7 @@ import { DeleteUserModal } from '../components/admin/DeleteUserModal';
 import { MakeAdminModal } from '../components/admin/MakeAdminModal';
 import { FittingPrompts } from '../components/admin/FittingPrompts';
 import { FallbackSettings } from '../components/admin/FallbackSettings';
+import { Consents } from '../components/admin/Consents';
 import { Layout } from '../components/common/Layout';
 
 interface User {
@@ -32,7 +33,7 @@ interface User {
 }
 
 export const AdminPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'prompts' | 'fallback'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'prompts' | 'fallback' | 'consents'>('dashboard');
 
   // Модальные окна
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -125,6 +126,18 @@ export const AdminPage: React.FC = () => {
               >
                 🛡️ Fallback
               </button>
+              <button
+                onClick={() => setActiveTab('consents')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                  ${activeTab === 'consents'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                ✅ Согласия ПДн
+              </button>
             </nav>
           </div>
         </div>
@@ -142,6 +155,7 @@ export const AdminPage: React.FC = () => {
           )}
           {activeTab === 'prompts' && <FittingPrompts />}
           {activeTab === 'fallback' && <FallbackSettings />}
+          {activeTab === 'consents' && <Consents />}
         </div>
 
         {/* Модальные окна */}

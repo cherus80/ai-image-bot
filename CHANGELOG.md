@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.15.13] - 2025-12-13
+
+### Added - Обязательное согласие при OAuth и аудит в админке
+- Google/VK вход теперь требует отметку согласия на ПДн: кнопки блокируются без чекбокса, а версия согласия (`PD_CONSENT_VERSION`) уходит в OAuth запросы и фиксируется на backend с IP/User-Agent.
+- Добавлен фронтовый тип/клиент для `consent_version` в Google/VK запросах и сохранение в store для токенов OAuth.
+- В админ-панели появился таб «Согласия ПДн»: фильтр по датам/версии, просмотр данных и выгрузка CSV через `/api/v1/admin/export/consents`.
+
 ## [0.15.12] - 2025-12-12
 
 ### Added - PD consents audit
