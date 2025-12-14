@@ -30,9 +30,9 @@ export const Consents: React.FC = () => {
     setError(null);
     try {
       const response = await getConsents({
-        date_from: payload?.date_from ?? filters.date_from || undefined,
-        date_to: payload?.date_to ?? filters.date_to || undefined,
-        version: payload?.version ?? filters.version || undefined,
+        date_from: payload?.date_from ?? (filters.date_from ? filters.date_from : undefined),
+        date_to: payload?.date_to ?? (filters.date_to ? filters.date_to : undefined),
+        version: payload?.version ?? (filters.version ? filters.version : undefined),
       });
       setData(response);
     } catch (err: any) {
