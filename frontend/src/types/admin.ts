@@ -152,6 +152,7 @@ export interface PaymentExportRequest {
 // ============================================================================
 
 export interface ConsentExportItem {
+  id: number;
   user_id: number;
   email: string | null;
   consent_version: string;

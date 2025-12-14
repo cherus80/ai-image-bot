@@ -156,7 +156,6 @@ class Settings(BaseSettings):
             "medium": {"price": 230, "credits": 50},
             "large": {"price": 400, "credits": 100},
             "pro": {"price": 900, "credits": 250},
-            "test5": {"price": 10, "credits": 5, "description": "Тестовый пакет для проверки оплаты"},
         },
         description="Пакеты разовой покупки кредитов",
     )

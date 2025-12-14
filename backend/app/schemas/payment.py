@@ -32,7 +32,7 @@ class PaymentCreateRequest(BaseModel):
     credits_amount: Optional[int] = Field(
         None,
         description="Количество кредитов (только для payment_type=credits)",
-        ge=1,
+        ge=20,
         le=10000,
     )
 

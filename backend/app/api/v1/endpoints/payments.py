@@ -10,6 +10,7 @@ Endpoints:
 """
 
 import logging
+from datetime import datetime, timezone
 from uuid import uuid4
 from typing import Optional
 import json
@@ -112,6 +113,70 @@ async def _award_referral_bonus(db: AsyncSession, referred_user_id: int, payment
             referred_user_id,
             e,
             exc_info=True,
+        )
+
+
+async def _revoke_payment_awards(
+    db: AsyncSession,
+    payment: Payment,
+    metadata: dict,
+    idempotency_key: str,
+) -> None:
+    """Отменить начисления по платежу при возврате/отмене."""
+    user_stmt = (
+        select(User)
+        .where(User.id == payment.user_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    user = await db.scalar(user_stmt)
+    if not user:
+        logger.warning("User %s not found for refund %s", payment.user_id, payment.yookassa_id)
+        return
+
+    billing_v5 = BillingV5Service(db)
+
+    if payment.payment_type == PaymentType.CREDITS:
+        credits = (
+            payment.credits_awarded
+            or metadata.get("credits_amount")
+            or 0
+        )
+        tariff_id = metadata.get("tariff_id")
+        if credits == 0 and tariff_id:
+            try:
+                credits = calculate_credits_for_tariff("credits", tariff_id)
+            except Exception:
+                credits = 0
+
+        if credits and credits > 0:
+            await billing_v5.revoke_credits(
+                user,
+                credits,
+                idempotency_key=idempotency_key,
+                meta={
+                    "payment_id": payment.payment_id,
+                    "event": "refund",
+                },
+            )
+    elif payment.payment_type == PaymentType.SUBSCRIPTION:
+        plan_id = metadata.get("tariff_id") or payment.subscription_type_awarded
+        actions_limit = 0
+        if plan_id:
+            try:
+                actions_limit = calculate_credits_for_tariff("subscription", plan_id)
+            except Exception:
+                actions_limit = payment.subscription_duration_days or 0
+
+        await billing_v5.revoke_subscription(
+            user,
+            plan_id=plan_id or "unknown",
+            actions_awarded=actions_limit,
+            idempotency_key=idempotency_key,
+            meta={
+                "payment_id": payment.payment_id,
+                "event": "refund",
+            },
         )
 
 
@@ -350,17 +415,28 @@ async def yukassa_webhook(
 
             await _award_referral_bonus(db, user_id, payment_id)
 
-        # Обработка других событий (опционально)
-        elif event == "payment.canceled":
-            # Обновляем статус в БД
+        # Обработка возврата/отмены
+        elif event in {"payment.canceled", "refund.succeeded"}:
             stmt = select(Payment).where(Payment.yookassa_id == payment_id)
             result = await db.execute(stmt)
             payment = result.scalar_one_or_none()
 
             if payment:
-                payment.status = PaymentStatus.CANCELLED
+                # Если платёж уже был успешно завершён — отзываем начисления
+                if payment.status == PaymentStatus.SUCCEEDED:
+                    await _revoke_payment_awards(
+                        db,
+                        payment,
+                        metadata=metadata,
+                        idempotency_key=f"refund_{payment_id}",
+                    )
+                    payment.status = PaymentStatus.REFUNDED
+                else:
+                    payment.status = PaymentStatus.CANCELLED
+
+                payment.completed_at = datetime.now(timezone.utc)
                 await db.commit()
-                logger.info(f"Payment canceled: {payment_id}")
+                logger.info(f"Payment {payment_id} marked as {payment.status}")
 
         return {"status": "ok"}
 

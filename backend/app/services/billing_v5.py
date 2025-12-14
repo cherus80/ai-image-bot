@@ -257,6 +257,80 @@ class BillingV5Service:
         await self.session.commit()
         await self.session.refresh(user)
 
+    async def revoke_credits(
+        self,
+        user: User,
+        credits: int,
+        *,
+        idempotency_key: Optional[str] = None,
+        meta: Optional[dict] = None,
+    ) -> None:
+        """Отнять кредиты при возврате платежа."""
+
+        if credits <= 0:
+            return
+
+        if idempotency_key:
+            existing = await self._find_by_idempotency(idempotency_key)
+            if existing:
+                logger.info("Billing v5: skip revoke_credits, already processed (idempotency=%s)", idempotency_key)
+                return
+
+        user.balance_credits = max(0, user.balance_credits - credits)
+
+        await self._log_entry(
+            user_id=user.id,
+            entry_type=LedgerEntryType.CREDIT_PACK_REFUND.value,
+            amount=-credits,
+            unit=LedgerUnit.CREDITS.value,
+            source=LedgerSource.CREDITS.value,
+            meta=meta or {},
+            idempotency_key=idempotency_key,
+        )
+
+        await self.session.commit()
+        await self.session.refresh(user)
+
+    async def revoke_subscription(
+        self,
+        user: User,
+        *,
+        plan_id: str,
+        actions_awarded: int,
+        idempotency_key: Optional[str] = None,
+        meta: Optional[dict] = None,
+    ) -> None:
+        """Отменить подписку при возврате платежа."""
+
+        if idempotency_key:
+            existing = await self._find_by_idempotency(idempotency_key)
+            if existing:
+                logger.info("Billing v5: skip revoke_subscription, already processed (idempotency=%s)", idempotency_key)
+                return
+
+        actions_to_revert = actions_awarded if actions_awarded and actions_awarded > 0 else user.subscription_ops_limit
+
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_started_at = None
+        user.subscription_ops_limit = 0
+        user.subscription_ops_used = 0
+        user.subscription_ops_reset_at = None
+
+        if actions_to_revert:
+            await self._log_entry(
+                user_id=user.id,
+                entry_type=LedgerEntryType.SUBSCRIPTION_REFUND.value,
+                amount=-actions_to_revert,
+                unit=LedgerUnit.ACTIONS.value,
+                source=LedgerSource.SUBSCRIPTION.value,
+                meta={**(meta or {}), "plan_id": plan_id},
+                idempotency_key=idempotency_key,
+            )
+
+        await self.session.commit()
+        await self.session.refresh(user)
+
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------

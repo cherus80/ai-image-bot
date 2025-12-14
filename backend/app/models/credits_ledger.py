@@ -27,6 +27,8 @@ class LedgerEntryType(str, enum.Enum):
     SUBSCRIPTION_PURCHASE = "subscription_purchase"
     SUBSCRIPTION_RENEW = "subscription_renew"
     CREDIT_PACK_PURCHASE = "credit_pack_purchase"
+    CREDIT_PACK_REFUND = "credit_pack_refund"
+    SUBSCRIPTION_REFUND = "subscription_refund"
     FREE_TRIAL_GRANT = "free_trial_grant"
 
 

@@ -62,6 +62,20 @@ export const ProfilePage: React.FC = () => {
     );
   };
 
+  const handleDeleteSingle = async (paymentId: number) => {
+    setIsDeletingPayments(true);
+    try {
+      await hidePayments([paymentId]);
+      setSelectedPayments((prev) => prev.filter((id) => id !== paymentId));
+      toast.success('Запись скрыта из истории');
+    } catch (error) {
+      console.error('Failed to delete payment:', error);
+      toast.error('Не удалось удалить запись');
+    } finally {
+      setIsDeletingPayments(false);
+    }
+  };
+
   const clearMissingSelections = () => {
     setSelectedPayments((prev) =>
       prev.filter((id) => paymentHistory.some((payment) => payment.id === id))
@@ -426,6 +440,9 @@ export const ProfilePage: React.FC = () => {
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
               <h2 className="text-2xl font-bold gradient-text">История платежей</h2>
               <div className="flex items-center gap-3">
+                <span className="text-xs text-dark-500 hidden sm:inline">
+                  Отметьте платежи и нажмите «Удалить» или используйте корзину в карточке.
+                </span>
                 {selectedPayments.length > 0 && (
                   <span className="text-sm text-dark-600">
                     Выбрано: <span className="font-semibold">{selectedPayments.length}</span>
@@ -524,6 +541,16 @@ export const ProfilePage: React.FC = () => {
                             <div className="text-xs text-dark-500 mt-1">
                               {payment.paid_at ? 'Оплачено' : formatDate(payment.created_at)}
                             </div>
+                            <button
+                              className="mt-2 inline-flex items-center text-xs text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteSingle(payment.id)}
+                              disabled={isDeletingPayments || isLoading}
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8l-1-2h-6l-1 2z" />
+                              </svg>
+                              Удалить
+                            </button>
                           </div>
                         </div>
                       </div>

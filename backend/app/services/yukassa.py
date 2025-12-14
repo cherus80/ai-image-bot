@@ -72,7 +72,7 @@ class YuKassaClient:
         """
         self.shop_id = shop_id
         self.secret_key = secret_key
-        self.return_url = return_url or f"{settings.FRONTEND_URL}/payment/success"
+        self.return_url = return_url or f"{settings.FRONTEND_URL}/payment/return"
         self.idempotency_header = settings.YOOKASSA_IDEMPOTENCY_HEADER or "Idempotence-Key"
 
         # HTTP клиент с Basic Auth
