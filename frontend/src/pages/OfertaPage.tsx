@@ -26,7 +26,7 @@ export const OfertaPage: React.FC = () => {
         <Card variant="glass" padding="lg" className="border border-primary-200">
           <h2 className="text-2xl font-bold mb-3">1. Термины</h2>
           <ul className="space-y-2 text-dark-700 text-sm leading-relaxed">
-            <li><strong>Сервис</strong> — AI Media Generator (виртуальная примерка и AI-редактирование изображений), домен ai-generator.mix4.ru.</li>
+            <li><strong>Сервис</strong> — AI Generator (виртуальная примерка и AI-редактирование изображений), домен ai-generator.mix4.ru.</li>
             <li><strong>Пользователь</strong> — лицо, принявшее оферту.</li>
             <li><strong>Аккаунт</strong> — учётная запись Пользователя в Сервисе.</li>
             <li><strong>Кредиты</strong> — условные единицы для операций в Сервисе.</li>

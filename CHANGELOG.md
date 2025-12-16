@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.15.21] - 2025-12-16
+
+### Changed
+- Тарифная сетка подписок обновлена до 369₽/599₽/1099₽ с актуальными лимитами действий во всех биллинг-слоях и отображениях.
+- Бренд в интерфейсах, документации и сервисных скриптах приведён к новому названию «AI Generator».
+- Тексты про виртуальную примерку (лендинг, FAQ, онбординг) переписаны: подчёркнуто, что это ориентировочная AI-визуализация посадки без гарантии 100% совпадения с оригиналом.
+
 ## [0.15.20] - 2025-12-15
 
 ### Fixed
@@ -133,7 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Миграция `20251201_1500_billing_v5_actions_and_credits` (free_trial_granted, subscription_started_at, unit в ledger).
 
 ### Changed
-- Подписки: basic 299₽/80 действий, standard 499₽/130 действий (pro = legacy alias), premium 899₽/250 действий; покупка подписки больше не начисляет кредиты, а задаёт лимит действий.
+- Подписки: basic 369₽/80 действий, standard 599₽/130 действий (pro = legacy alias), premium 1099₽/250 действий; покупка подписки больше не начисляет кредиты, а задаёт лимит действий.
 - Пакеты кредитов: 20/50/100/250 кредитов; стоимость операций — генерация 1 действие или 2 кредита, ассистент 1 кредит.
 - API/схемы: обновлённые billing state, payment tariffs, user profile поля (actions_remaining, free_trial_granted), тексты ошибок NOT_ENOUGH_BALANCE.
 - Логика списаний/ledger: новые типы операций (generation/assistant/subscription_purchase/credit_pack_purchase/free_trial_grant) и unit (credits/actions).

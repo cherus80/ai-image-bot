@@ -1,4 +1,4 @@
-# Backend Dockerfile для AI Image Generator
+# Backend Dockerfile для AI Generator
 
 FROM python:3.11-slim
 

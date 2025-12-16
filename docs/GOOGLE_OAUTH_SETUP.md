@@ -1,6 +1,6 @@
 # Google OAuth 2.0 Setup Guide
 
-Это руководство поможет вам настроить Google OAuth 2.0 для веб-авторизации в AI Image Generator.
+Это руководство поможет вам настроить Google OAuth 2.0 для веб-авторизации в AI Generator.
 
 ---
 
@@ -10,7 +10,7 @@
 2. Создайте новый проект или выберите существующий
    - Нажмите на селектор проекта вверху страницы
    - Кликните "New Project"
-   - Введите название: `AI Image Generator`
+   - Введите название: `AI Generator`
    - Нажмите "Create"
 
 ---
@@ -33,7 +33,7 @@
    - Нажмите "Create"
 
 3. Заполните обязательные поля:
-   - **App name**: `AI Image Generator`
+   - **App name**: `AI Generator`
    - **User support email**: ваш email
    - **Developer contact email**: ваш email
    - Нажмите "Save and Continue"
@@ -58,7 +58,7 @@
 2. Нажмите **Create Credentials** → **OAuth client ID**
 3. Выберите **Application type**: **Web application**
 4. Настройте:
-   - **Name**: `AI Media Generator Web Client`
+   - **Name**: `AI Generator Web Client`
 
    - **Authorized JavaScript origins**:
      ```

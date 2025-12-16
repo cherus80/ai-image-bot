@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const featureCards = [
-  { title: 'Виртуальная примерка', desc: 'Примеряйте одежду и аксессуары прямо на своём фото перед покупкой.', icon: 'fa-solid fa-shirt', iconWrapperClass: 'bg-sky-500 text-white' },
+  { title: 'Виртуальная примерка', desc: 'AI показывает посадку и образ на вашем фото — цвет и фактура могут отличаться от оригинала, это ориентировочная визуализация.', icon: 'fa-solid fa-shirt', iconWrapperClass: 'bg-sky-500 text-white' },
   { title: 'AI-редактирование в чате', desc: 'Улучшайте фото через диалог с умным ассистентом.', icon: 'fa-solid fa-comments', iconWrapperClass: 'bg-purple-500 text-white' },
   { title: 'Мастер из 3 шагов', desc: 'Загрузка → выбор действия → результат за несколько секунд.', icon: 'fa-solid fa-shoe-prints', iconWrapperClass: 'bg-slate-800 text-white' },
   { title: 'Гибкая система оплаты', desc: 'Используйте действия по подписке или кредиты без ограничений.', icon: 'fa-solid fa-wallet', iconWrapperClass: 'bg-orange-100 text-orange-500' },
@@ -25,7 +25,7 @@ const stepHoverClasses: Record<string, string> = {
 const subscriptionPlans = [
   {
     name: 'Basic',
-    price: '299 ₽',
+    price: '369 ₽',
     per: '/ месяц',
     actions: '80',
     badge: { label: 'Basic', tone: 'bg-slate-100 text-slate-400' },
@@ -33,7 +33,7 @@ const subscriptionPlans = [
   },
   {
     name: 'Standard',
-    price: '499 ₽',
+    price: '599 ₽',
     per: '/ месяц',
     actions: '130',
     badge: { label: 'Standard', tone: 'bg-blue-50 text-primary-500' },
@@ -41,7 +41,7 @@ const subscriptionPlans = [
   },
   {
     name: 'Premium',
-    price: '899 ₽',
+    price: '1099 ₽',
     per: '/ месяц',
     actions: '250',
     badge: { label: 'Premium', tone: 'bg-slate-100 text-slate-400' },
@@ -57,6 +57,7 @@ const creditPackages = [
 ];
 
 const faqs = [
+  { question: 'Насколько точна виртуальная примерка?', answer: 'Это AI-визуализация посадки. Из-за специфики моделей оттенок, фактура и детали могут отличаться от реального товара, поэтому не ждите 100% совпадения — используйте как наглядный предварительный пример.' },
   { question: 'Что такое действия?', answer: 'Действия — это количество генераций по подписке.' },
   { question: 'Что такое кредиты?', answer: 'Кредиты — это внутренняя валюта для генераций и AI-ассистента.' },
   { question: 'Сколько стоит одна генерация?', answer: '1 действие по подписке или 2 кредита без подписки.' },
@@ -65,7 +66,7 @@ const faqs = [
 ];
 
 const testimonials = [
-  { text: 'Примерка помогла выбрать куртку перед покупкой — результат совпал почти идеально.', name: 'Анна', city: 'Москва', badge: 'А', tone: 'from-sky-400 to-sky-600' },
+  { text: 'Примерка помогла оценить посадку куртки перед покупкой — визуализация оказалась близка к реальности.', name: 'Анна', city: 'Москва', badge: 'А', tone: 'from-sky-400 to-sky-600' },
   { text: 'Очень удобно для карточек товаров на маркетплейсах.', name: 'Дмитрий', city: 'Санкт-Петербург', badge: 'Д', tone: 'from-purple-500 to-purple-700' },
   { text: 'Экономит часы работы на обработке фото.', name: 'Елена', city: 'Новосибирск', badge: 'Е', tone: 'from-rose-400 to-orange-400' },
 ];
@@ -79,11 +80,11 @@ export const LandingPage: React.FC = () => {
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
               <img
                 src="/logo.png"
-                alt="AI Media Generator"
+                alt="AI Generator"
                 className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-md object-contain bg-white/70 p-2 border border-white flex-shrink-0"
               />
               <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight leading-tight truncate">
-                AI Media Generator
+                AI Generator
               </span>
             </Link>
 
@@ -129,7 +130,7 @@ export const LandingPage: React.FC = () => {
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500">AI-редактирование</span>
                 </h1>
                 <p className="text-xl text-slate-500 mb-6 leading-relaxed">
-                  Загружайте фото, примеряйте одежду, улучшайте изображения и создавайте идеальный визуал с помощью искусственного интеллекта.
+                  Загружайте фото, визуализируйте одежду, улучшайте изображения — AI подбирает посадку и образ, но оттенки и детали могут отличаться от реального товара.
                 </p>
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-soft mb-8 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
@@ -176,7 +177,7 @@ export const LandingPage: React.FC = () => {
                         <p className="text-white/90 font-medium">Примерьте одежду и аксессуары на своё фото</p>
                       </div>
                       <div className="p-6 sm:p-8 flex flex-col gap-3">
-                        <p className="text-slate-600">Загрузите своё фото и фото одежды, и наш AI создаст реалистичную примерку</p>
+                        <p className="text-slate-600">Загрузите своё фото и фото одежды — AI подготовит визуализацию посадки без гарантии точного совпадения с оригиналом</p>
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold self-start">
                           <i className="fa-solid fa-coins text-purple-500" />
                           <span>2 кредита за примерку</span>
@@ -392,7 +393,7 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <h2 className="text-3xl md:text-5xl font-extrabold mb-8 text-slate-900 leading-tight">Умный AI-ассистент для идеальных результатов</h2>
                 <p className="text-slate-500 text-lg mb-8 leading-relaxed">
-                  Ассистент помогает формировать точные промпты, улучшать качество генераций и получать более реалистичные изображения.
+                  Ассистент помогает формировать точные промпты, улучшать качество генераций и получать более аккуратные визуализации.
                 </p>
                 <div className="bg-white shadow-soft rounded-xl p-6 inline-flex flex-col border border-slate-100">
                   <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Стоимость использования</span>
@@ -548,10 +549,10 @@ export const LandingPage: React.FC = () => {
               <Link to="/" className="flex items-center gap-3 mb-4">
                 <img
                   src="/logo.png"
-                  alt="AI Media Generator"
+                  alt="AI Generator"
                   className="w-16 h-16 rounded-2xl shadow-md object-contain bg-white/70 p-2 border border-white"
                 />
-                <span className="font-bold text-lg text-slate-800">AI Media Generator</span>
+                <span className="font-bold text-lg text-slate-800">AI Generator</span>
               </Link>
               <p className="text-slate-500 text-sm">Виртуальная примерка и AI-редактирование изображений.</p>
             </div>
@@ -578,7 +579,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="border-t border-slate-100 pt-8 text-center text-xs text-slate-400">
-            &copy; 2024 AI Media Generator. Все права защищены.
+            &copy; 2024 AI Generator. Все права защищены.
           </div>
         </div>
       </footer>

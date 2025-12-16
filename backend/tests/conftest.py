@@ -1,5 +1,5 @@
 """
-Pytest fixtures для тестов AI Image Generator.
+Pytest fixtures для тестов AI Generator.
 
 Содержит общие фикстуры для:
 - Mock объектов (DB, Redis, API clients)
@@ -212,7 +212,7 @@ def test_payment_data() -> Dict[str, Any]:
         "payment_type": "subscription",
         "subscription_type": "basic",
         "credits_amount": None,
-        "amount": 299.0,
+        "amount": 369.0,
         "currency": "RUB",
         "status": "succeeded",
         "idempotency_key": "test-idempotency-123",

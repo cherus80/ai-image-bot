@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # FastAPI
     API_V1_PREFIX: str = Field(default="/api/v1")
-    PROJECT_NAME: str = Field(default="AI Image Generator")
+    PROJECT_NAME: str = Field(default="AI Generator")
     SECRET_KEY: str = Field(..., description="Secret key for JWT and other crypto operations")
     BACKEND_URL: str = Field(default="http://localhost:8000", description="Backend URL for file access")
     FRONTEND_URL: str = Field(default="http://localhost:5173", description="Frontend URL for redirects")
@@ -142,11 +142,11 @@ class Settings(BaseSettings):
     )
     BILLING_SUBSCRIPTION_TIERS: dict = Field(
         default_factory=lambda: {
-            "basic": {"price": 299, "ops_limit": 80, "period_days": 30},
-            "standard": {"price": 499, "ops_limit": 130, "period_days": 30},
+            "basic": {"price": 369, "ops_limit": 80, "period_days": 30},
+            "standard": {"price": 599, "ops_limit": 130, "period_days": 30},
             # legacy alias для старого значения
-            "pro": {"price": 499, "ops_limit": 130, "period_days": 30},
-            "premium": {"price": 899, "ops_limit": 250, "period_days": 30},
+            "pro": {"price": 599, "ops_limit": 130, "period_days": 30},
+            "premium": {"price": 1099, "ops_limit": 250, "period_days": 30},
         },
         description="Тарифы подписок: цена в рублях и лимит операций",
     )
@@ -172,7 +172,7 @@ class Settings(BaseSettings):
         description="Заголовок для идемпотентности ЮKassa",
     )
     FREEMIUM_ACTIONS_PER_MONTH: int = Field(default=0)
-    FREEMIUM_WATERMARK_TEXT: str = Field(default="AI Image Generator")
+    FREEMIUM_WATERMARK_TEXT: str = Field(default="AI Generator")
 
     # Налоги и комиссии
     NPD_TAX_RATE: float = Field(default=0.04, description="НПД налог 4%")
@@ -246,7 +246,7 @@ class Settings(BaseSettings):
         description="Email address to send from (defaults to SMTP_USER)",
     )
     EMAIL_FROM_NAME: str = Field(
-        default="AI Image Generator",
+        default="AI Generator",
         description="Name to display in 'From' field",
     )
     EMAIL_VERIFICATION_TOKEN_TTL_MIN: int = Field(

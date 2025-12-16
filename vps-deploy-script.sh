@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# AI Media Generator - Скрипт автоматического развертывания на VPS
+# AI Generator - Скрипт автоматического развертывания на VPS
 # Для использования: скопируйте этот скрипт на VPS и запустите
 ###############################################################################
 
@@ -57,7 +57,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-info "Начинаем развертывание AI Media Generator на VPS..."
+info "Начинаем развертывание AI Generator на VPS..."
 
 ###############################################################################
 # ШАГ 1: ОБНОВЛЕНИЕ СИСТЕМЫ
@@ -151,7 +151,7 @@ info "Шаг 7/10: Создание .env файла..."
 
 cat > "$INSTALL_DIR/.env" << EOF
 # =============================================================================
-# AI Image Generator - Production Environment
+# AI Generator - Production Environment
 # Сгенерировано: $(date)
 # =============================================================================
 
@@ -166,7 +166,7 @@ DEBUG=False
 # -----------------------------------------------------------------------------
 SECRET_KEY=${SECRET_KEY}
 API_V1_PREFIX=/api/v1
-PROJECT_NAME=AI Image Generator
+PROJECT_NAME=AI Generator
 
 # -----------------------------------------------------------------------------
 # База данных PostgreSQL
@@ -229,7 +229,7 @@ CHAT_HISTORY_RETENTION_DAYS=30
 # Monetization
 # -----------------------------------------------------------------------------
 FREEMIUM_ACTIONS_PER_MONTH=10
-FREEMIUM_WATERMARK_TEXT=AI Image Generator
+FREEMIUM_WATERMARK_TEXT=AI Generator
 NPD_TAX_RATE=0.04
 YUKASSA_COMMISSION_RATE=0.028
 
@@ -247,7 +247,7 @@ SENTRY_DSN=
 # Vite Frontend
 # -----------------------------------------------------------------------------
 VITE_API_BASE_URL=https://${DOMAIN}
-VITE_APP_NAME=AI Image Generator
+VITE_APP_NAME=AI Generator
 VITE_ENV=production
 EOF
 
@@ -423,7 +423,7 @@ echo ""
 
 # Сохраняем информацию в файл
 cat > "$INSTALL_DIR/deployment-info.txt" << EOF
-AI Media Generator - Deployment Information
+AI Generator - Deployment Information
 ======================================
 Дата развертывания: $(date)
 Домен: https://${DOMAIN}

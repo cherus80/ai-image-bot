@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_SUBSCRIPTION_TARIFFS = {
     "basic": {
         "name": "Basic",
-        "price": Decimal("299.00"),
+        "price": Decimal("369.00"),
         "credits_amount": 80,
         "actions_limit": 80,
         "duration_days": 30,
@@ -32,7 +32,7 @@ DEFAULT_SUBSCRIPTION_TARIFFS = {
     },
     "standard": {
         "name": "Standard",
-        "price": Decimal("499.00"),
+        "price": Decimal("599.00"),
         "credits_amount": 130,
         "actions_limit": 130,
         "duration_days": 30,
@@ -41,7 +41,7 @@ DEFAULT_SUBSCRIPTION_TARIFFS = {
     },
     "premium": {
         "name": "Premium",
-        "price": Decimal("899.00"),
+        "price": Decimal("1099.00"),
         "credits_amount": 250,
         "actions_limit": 250,
         "duration_days": 30,

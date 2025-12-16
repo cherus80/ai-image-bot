@@ -220,7 +220,7 @@ PING ai-bot-media.mix4.ru (185.135.82.109): 56 data bytes
 Домен:           ai-bot-media.mix4.ru
 Тип записи:      A
 IP адрес:        185.135.82.109
-Назначение:      AI Image Generator
+Назначение:      AI Generator
 SSL:             Будет настроен через Let's Encrypt
 ```
 

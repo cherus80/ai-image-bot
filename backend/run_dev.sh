@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Development startup script for AI Image Generator backend
+# Development startup script for AI Generator backend
 # Usage: ./run_dev.sh
 
 set -e  # Exit on error
 
-echo "🚀 Starting AI Image Generator backend (development mode)..."
+echo "🚀 Starting AI Generator backend (development mode)..."
 echo ""
 
 # Change to backend directory

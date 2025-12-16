@@ -1,4 +1,4 @@
-# 📊 Project Status - AI Image Generator
+# 📊 Project Status - AI Generator
 
 **Последнее обновление**: 2025-12-15
 **Текущая версия**: v0.15.20

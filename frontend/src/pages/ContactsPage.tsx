@@ -10,10 +10,10 @@ export const ContactsPage: React.FC = () => {
             <Link to="/" className="flex items-center gap-3">
               <img
                 src="/logo.png"
-                alt="AI Media Generator"
+                alt="AI Generator"
                 className="w-16 h-16 rounded-2xl shadow-md object-contain bg-white/70 p-2 border border-white"
               />
-              <span className="font-bold text-xl text-slate-800 tracking-tight">AI Media Generator</span>
+              <span className="font-bold text-xl text-slate-800 tracking-tight">AI Generator</span>
             </Link>
 
             <nav className="hidden md:flex space-x-8 text-sm font-medium">
@@ -101,10 +101,10 @@ export const ContactsPage: React.FC = () => {
               <Link to="/" className="flex items-center gap-3 mb-4">
                 <img
                   src="/logo.png"
-                  alt="AI Media Generator"
+                  alt="AI Generator"
                   className="w-16 h-16 rounded-2xl shadow-md object-contain bg-white/70 p-2 border border-white"
                 />
-                <span className="font-bold text-lg text-slate-800">AI Media Generator</span>
+                <span className="font-bold text-lg text-slate-800">AI Generator</span>
               </Link>
               <p className="text-slate-500 text-sm">Виртуальная примерка и AI-редактирование изображений.</p>
             </div>
@@ -130,7 +130,7 @@ export const ContactsPage: React.FC = () => {
           </div>
 
           <div className="border-t border-slate-100 pt-8 text-center text-xs text-slate-400">
-            &copy; 2024 AI Media Generator. Все права защищены.
+            &copy; 2024 AI Generator. Все права защищены.
           </div>
         </div>
       </footer>

@@ -230,7 +230,7 @@ mkdir -p logs
 # Основная логика
 echo ""
 echo "======================================"
-echo "  AI Image Generator - Dev Start"
+echo "  AI Generator - Dev Start"
 echo "======================================"
 echo ""
 

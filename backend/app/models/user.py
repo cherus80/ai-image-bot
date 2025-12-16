@@ -25,10 +25,10 @@ from app.db.base import Base, TimestampMixin
 
 class SubscriptionType(str, enum.Enum):
     """Типы подписок"""
-    BASIC = "basic"      # 299₽/месяц — 80 действий
-    STANDARD = "standard"  # 499₽/месяц — 130 действий
+    BASIC = "basic"      # 369₽/месяц — 80 действий
+    STANDARD = "standard"  # 599₽/месяц — 130 действий
     PRO = "pro"          # legacy алиас для standard
-    PREMIUM = "premium"  # 899₽/месяц — 250 действий
+    PREMIUM = "premium"  # 1099₽/месяц — 250 действий
 
 
 class AuthProvider(str, enum.Enum):

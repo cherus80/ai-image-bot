@@ -1,6 +1,6 @@
-# Инструкция по деплою AI Image Generator на Beget VPS
+# Инструкция по деплою AI Generator на Beget VPS
 
-Полное руководство по развёртыванию веб-приложения AI Image Generator на VPS сервере Beget.
+Полное руководство по развёртыванию веб-приложения AI Generator на VPS сервере Beget.
 
 ---
 
@@ -181,7 +181,7 @@ CHAT_HISTORY_RETENTION_DAYS=30
 
 # Monetization
 FREEMIUM_ACTIONS_PER_MONTH=10
-FREEMIUM_WATERMARK_TEXT=AI Image Generator
+FREEMIUM_WATERMARK_TEXT=AI Generator
 NPD_TAX_RATE=0.04
 YUKASSA_COMMISSION_RATE=0.028
 
@@ -218,7 +218,7 @@ nano frontend/.env.production
 
 ```env
 VITE_API_BASE_URL=https://your-domain.com
-VITE_APP_NAME=AI Image Generator
+VITE_APP_NAME=AI Generator
 VITE_ENV=production
 ```
 
@@ -694,6 +694,6 @@ git pull
 
 ---
 
-**Поздравляем! Ваш AI Image Generator развёрнут на production! 🎉**
+**Поздравляем! Ваш AI Generator развёрнут на production! 🎉**
 
 По вопросам и проблемам создавайте issue в репозитории проекта.

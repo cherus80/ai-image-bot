@@ -1,7 +1,7 @@
 {
   "name": "ai-media-generator",
   "version": "0.14.0",
-  "description": "AI Media Generator - Telegram Web App for AI image generation (Root Package)",
+  "description": "AI Generator - Telegram Web App for AI image generation (Root Package)",
   "private": true,
   "scripts": {
     "mcp:playwright": "npx -y @playwright/mcp-server",

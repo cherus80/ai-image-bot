@@ -199,7 +199,7 @@ async def create_payment(
     5. Возврат confirmation_url для редиректа
 
     Стоимость:
-    - Подписки: от 299₽ (basic) до 899₽ (premium)
+    - Подписки: от 369₽ (basic) до 1099₽ (premium)
     - Кредиты: пакеты 20 / 50 / 100 / 250 кредитов
     """
     try:

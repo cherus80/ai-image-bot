@@ -1,7 +1,7 @@
 """
 FastAPI Main Application.
 
-Точка входа для AI Image Generator backend.
+Точка входа для AI Generator backend.
 """
 
 from contextlib import asynccontextmanager
@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     - Закрытие HTTP клиентов
     """
     # Startup
-    print("🚀 Starting AI Image Generator backend...")
+    print("🚀 Starting AI Generator backend...")
 
     # Регистрация HEIC/HEIF поддержки для iPhone фото
     try:
@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="0.12.2",
-    description="AI Image Generator — Web App с Email/Password, Google OAuth и виртуальной примеркой",
+    description="AI Generator — Web App с Email/Password, Google OAuth и виртуальной примеркой",
     docs_url="/docs" if settings.is_debug else None,
     redoc_url="/redoc" if settings.is_debug else None,
     openapi_url="/openapi.json" if settings.is_debug else None,
@@ -170,7 +170,7 @@ async def root():
     """Root endpoint — health check"""
     return {
         "status": "ok",
-        "service": "AI Image Generator API",
+        "service": "AI Generator API",
         "version": "0.12.0",
         "environment": settings.ENVIRONMENT,
         "auth_methods": ["email", "google", "telegram_legacy"],

@@ -290,10 +290,10 @@ def calculate_price_for_tariff(tariff: str) -> Decimal:
         Decimal: Цена в рублях
     """
     prices = {
-        "basic": Decimal("299.00"),
-        "standard": Decimal("499.00"),
-        "pro": Decimal("499.00"),
-        "premium": Decimal("899.00"),
+        "basic": Decimal("369.00"),
+        "standard": Decimal("599.00"),
+        "pro": Decimal("599.00"),
+        "premium": Decimal("1099.00"),
         "credits_20": Decimal("100.00"),
         "credits_50": Decimal("230.00"),
         "credits_100": Decimal("400.00"),
