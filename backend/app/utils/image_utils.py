@@ -120,7 +120,11 @@ def normalize_image_bytes(image_bytes: bytes, fallback_ext: Optional[str] = None
             oriented = ImageOps.exif_transpose(im)
             fmt = (im.format or fallback_ext or "PNG").upper()
             buf = BytesIO()
-            oriented.save(buf, format=fmt, exif=b"")
+            save_kwargs = {"format": fmt}
+            try:
+                oriented.save(buf, exif=b"", **save_kwargs)
+            except TypeError:
+                oriented.save(buf, **save_kwargs)
             return buf.getvalue(), fmt.lower()
     except Exception as err:
         logger.warning("Failed to normalize image bytes: %s", err)

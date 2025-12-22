@@ -423,6 +423,19 @@ async def generate_image(
         if request.attachments:
             attachments_payload = [att.model_dump() for att in request.attachments]
 
+        # Добавляем сообщение пользователя в историю (для сохранения истории генераций)
+        try:
+            await add_message(
+                db=db,
+                session_id=request.session_id,
+                user_id=current_user.id,
+                role="user",
+                content=request.prompt,
+                attachments=attachments_payload or None,
+            )
+        except Exception as e:
+            logger.warning("Failed to add user prompt to chat history: %s", e)
+
         # Создание записи Generation
         # credits_spent будет установлено в Celery task после успешной генерации
         generation = Generation(

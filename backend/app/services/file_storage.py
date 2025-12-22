@@ -16,6 +16,7 @@ from fastapi import UploadFile, HTTPException, status
 
 from app.core.config import settings
 from app.services.file_validator import get_file_extension
+from app.utils.image_utils import normalize_image_bytes
 
 
 class FileStorageError(Exception):
@@ -85,6 +86,13 @@ async def save_upload_file(
 
         # Чтение содержимого файла
         content = await file.read()
+
+        # Нормализация ориентации/EXIF для изображений
+        try:
+            content, extension = normalize_image_bytes(content, extension)
+        except Exception as norm_err:
+            # Не падаем, если нормализация не удалась
+            pass
 
         # Сохранение файла
         with open(file_path, "wb") as f:
