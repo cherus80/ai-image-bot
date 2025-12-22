@@ -22,6 +22,11 @@ class EmailService:
     """Сервис для отправки email через SMTP"""
 
     @staticmethod
+    def is_configured() -> bool:
+        """Проверить, настроен ли SMTP для отправки писем."""
+        return bool(settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD)
+
+    @staticmethod
     def _create_verification_email_html(
         user_name: str,
         verification_link: str,
@@ -144,7 +149,7 @@ AI Generator
             Exception: Если настройки SMTP не сконфигурированы
         """
         # Проверка настроек SMTP
-        if not settings.SMTP_HOST or not settings.SMTP_USER or not settings.SMTP_PASSWORD:
+        if not EmailService.is_configured():
             logger.warning("SMTP settings not configured. Email verification disabled.")
             return False
 

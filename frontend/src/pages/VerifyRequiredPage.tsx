@@ -89,9 +89,6 @@ export function VerifyRequiredPage() {
               >
                 {isSending ? 'Отправляем...' : cooldownSec > 0 ? `Повторно через ${cooldownSec} c` : 'Отправить письмо снова'}
               </Button>
-              <Button onClick={() => navigate('/profile')} variant="secondary">
-                Открыть профиль
-              </Button>
               <Button onClick={handleLogout} variant="ghost" className="text-red-600">
                 Выйти
               </Button>

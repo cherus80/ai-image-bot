@@ -1049,6 +1049,13 @@ async def send_verification_email(
             message="Email уже подтверждён"
         )
 
+    # Проверка конфигурации SMTP заранее, чтобы не падать 500
+    if not email_service.is_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Сервис отправки email не настроен. Попробуйте позже или свяжитесь с поддержкой.",
+        )
+
     # Rate limit по user_id
     now = time.time()
     user_hits = _verification_resend_hits_per_user[current_user.id]
@@ -1109,8 +1116,8 @@ async def send_verification_email(
 
     if not email_sent:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Не удалось отправить письмо. Попробуйте позже",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Не удалось отправить письмо. Попробуйте позже или обратитесь в поддержку.",
         )
 
     # Обновляем rate limits
