@@ -52,12 +52,6 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
     onGenerate();
   };
 
-  const handleSkipZone = () => {
-    // При пропуске зоны устанавливаем 'body' (всё тело) по умолчанию
-    setAccessoryZone('body');
-    handleGenerate();
-  };
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       {/* Header */}
@@ -142,12 +136,6 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
         </button>
         <div className="flex gap-3 max-[450px]:flex-col max-[450px]:w-full">
           <button
-            onClick={handleSkipZone}
-            className="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 border-2 border-gray-300 transition-colors max-[450px]:w-full"
-          >
-            Пропустить
-          </button>
-          <button
             onClick={handleGenerate}
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg max-[450px]:w-full"
           >
@@ -162,9 +150,9 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
           Когда указывать зону?
         </h3>
         <ul className="text-sm text-yellow-800 space-y-1">
-          <li>• Для одежды (футболки, рубашки, худи, джинсы, костюмы) — выберите "Всё тело" или нажмите "Пропустить"</li>
-          <li>• Для аксессуаров (очки, украшения) — укажите зону для точности</li>
-          <li>• При нажатии "Пропустить" примерка применится на всё тело</li>
+          <li>• Для одежды (футболки, рубашки, худи, джинсы, костюмы) — выберите "Всё тело".</li>
+          <li>• Для аксессуаров (очки, украшения) — укажите зону для точности.</li>
+          <li>• Если зону не выбрали, примерка применится на всё тело.</li>
         </ul>
       </div>
     </div>

@@ -183,7 +183,7 @@ export function RegisterPage() {
             />
           </div>
           {!pdConsent && (
-            <p className="text-xs text-gray-500">
+            <p className="text-sm font-semibold text-red-600">
               Отметьте согласие на обработку ПДн, чтобы активировать регистрацию через Google или VK.
             </p>
           )}

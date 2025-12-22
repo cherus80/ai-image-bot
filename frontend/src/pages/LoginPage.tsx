@@ -117,7 +117,7 @@ export function LoginPage() {
             />
           </div>
           {!pdConsent && (
-            <p className="text-xs text-slate-500">
+            <p className="text-sm font-semibold text-red-600">
               Отметьте согласие на обработку ПДн, чтобы активировать вход через Google или VK.
             </p>
           )}
