@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../ui/Button';
 import { uploadAttachment } from '../../api/editing';
+import { Badge } from '../ui/Badge';
 import type { ChatAttachment } from '../../types/editing';
 import toast from 'react-hot-toast';
 
