@@ -81,9 +81,6 @@ async def save_upload_file(
         if not extension:
             raise FileStorageError(f"Unknown content type: {file.content_type}")
 
-        # Получение пути для сохранения
-        file_path = _get_file_path(file_id, extension)
-
         # Чтение содержимого файла
         content = await file.read()
 
@@ -93,6 +90,9 @@ async def save_upload_file(
         except Exception as norm_err:
             # Не падаем, если нормализация не удалась
             pass
+
+        # Получение пути для сохранения (с учётом возможного обновления расширения)
+        file_path = _get_file_path(file_id, extension)
 
         # Сохранение файла
         with open(file_path, "wb") as f:

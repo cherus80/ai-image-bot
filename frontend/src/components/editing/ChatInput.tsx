@@ -7,7 +7,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
 import { uploadAttachment } from '../../api/editing';
 import type { ChatAttachment } from '../../types/editing';
 import toast from 'react-hot-toast';
@@ -132,9 +131,33 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="border border-primary-100 backdrop-blur-md bg-white/80 px-2 sm:px-4 py-3 sm:py-4 shadow-soft rounded-2xl mb-10">
+    <div className="border-2 border-primary-100 backdrop-blur-md bg-gradient-to-r from-white via-white to-primary-50/60 px-3 sm:px-5 py-4 sm:py-5 shadow-soft rounded-2xl mb-10 shadow-lg shadow-primary-100/60">
       <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-dark-700">
+            Поле ввода запроса
+          </span>
+          <span className="text-xs text-primary-600 font-medium">
+            Прикрепляйте референсы через скрепку слева
+          </span>
+        </div>
         <div className="flex items-end space-x-2 sm:space-x-3">
+          {/* Attach button слева */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              onClick={handleFileButtonClick}
+              disabled={disabled || isUploadingAttachment}
+              variant="ghost"
+              size="lg"
+              className="!rounded-full !p-4 bg-white/80 text-primary-700 shadow-sm hover:bg-primary-50 border border-transparent"
+              icon={
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.75v7.5a4.5 4.5 0 11-9 0v-9a3 3 0 116 0v8.25a1.5 1.5 0 11-3 0V7.5" />
+                </svg>
+              }
+            />
+          </motion.div>
+
           {/* Textarea */}
           <div className="flex-1 relative">
             <textarea
@@ -145,7 +168,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               placeholder={placeholder}
               disabled={disabled}
               rows={1}
-              className="w-full px-3 sm:px-5 py-3 sm:py-4 glass border-2 border-primary-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-dark-900 placeholder-dark-400 font-medium text-sm sm:text-base"
+              className="w-full px-3 sm:px-5 py-3 sm:py-4 glass border-2 border-primary-300 rounded-2xl resize-none focus:outline-none focus:ring-3 focus:ring-primary-400/80 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-dark-900 placeholder-dark-400 font-medium text-sm sm:text-base shadow-inner bg-white/90"
               style={{ maxHeight: '200px' }}
             />
             {/* Hint text */}
@@ -157,22 +180,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               Enter для отправки
             </motion.div>
           </div>
-
-          {/* Attach button */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              onClick={handleFileButtonClick}
-              disabled={disabled || isUploadingAttachment}
-              variant="outline"
-              size="lg"
-              className="!rounded-full !p-4"
-              icon={
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.75v7.5a4.5 4.5 0 11-9 0v-9a3 3 0 116 0v8.25a1.5 1.5 0 11-3 0V7.5" />
-                </svg>
-              }
-            />
-          </motion.div>
 
           {/* Send button */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
