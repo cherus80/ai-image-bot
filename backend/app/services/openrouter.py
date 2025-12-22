@@ -286,7 +286,7 @@ class OpenRouterClient:
             raise OpenRouterError(f"Unexpected error: {e}")
 
 
-async def generate_virtual_tryon(
+    async def generate_virtual_tryon(
         self,
         user_photo_data: str,
         item_photo_data: str,
