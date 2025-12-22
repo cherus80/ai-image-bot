@@ -62,35 +62,10 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Handle 401 Unauthorized - clear auth and redirect to login without reload loops
+    // Handle 401 Unauthorized — оставляем сессию, чтобы не выкидывать пользователя насильно
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      const authStorage = localStorage.getItem('auth-storage');
-      const hasToken = (() => {
-        if (!authStorage) return false;
-        try {
-          const parsed = JSON.parse(authStorage);
-          return Boolean(parsed?.state?.token);
-        } catch {
-          return false;
-        }
-      })();
-
-      if (hasToken) {
-        try {
-          const { useAuthStore } = await import('../store/authStore');
-          useAuthStore.getState().logout();
-        } catch {
-          localStorage.removeItem('auth-storage');
-          sessionStorage.removeItem('auth-storage');
-        }
-      }
-
-      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        window.location.replace('/login');
-      }
-
+      // Возвращаем ошибку вызвавшему коду; UI сам покажет форму логина при необходимости
       return Promise.reject(error);
     }
 

@@ -322,38 +322,44 @@ async def get_fitting_result(
 
 @router.get(
     "/history",
-    summary="История генераций примерки",
-    description="Получить историю всех генераций примерки текущего пользователя."
+    summary="История генераций",
+    description="Получить историю генераций текущего пользователя (примерка и редактирование)."
 )
 async def get_fitting_history(
     page: int = 1,
     page_size: int = 20,
+    generation_type: Optional[str] = None,
     current_user: User = Depends(require_verified_email),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Получить историю генераций примерки.
+    Получить историю генераций примерки/редактирования.
     """
     page = max(page, 1)
     page_size = max(1, min(page_size, 100))
     offset = (page - 1) * page_size
 
+    valid_types = {"fitting", "editing"}
+    generation_type = generation_type if generation_type in valid_types else None
+
+    filters = [
+        Generation.user_id == current_user.id,
+    ]
+    if generation_type:
+        filters.append(Generation.type == generation_type)
+    else:
+        filters.append(Generation.type.in_(["fitting", "editing"]))
+
     total_stmt = (
         select(func.count())
         .select_from(Generation)
-        .where(
-            Generation.user_id == current_user.id,
-            Generation.type == "fitting",
-        )
+        .where(*filters)
     )
     total = await db.scalar(total_stmt) or 0
 
     stmt = (
         select(Generation)
-        .where(
-            Generation.user_id == current_user.id,
-            Generation.type == "fitting"
-        )
+        .where(*filters)
         .order_by(Generation.created_at.desc())
         .limit(page_size)
         .offset(offset)
@@ -371,7 +377,7 @@ async def get_fitting_history(
                 "id": gen.id,
                 "task_id": gen.task_id,
                 "status": gen.status,
-                "generation_type": "fitting",
+                "generation_type": gen.type,
                 "image_url": gen.image_url,
                 "has_watermark": gen.has_watermark,
                 "credits_spent": gen.credits_spent,

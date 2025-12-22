@@ -82,7 +82,8 @@ export const getFittingResult = async (taskId: string): Promise<FittingResult> =
  */
 export const getFittingHistory = async (
   page: number = 1,
-  pageSize: number = 20
+  pageSize: number = 20,
+  generationType?: 'fitting' | 'editing'
 ): Promise<GenerationHistoryResponse> => {
   const response = await apiClient.get<GenerationHistoryResponse>(
     '/api/v1/fitting/history',
@@ -90,6 +91,7 @@ export const getFittingHistory = async (
       params: {
         page,
         page_size: pageSize,
+        generation_type: generationType,
       },
     }
   );

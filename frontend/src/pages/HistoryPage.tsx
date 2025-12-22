@@ -40,11 +40,18 @@ export function HistoryPage() {
     return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${data.color}`}>{data.text}</span>;
   };
 
+  const renderType = (type?: string) => {
+    if (type === 'editing') {
+      return <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded-full">Редактирование</span>;
+    }
+    return <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Примерка</span>;
+  };
+
   return (
     <AuthGuard>
       <Layout
         title="История генераций"
-        subtitle="Последние результаты примерки"
+        subtitle="Последние результаты примерки и редактирования"
         backTo="/"
         icon={
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,8 +100,9 @@ export function HistoryPage() {
                             {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: ru })}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-700">
-                          Кредиты: {item.credits_spent ?? 0}
+                        <div className="flex items-center space-x-3 text-sm text-gray-700">
+                          <span>Кредиты: {item.credits_spent ?? 0}</span>
+                          {renderType(item.generation_type)}
                         </div>
                       </div>
                     </div>
