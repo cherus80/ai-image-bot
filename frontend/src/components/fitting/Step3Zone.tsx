@@ -3,8 +3,10 @@
  */
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFittingStore } from '../../store/fittingStore';
 import { useAuthStore } from '../../store/authStore';
+import { InsufficientBalanceModal } from '../payment/InsufficientBalanceModal';
 import toast from 'react-hot-toast';
 import type { AccessoryZone } from '../../types/fitting';
 
@@ -23,8 +25,14 @@ const ZONES = [
 ];
 
 export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
+  const navigate = useNavigate();
   const { accessoryZone, setAccessoryZone } = useFittingStore();
   const { user } = useAuthStore();
+  const [balanceWarning, setBalanceWarning] = React.useState<{
+    description: string;
+    requiredCredits?: number;
+    requiredActions?: number;
+  } | null>(null);
 
   const hasActiveSubscription = !!(
     user?.subscription_type &&
@@ -34,6 +42,7 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
     (user.subscription_ops_remaining ?? 0) > 0
   );
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const creditsBalance = user?.balance_credits ?? 0;
 
   const handleGenerate = () => {
     // Проверка баланса
@@ -45,7 +54,11 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
     const hasCredits = user.balance_credits >= 2;
 
     if (!hasCredits && !hasActiveSubscription && !isAdmin) {
-      toast.error('Недостаточно баланса: купите подписку или кредиты');
+      setBalanceWarning({
+        description: 'Для примерки нужно 2 кредита или активная подписка с действиями.',
+        requiredCredits: 2,
+        requiredActions: 1,
+      });
       return;
     }
 
@@ -155,6 +168,23 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
           <li>• Если зону не выбрали, примерка применится на всё тело.</li>
         </ul>
       </div>
+
+      <InsufficientBalanceModal
+        isOpen={Boolean(balanceWarning)}
+        description={balanceWarning?.description || ''}
+        currentCredits={creditsBalance}
+        requiredCredits={balanceWarning?.requiredCredits}
+        requiredActions={balanceWarning?.requiredActions}
+        onClose={() => setBalanceWarning(null)}
+        onBuyCredits={() => {
+          setBalanceWarning(null);
+          navigate('/profile?buy=credits');
+        }}
+        onBuySubscription={() => {
+          setBalanceWarning(null);
+          navigate('/profile?buy=subscription');
+        }}
+      />
     </div>
   );
 };

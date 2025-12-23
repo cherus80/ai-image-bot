@@ -5,19 +5,23 @@
 
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ChatWindow } from '../components/editing/ChatWindow';
 import { ChatInput } from '../components/editing/ChatInput';
 import { PromptDecisionModal } from '../components/editing/PromptDecisionModal';
 import { FileUpload } from '../components/common/FileUpload';
 import { useChatStore } from '../store/chatStore';
+import { useAuthStore } from '../store/authStore';
 import { AuthGuard } from '../components/auth/AuthGuard';
 import { Layout } from '../components/common/Layout';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { InsufficientBalanceModal } from '../components/payment/InsufficientBalanceModal';
 import toast from 'react-hot-toast';
 import type { ChatAttachment } from '../types/editing';
 
 export const EditingPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     sessionId,
     baseImage,
@@ -34,6 +38,7 @@ export const EditingPage: React.FC = () => {
     error,
     clearError,
   } = useChatStore();
+  const { user } = useAuthStore();
 
   const promptAssistantModel =
     import.meta.env.VITE_PROMPT_ASSISTANT_MODEL || 'AI-ассистент';
@@ -43,6 +48,22 @@ export const EditingPage: React.FC = () => {
   const [pendingAttachments, setPendingAttachments] = React.useState<ChatAttachment[]>([]);
   const [showPromptDecision, setShowPromptDecision] = React.useState(false);
   const [decisionLoadingTarget, setDecisionLoadingTarget] = React.useState<'original' | 'ai' | null>(null);
+  const [balanceWarning, setBalanceWarning] = React.useState<{
+    title?: string;
+    description: string;
+    requiredCredits?: number;
+    requiredActions?: number;
+  } | null>(null);
+
+  const creditsBalance = user?.balance_credits ?? 0;
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const hasActiveSubscriptionActions = !!(
+    user?.subscription_type &&
+    user.subscription_type !== 'none' &&
+    user.subscription_expires_at &&
+    new Date(user.subscription_expires_at) > new Date() &&
+    (user.subscription_ops_remaining ?? 0) > 0
+  );
 
   // Сброс состояния при монтировании страницы
   useEffect(() => {
@@ -82,9 +103,70 @@ export const EditingPage: React.FC = () => {
     setShowPromptDecision(true);
   };
 
+  const openBalanceWarning = (payload: {
+    title?: string;
+    description: string;
+    requiredCredits?: number;
+    requiredActions?: number;
+  }) => {
+    setBalanceWarning(payload);
+  };
+
+  const handleBuyCredits = () => {
+    setBalanceWarning(null);
+    navigate('/profile?buy=credits');
+  };
+
+  const handleBuySubscription = () => {
+    setBalanceWarning(null);
+    navigate('/profile?buy=subscription');
+  };
+
+  const ensureCanGenerate = () => {
+    if (!user) {
+      toast.error('Необходима авторизация');
+      return false;
+    }
+    if (isAdmin || hasActiveSubscriptionActions || creditsBalance >= 2) {
+      return true;
+    }
+    openBalanceWarning({
+      description: 'Для генерации нужно 2 кредита или активная подписка с действиями.',
+      requiredCredits: 2,
+      requiredActions: 1,
+    });
+    return false;
+  };
+
+  const ensureCanUseAssistant = () => {
+    if (!user) {
+      toast.error('Необходима авторизация');
+      return false;
+    }
+    if (isAdmin) {
+      return true;
+    }
+    const requiredCredits = hasActiveSubscriptionActions ? 1 : 3;
+    if (creditsBalance >= requiredCredits) {
+      return true;
+    }
+    openBalanceWarning({
+      title: 'Недостаточно кредитов для ассистента',
+      description: hasActiveSubscriptionActions
+        ? 'Для улучшения через AI нужен 1 кредит. Генерация спишет действие по подписке.'
+        : 'Для улучшения через AI и последующей генерации нужно 3 кредита (1 за ассистента и 2 за генерацию).',
+      requiredCredits,
+      requiredActions: hasActiveSubscriptionActions ? 1 : undefined,
+    });
+    return false;
+  };
+
   const handleUseOriginalPrompt = async () => {
     if (!pendingPrompt) {
       console.warn('[EditingPage] No pending prompt');
+      return;
+    }
+    if (!ensureCanGenerate()) {
       return;
     }
 
@@ -122,6 +204,9 @@ export const EditingPage: React.FC = () => {
     if (!pendingPrompt) {
       return;
     }
+    if (!ensureCanUseAssistant()) {
+      return;
+    }
 
     setDecisionLoadingTarget('ai');
     try {
@@ -138,6 +223,9 @@ export const EditingPage: React.FC = () => {
   };
 
   const handleSelectPrompt = async (prompt: string, attachments?: ChatAttachment[]) => {
+    if (!ensureCanGenerate()) {
+      return;
+    }
     try {
       await generateImage(prompt, attachments);
       toast.success('Изображение сгенерировано!');
@@ -330,6 +418,18 @@ export const EditingPage: React.FC = () => {
           onUseAiHelper={handleUseAiHelper}
           modelName={promptAssistantModel}
           loadingTarget={decisionLoadingTarget}
+        />
+
+        <InsufficientBalanceModal
+          isOpen={Boolean(balanceWarning)}
+          title={balanceWarning?.title}
+          description={balanceWarning?.description || ''}
+          currentCredits={creditsBalance}
+          requiredCredits={balanceWarning?.requiredCredits}
+          requiredActions={balanceWarning?.requiredActions}
+          onClose={() => setBalanceWarning(null)}
+          onBuyCredits={handleBuyCredits}
+          onBuySubscription={handleBuySubscription}
         />
 
         {/* Reset confirmation modal */}

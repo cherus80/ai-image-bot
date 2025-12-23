@@ -5,8 +5,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { usePayment } from '../store/paymentStore';
+import type { PaymentType } from '../types/payment';
 import { PaymentWizard } from '../components/payment/PaymentWizard';
 import { handlePaymentReturn, pollPaymentStatus } from '../api/payment';
 import { getReferralStats, copyReferralLink, shareReferralLink, type ReferralStatsResponse } from '../api/referral';
@@ -26,7 +28,9 @@ export const ProfilePage: React.FC = () => {
     isLoading,
     hidePayments,
     reset: resetPayments,
+    setSelectedType,
   } = usePayment();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showPaymentWizard, setShowPaymentWizard] = useState(false);
   const [paymentReturnMessage, setPaymentReturnMessage] = useState<string | null>(null);
   const [referralStats, setReferralStats] = useState<ReferralStatsResponse | null>(null);
@@ -40,6 +44,22 @@ export const ProfilePage: React.FC = () => {
     loadPaymentHistory();
     loadReferralStats();
   }, []);
+
+  useEffect(() => {
+    const buyParam = searchParams.get('buy');
+    if (!buyParam) {
+      return;
+    }
+    if (buyParam === 'credits' || buyParam === 'subscription') {
+      setShowPaymentWizard(true);
+      setSelectedType(buyParam as PaymentType);
+    } else if (buyParam === '1') {
+      setShowPaymentWizard(true);
+    }
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('buy');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams, setSelectedType]);
 
   // Загрузка статистики рефералов
   const loadReferralStats = async () => {
