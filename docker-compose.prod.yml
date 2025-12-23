@@ -225,7 +225,7 @@ services:
       - frontend
     volumes:
       - ./nginx/modsecurity/waf.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
-      - ./nginx/modsecurity/modsecurity.conf:/etc/modsecurity.d/modsecurity.conf:ro
+      - ./nginx/modsecurity/modsecurity.conf:/etc/nginx/templates/modsecurity.d/modsecurity.conf.template:ro
       - waf_logs:/var/log/modsecurity
     networks:
       - ai_image_bot_network
