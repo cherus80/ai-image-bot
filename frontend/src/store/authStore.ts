@@ -23,6 +23,7 @@ import { loginWithTelegram } from '../api/auth'; // Legacy Telegram auth
 import { getTelegramInitData } from '../utils/telegram';
 import type { VKOAuthPKCERequest } from '../types/auth';
 import { PD_CONSENT_VERSION } from '../constants/pdConsent';
+import { setAuthToken } from '../utils/authToken';
 
 interface AuthState {
   // State
@@ -112,6 +113,7 @@ export const useAuthStore = create<AuthState>()(
               pdConsentVersionAccepted: data.consent_version || PD_CONSENT_VERSION,
               ...computeAccessFlags(response.user),
             });
+            setAuthToken(response.access_token);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось завершить регистрацию';
@@ -123,6 +125,7 @@ export const useAuthStore = create<AuthState>()(
               error: errorMessage,
               ...computeAccessFlags(null),
             });
+            setAuthToken(null);
 
             throw error;
           }
@@ -144,6 +147,7 @@ export const useAuthStore = create<AuthState>()(
               pdConsentVersionAccepted: data.consent_version || PD_CONSENT_VERSION,
               ...computeAccessFlags(response.user),
             });
+            setAuthToken(response.access_token);
           } catch (error: any) {
             const errorMessage = error.response?.data?.detail || error.message || 'Ошибка входа';
             set({
@@ -154,6 +158,7 @@ export const useAuthStore = create<AuthState>()(
               error: errorMessage,
               ...computeAccessFlags(null),
             });
+            setAuthToken(null);
 
             throw error;
           }
@@ -175,6 +180,7 @@ export const useAuthStore = create<AuthState>()(
               pdConsentVersionAccepted: consentVersion || PD_CONSENT_VERSION,
               ...computeAccessFlags(response.user),
             });
+            setAuthToken(response.access_token);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось войти через Google';
@@ -186,6 +192,7 @@ export const useAuthStore = create<AuthState>()(
               error: errorMessage,
               ...computeAccessFlags(null),
             });
+            setAuthToken(null);
 
             throw error;
           }
@@ -207,6 +214,7 @@ export const useAuthStore = create<AuthState>()(
               pdConsentVersionAccepted: consentVersion || PD_CONSENT_VERSION,
               ...computeAccessFlags(response.user),
             });
+            setAuthToken(response.access_token);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось войти через VK';
@@ -218,6 +226,7 @@ export const useAuthStore = create<AuthState>()(
               error: errorMessage,
               ...computeAccessFlags(null),
             });
+            setAuthToken(null);
 
             throw error;
           }
@@ -238,6 +247,7 @@ export const useAuthStore = create<AuthState>()(
               error: null,
               ...computeAccessFlags(response.user),
             });
+            setAuthToken(response.access_token);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось войти через VK';
@@ -249,6 +259,7 @@ export const useAuthStore = create<AuthState>()(
               error: errorMessage,
               ...computeAccessFlags(null),
             });
+            setAuthToken(null);
 
             throw error;
           }
@@ -277,6 +288,7 @@ export const useAuthStore = create<AuthState>()(
               error: null,
               ...computeAccessFlags(response.user),
             });
+            setAuthToken(response.access_token);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось войти через Telegram';
@@ -288,6 +300,7 @@ export const useAuthStore = create<AuthState>()(
               error: errorMessage,
               ...computeAccessFlags(null),
             });
+            setAuthToken(null);
 
             throw error;
           }
@@ -303,6 +316,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
             ...computeAccessFlags(null),
           });
+          setAuthToken(null);
 
           // Zustand persist will automatically clear localStorage when state is null
         },
@@ -327,6 +341,10 @@ export const useAuthStore = create<AuthState>()(
               ...computeAccessFlags(user),
             });
           } catch (error: any) {
+            if (error?.response?.status === 401) {
+              get().logout();
+              return;
+            }
             const errorMessage = error.detail || 'Не удалось обновить профиль';
             set({
               error: errorMessage,
@@ -345,6 +363,7 @@ export const useAuthStore = create<AuthState>()(
         // Set token (used for manual token updates)
         setToken: (token: string) => {
           set({ token, isAuthenticated: true });
+          setAuthToken(token);
           // Zustand persist automatically updates localStorage
         },
 
@@ -400,6 +419,7 @@ export const useAuthStore = create<AuthState>()(
 
             // Apply computed flags to rehydrated state
             Object.assign(state, computeAccessFlags(state.user));
+            setAuthToken(state.token || null);
 
             console.log('✅ Состояние авторизации восстановлено:', {
               hasToken: !!state.token,

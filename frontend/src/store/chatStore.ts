@@ -23,6 +23,7 @@ import {
 } from '../api/editing';
 import { useAuthStore } from './authStore';
 import toast from 'react-hot-toast';
+import { getAuthToken } from '../utils/authToken';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 
@@ -72,18 +73,7 @@ interface ChatState {
 
 const CHAT_STORAGE_KEY = 'editing-chat-storage';
 
-const getStoredAuthToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const authStorage = localStorage.getItem('auth-storage');
-    if (!authStorage) return null;
-    const parsed = JSON.parse(authStorage);
-    return parsed?.state?.token || null;
-  } catch (error) {
-    console.error('Failed to parse auth storage:', error);
-    return null;
-  }
-};
+const getStoredAuthToken = (): string | null => getAuthToken();
 
 export const useChatStore = create<ChatState>()(
   persist(

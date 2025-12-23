@@ -343,7 +343,7 @@ export const EditingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4"
+                className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4"
               >
                 <Card variant="glass" hover padding="lg">
                   <div className="flex items-start space-x-4">
@@ -357,7 +357,7 @@ export const EditingPage: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="text-base font-bold text-dark-900 mb-2">AI-ассистент</h3>
                       <p className="text-sm text-dark-600">
-                        Опишите изменения. Можно отправить промпт как есть или улучшить его через AI (рекомендуем {promptAssistantModel}, списывает 1 кредит).
+                        Опишите изменения и при желании прикрепите референсы. Можно отправить промпт как есть или улучшить его через AI (рекомендуем {promptAssistantModel}, списывает 1 кредит).
                       </p>
                     </div>
                   </div>
@@ -375,7 +375,25 @@ export const EditingPage: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="text-base font-bold text-dark-900 mb-2">Прозрачная оплата</h3>
                       <p className="text-sm text-dark-600">
-                        1 кредит за сообщение AI, 2 кредита за генерацию изображения.
+                        1 кредит за сообщение AI. Генерация: 1 действие по подписке или 2 кредита без подписки.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card variant="glass" hover padding="lg">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 4h8m-8 4h5m5 5H6a2 2 0 01-2-2V6a2 2 0 012-2h8l6 6v8a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-base font-bold text-dark-900 mb-2">История чата</h3>
+                      <p className="text-sm text-dark-600">
+                        Сессия сохраняется: можно вернуться к переписке после перезагрузки, пока чат активен.
                       </p>
                     </div>
                   </div>

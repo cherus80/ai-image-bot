@@ -3,6 +3,7 @@
  */
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { clearAuthToken, getAuthToken } from '../utils/authToken';
 
 // Base API URL from environment variable
 // Normalize API base: remove trailing slash and optional '/api' suffix to avoid double '/api/api'.
@@ -14,14 +15,14 @@ const API_BASE_URL = (
   .replace(/\/$/, '')
   .replace(/\/api$/, '');
 
-const AUTH_STORAGE_KEY = 'auth-storage';
 let isRedirectingToLogin = false;
 
 const handleUnauthorized = () => {
   if (typeof window === 'undefined' || isRedirectingToLogin) return;
   isRedirectingToLogin = true;
   try {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    clearAuthToken();
+    localStorage.removeItem('auth-storage');
   } catch (error) {
     console.error('Не удалось очистить localStorage авторизации:', error);
   }
@@ -42,20 +43,7 @@ export const apiClient = axios.create({
 // Request interceptor - add JWT token to requests
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from Zustand persist storage
-    // Zustand persist stores auth state in localStorage with key 'auth-storage'
-    const authStorage = localStorage.getItem('auth-storage');
-
-    let token: string | null = null;
-
-    if (authStorage) {
-      try {
-        const parsed = JSON.parse(authStorage);
-        token = parsed?.state?.token || null;
-      } catch (error) {
-        console.error('Failed to parse auth storage:', error);
-      }
-    }
+    const token = getAuthToken();
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -83,7 +71,8 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       const authHeader =
         originalRequest.headers?.Authorization || originalRequest.headers?.authorization;
-      if (authHeader) {
+      const hasToken = Boolean(authHeader || getAuthToken());
+      if (hasToken) {
         handleUnauthorized();
       }
       // Возвращаем ошибку вызвавшему коду; UI сам покажет форму логина при необходимости

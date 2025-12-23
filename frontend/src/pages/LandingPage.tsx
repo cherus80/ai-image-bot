@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const featureCards = [
   { title: 'Виртуальная примерка', desc: 'AI показывает посадку и образ на вашем фото — цвет и фактура могут отличаться от оригинала, это ориентировочная визуализация.', icon: 'fa-solid fa-shirt', iconWrapperClass: 'bg-sky-500 text-white' },
-  { title: 'AI-редактирование в чате', desc: 'Улучшайте фото через диалог с умным ассистентом.', icon: 'fa-solid fa-comments', iconWrapperClass: 'bg-purple-500 text-white' },
+  { title: 'Редактирование фото в чате', desc: 'Опишите правки, прикрепите референсы и получите улучшенный промпт от AI.', icon: 'fa-solid fa-comments', iconWrapperClass: 'bg-purple-500 text-white' },
   { title: 'Мастер из 3 шагов', desc: 'Загрузка → выбор действия → результат за несколько секунд.', icon: 'fa-solid fa-shoe-prints', iconWrapperClass: 'bg-slate-800 text-white' },
   { title: 'Гибкая система оплаты', desc: 'Используйте действия по подписке или кредиты без ограничений.', icon: 'fa-solid fa-wallet', iconWrapperClass: 'bg-orange-100 text-orange-500' },
   { title: 'Бесплатный старт', desc: '10 кредитов бесплатно сразу после регистрации.', icon: 'fa-solid fa-bolt', iconWrapperClass: 'bg-green-100 text-green-500' },
@@ -12,7 +12,7 @@ const featureCards = [
 
 const steps = [
   { title: 'Загрузите фотографию', desc: 'Добавьте своё фото или изображение товара.', accent: 'primary' },
-  { title: 'Выберите действие', desc: 'Виртуальная примерка или AI-редактирование.', accent: 'secondary' },
+  { title: 'Выберите действие', desc: 'Виртуальная примерка или редактирование фото в чате.', accent: 'secondary' },
   { title: 'Получите результат', desc: 'Скачайте готовое изображение и используйте его дальше.', accent: 'accent' },
 ];
 
@@ -62,6 +62,7 @@ const faqs = [
   { question: 'Что такое кредиты?', answer: 'Кредиты — это внутренняя валюта для генераций и AI-ассистента.' },
   { question: 'Сколько стоит одна генерация?', answer: '1 действие по подписке или 2 кредита без подписки.' },
   { question: 'Сколько стоит AI-ассистент?', answer: '1 кредит за одно обращение.' },
+  { question: 'Как работает редактирование фото?', answer: 'Загрузите фото, опишите правки в чате и при необходимости прикрепите референсы. Можно отправить промпт сразу или улучшить через AI — затем запустить генерацию.' },
   { question: 'Что выдаётся бесплатно?', answer: '10 кредитов при регистрации.' },
 ];
 
@@ -197,13 +198,13 @@ export const LandingPage: React.FC = () => {
                           <i className="fa-solid fa-palette text-2xl" />
                         </div>
                         <h4 className="text-2xl font-bold mb-2">Редактирование фото</h4>
-                        <p className="text-white/90 font-medium">Редактируйте изображения с помощью AI-ассистента</p>
+                        <p className="text-white/90 font-medium">Чат-редактор с референсами и улучшением промпта</p>
                       </div>
                       <div className="p-6 sm:p-8 flex flex-col gap-3">
-                        <p className="text-slate-600">Общайтесь с AI и описывайте изменения естественным языком</p>
+                        <p className="text-slate-600">Опишите правки, прикрепите референсы и выберите: отправить промпт сразу или улучшить его с AI</p>
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold self-start">
                           <i className="fa-solid fa-bolt text-orange-500" />
-                          <span>1 кредит за запрос + 2 за генерацию</span>
+                          <span>1 кредит за ассистента + 2 за генерацию (или действие по подписке)</span>
                         </div>
                         <Link
                           to="/register"
