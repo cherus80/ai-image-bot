@@ -225,8 +225,12 @@ services:
       - frontend
     volumes:
       - ./nginx/modsecurity/waf.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
-      - ./nginx/modsecurity/modsecurity.conf:/etc/nginx/templates/modsecurity.d/modsecurity.conf.template:ro
       - waf_logs:/var/log/modsecurity
+    environment:
+      MODSEC_RULE_ENGINE: DetectionOnly
+      MODSEC_AUDIT_LOG: /var/log/modsecurity/audit.log
+      MODSEC_RESP_BODY_ACCESS: Off
+      MODSEC_REQ_BODY_LIMIT: 20971520
     networks:
       - ai_image_bot_network
     logging:
