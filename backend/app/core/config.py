@@ -197,6 +197,34 @@ class Settings(BaseSettings):
 
     # Rate limiting
     RATE_LIMIT_PER_MINUTE: int = Field(default=10)
+    RATE_LIMITING_ENABLED: bool = Field(
+        default=True,
+        description="Включить Redis-based rate limiting для API",
+    )
+    API_RATE_LIMIT_PER_MINUTE: int = Field(
+        default=120,
+        description="Общий лимит запросов в минуту на IP/пользователя",
+    )
+    API_RATE_LIMIT_BURST_PER_SECOND: int = Field(
+        default=20,
+        description="Короткий burst-лимит запросов в секунду",
+    )
+    API_RATE_LIMIT_AUTH_PER_MINUTE: int = Field(
+        default=30,
+        description="Лимит запросов к auth-эндпоинтам в минуту",
+    )
+    API_RATE_LIMIT_EDITING_CHAT_PER_MINUTE: int = Field(
+        default=20,
+        description="Лимит запросов к AI-ассистенту в минуту",
+    )
+    API_RATE_LIMIT_EDITING_GENERATE_PER_MINUTE: int = Field(
+        default=10,
+        description="Лимит генераций редактирования в минуту",
+    )
+    API_RATE_LIMIT_FITTING_GENERATE_PER_MINUTE: int = Field(
+        default=10,
+        description="Лимит генераций примерки в минуту",
+    )
 
     # Sentry (опционально)
     SENTRY_DSN: Optional[str] = Field(default=None)
@@ -214,6 +242,24 @@ class Settings(BaseSettings):
     REGISTER_RATE_LIMIT_PER_MINUTE: int = Field(
         default=10,
         description="Сколько регистраций в минуту разрешено с одного IP",
+    )
+
+    # Database pool limits
+    DB_POOL_SIZE: int = Field(
+        default=10,
+        description="Размер пула подключений к БД",
+    )
+    DB_MAX_OVERFLOW: int = Field(
+        default=10,
+        description="Дополнительные подключения сверх пула",
+    )
+    DB_POOL_TIMEOUT: int = Field(
+        default=30,
+        description="Таймаут ожидания подключения к БД (сек)",
+    )
+    DB_POOL_RECYCLE: int = Field(
+        default=1800,
+        description="Переоткрывать соединения к БД каждые N секунд",
     )
 
     # Email Verification

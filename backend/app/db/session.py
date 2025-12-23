@@ -16,12 +16,24 @@ from app.core.config import settings
 
 
 # Создание async engine
+engine_kwargs = {
+    "echo": settings.is_debug,  # Логирование SQL запросов в debug режиме
+    "future": True,
+    "pool_pre_ping": True,  # Проверка соединения перед использованием
+    "poolclass": NullPool if settings.ENVIRONMENT == "testing" else None,
+}
+
+if settings.ENVIRONMENT != "testing":
+    engine_kwargs.update(
+        pool_size=settings.DB_POOL_SIZE,
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_timeout=settings.DB_POOL_TIMEOUT,
+        pool_recycle=settings.DB_POOL_RECYCLE,
+    )
+
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.is_debug,  # Логирование SQL запросов в debug режиме
-    future=True,
-    pool_pre_ping=True,  # Проверка соединения перед использованием
-    poolclass=NullPool if settings.ENVIRONMENT == "testing" else None,
+    **engine_kwargs,
 )
 
 # Создание session maker

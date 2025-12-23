@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +19,13 @@ from app.core.config import settings
 from app.db import init_db, close_db
 from app.services.openrouter import close_openrouter_client
 from app.services.yukassa import close_yukassa_client
+from app.utils.rate_limit import (
+    init_rate_limiter,
+    close_rate_limiter,
+    is_rate_limited,
+    resolve_identity,
+    rate_limiter_ready,
+)
 
 
 @asynccontextmanager
@@ -49,6 +57,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         print("📊 Initializing database...")
         await init_db()
 
+    # Инициализация rate limiting (Redis)
+    await init_rate_limiter()
+
     # Инициализация Sentry (опционально)
     if settings.SENTRY_DSN:
         import sentry_sdk
@@ -72,6 +83,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Закрытие HTTP клиентов
     await close_openrouter_client()
     await close_yukassa_client()
+    await close_rate_limiter()
 
     print("✅ Backend shutdown complete")
 
@@ -111,6 +123,56 @@ app.add_middleware(
 
 # GZip Compression
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+# Middleware для rate limiting
+@app.middleware("http")
+async def rate_limit_requests(request: Request, call_next):
+    path = request.url.path
+
+    if not path.startswith("/api/"):
+        return await call_next(request)
+
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
+    if not rate_limiter_ready():
+        return await call_next(request)
+
+    scope = "api"
+    limit_per_minute = settings.API_RATE_LIMIT_PER_MINUTE
+    limit_per_second = settings.API_RATE_LIMIT_BURST_PER_SECOND
+
+    if path.startswith("/api/v1/auth-web"):
+        scope = "auth"
+        limit_per_minute = settings.API_RATE_LIMIT_AUTH_PER_MINUTE
+    elif path.startswith("/api/v1/editing/chat"):
+        scope = "editing_chat"
+        limit_per_minute = settings.API_RATE_LIMIT_EDITING_CHAT_PER_MINUTE
+    elif path.startswith("/api/v1/editing/generate"):
+        scope = "editing_generate"
+        limit_per_minute = settings.API_RATE_LIMIT_EDITING_GENERATE_PER_MINUTE
+    elif path.startswith("/api/v1/fitting/generate"):
+        scope = "fitting_generate"
+        limit_per_minute = settings.API_RATE_LIMIT_FITTING_GENERATE_PER_MINUTE
+
+    identity = resolve_identity(request)
+
+    if await is_rate_limited(f"rl:{scope}:m:{identity}", limit_per_minute, 60):
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Слишком много запросов. Попробуйте позже."},
+            headers={"Retry-After": "60"},
+        )
+
+    if await is_rate_limited(f"rl:{scope}:s:{identity}", limit_per_second, 1):
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Слишком много запросов. Попробуйте позже."},
+            headers={"Retry-After": "1"},
+        )
+
+    return await call_next(request)
 
 
 # Middleware для отслеживания активности пользователей
