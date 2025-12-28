@@ -24,6 +24,7 @@ import { getTelegramInitData } from '../utils/telegram';
 import type { VKOAuthPKCERequest } from '../types/auth';
 import { PD_CONSENT_VERSION } from '../constants/pdConsent';
 import { setAuthToken } from '../utils/authToken';
+import { getStoredPdConsentVersion, setStoredPdConsentVersion } from '../utils/pdConsentStorage';
 
 interface AuthState {
   // State
@@ -82,7 +83,7 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: false,
         isLoading: false,
         error: null,
-        pdConsentVersionAccepted: null,
+        pdConsentVersionAccepted: getStoredPdConsentVersion(),
         ...computeAccessFlags(null),
 
         // Register with Email/Password
@@ -104,16 +105,18 @@ export const useAuthStore = create<AuthState>()(
           try {
             const response = await registerEmailAPI(data);
 
+            const acceptedVersion = data.consent_version || PD_CONSENT_VERSION;
             set({
               token: response.access_token,
               user: response.user,
               isAuthenticated: true,
               isLoading: false,
               error: null,
-              pdConsentVersionAccepted: data.consent_version || PD_CONSENT_VERSION,
+              pdConsentVersionAccepted: acceptedVersion,
               ...computeAccessFlags(response.user),
             });
             setAuthToken(response.access_token);
+            setStoredPdConsentVersion(acceptedVersion);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось завершить регистрацию';
@@ -138,16 +141,18 @@ export const useAuthStore = create<AuthState>()(
           try {
             const response = await loginEmailAPI(data);
 
+            const acceptedVersion = data.consent_version || PD_CONSENT_VERSION;
             set({
               token: response.access_token,
               user: response.user,
               isAuthenticated: true,
               isLoading: false,
               error: null,
-              pdConsentVersionAccepted: data.consent_version || PD_CONSENT_VERSION,
+              pdConsentVersionAccepted: acceptedVersion,
               ...computeAccessFlags(response.user),
             });
             setAuthToken(response.access_token);
+            setStoredPdConsentVersion(acceptedVersion);
           } catch (error: any) {
             const errorMessage = error.response?.data?.detail || error.message || 'Ошибка входа';
             set({
@@ -171,16 +176,18 @@ export const useAuthStore = create<AuthState>()(
           try {
             const response = await loginGoogleAPI(idToken, consentVersion);
 
+            const acceptedVersion = consentVersion || PD_CONSENT_VERSION;
             set({
               token: response.access_token,
               user: response.user,
               isAuthenticated: true,
               isLoading: false,
               error: null,
-              pdConsentVersionAccepted: consentVersion || PD_CONSENT_VERSION,
+              pdConsentVersionAccepted: acceptedVersion,
               ...computeAccessFlags(response.user),
             });
             setAuthToken(response.access_token);
+            setStoredPdConsentVersion(acceptedVersion);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось войти через Google';
@@ -205,16 +212,18 @@ export const useAuthStore = create<AuthState>()(
           try {
             const response = await loginVKAPI(token, uuid, consentVersion);
 
+            const acceptedVersion = consentVersion || PD_CONSENT_VERSION;
             set({
               token: response.access_token,
               user: response.user,
               isAuthenticated: true,
               isLoading: false,
               error: null,
-              pdConsentVersionAccepted: consentVersion || PD_CONSENT_VERSION,
+              pdConsentVersionAccepted: acceptedVersion,
               ...computeAccessFlags(response.user),
             });
             setAuthToken(response.access_token);
+            setStoredPdConsentVersion(acceptedVersion);
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.detail || error.message || 'Не удалось войти через VK';
@@ -370,6 +379,7 @@ export const useAuthStore = create<AuthState>()(
         // Save accepted PD consent version
         setPdConsentAccepted: (version: string | null) => {
           set({ pdConsentVersionAccepted: version });
+          setStoredPdConsentVersion(version);
         },
 
         // Clear error
@@ -420,6 +430,9 @@ export const useAuthStore = create<AuthState>()(
             // Apply computed flags to rehydrated state
             Object.assign(state, computeAccessFlags(state.user));
             setAuthToken(state.token || null);
+            if (!state.pdConsentVersionAccepted) {
+              state.pdConsentVersionAccepted = getStoredPdConsentVersion();
+            }
 
             console.log('✅ Состояние авторизации восстановлено:', {
               hasToken: !!state.token,

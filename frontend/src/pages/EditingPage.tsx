@@ -287,7 +287,7 @@ export const EditingPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="max-w-2xl w-full"
+              className="max-w-4xl xl:max-w-5xl w-full"
             >
               <div className="mb-8 text-center">
                 <motion.div
@@ -343,9 +343,9 @@ export const EditingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4"
+                className="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
               >
-                <Card variant="glass" hover padding="lg">
+                <Card variant="glass" hover padding="lg" className="h-full">
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
@@ -363,7 +363,7 @@ export const EditingPage: React.FC = () => {
                   </div>
                 </Card>
 
-                <Card variant="glass" hover padding="lg">
+                <Card variant="glass" hover padding="lg" className="h-full">
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 bg-gradient-to-br from-success-500 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg">
@@ -381,7 +381,7 @@ export const EditingPage: React.FC = () => {
                   </div>
                 </Card>
 
-                <Card variant="glass" hover padding="lg">
+                <Card variant="glass" hover padding="lg" className="h-full">
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg">

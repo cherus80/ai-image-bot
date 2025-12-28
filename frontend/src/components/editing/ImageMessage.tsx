@@ -33,9 +33,10 @@ export const ImageMessage: React.FC<ImageMessageProps> = ({ message }) => {
 
   const handleShare = async () => {
     const shareUrl = resolveAbsoluteUrl(message.image_url!);
+    const shareText = 'Изображение сгенерировано в https://ai-generator.mix4.ru';
 
     if (window.Telegram?.WebApp?.openTelegramLink) {
-      const tgLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`;
+      const tgLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
       window.Telegram.WebApp.openTelegramLink(tgLink);
       return;
     }
@@ -43,8 +44,8 @@ export const ImageMessage: React.FC<ImageMessageProps> = ({ message }) => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Моё отредактированное фото',
-          text: 'Посмотрите результат редактирования!',
+          title: 'AI Generator',
+          text: shareText,
           url: shareUrl,
         });
         toast.success('Успешно поделились');

@@ -9,7 +9,28 @@ import { useAuth } from '../../store/authStore';
 import type { GoogleSignInResponse, GoogleSignInButtonConfig } from '../../types/auth';
 
 let googleSdkPromise: Promise<void> | null = null;
-const MAX_GOOGLE_LOAD_ATTEMPTS = 3;
+const MAX_GOOGLE_LOAD_ATTEMPTS = 5;
+const GOOGLE_SDK_READY_TIMEOUT_MS = 3500;
+
+const waitForGoogleIdentity = (timeoutMs = GOOGLE_SDK_READY_TIMEOUT_MS) => {
+  return new Promise<void>((resolve, reject) => {
+    const start = Date.now();
+
+    const tick = () => {
+      if (window.google?.accounts?.id) {
+        resolve();
+        return;
+      }
+      if (Date.now() - start >= timeoutMs) {
+        reject(new Error('Google Identity Services not ready'));
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+
+    tick();
+  });
+};
 
 /**
  * Единый загрузчик Google Identity Services — гарантирует однократную подгрузку скрипта
@@ -26,12 +47,12 @@ const loadGoogleIdentityServices = async () => {
       const script = existing || document.createElement('script');
 
       const handleReady = () => {
-        if (window.google?.accounts?.id) {
-          script.dataset.gisLoaded = '1';
-          resolve();
-        } else {
-          reject(new Error('Google SDK loaded but window.google is unavailable'));
-        }
+        waitForGoogleIdentity()
+          .then(() => {
+            script.dataset.gisLoaded = '1';
+            resolve();
+          })
+          .catch(reject);
       };
 
       const handleError = () => reject(new Error('Google Identity Services failed to load'));
@@ -225,12 +246,27 @@ export function GoogleSignInButton({
 
           window.google.accounts.id.renderButton(buttonRef.current, config);
 
-          const renderedButton = buttonRef.current.querySelector('div[role="button"]') as HTMLDivElement | null;
-          if (renderedButton) {
+          const tryAttach = () => {
+            const renderedButton = buttonRef.current?.querySelector('div[role="button"]') as HTMLDivElement | null;
+            if (!renderedButton) {
+              return false;
+            }
             cleanupRef.current = bindStyleGuards(renderedButton);
+            return true;
+          };
+
+          const attached = tryAttach();
+          setIsReady(attached);
+
+          if (!attached) {
+            retryTimeout = window.setTimeout(() => {
+              if (cancelled) return;
+              if (!tryAttach() && loadAttempt < MAX_GOOGLE_LOAD_ATTEMPTS - 1) {
+                setLoadAttempt((prev) => prev + 1);
+              }
+            }, 500);
           }
         }
-        setIsReady(true);
       } catch (error) {
         console.error('Ошибка инициализации Google входа:', error);
         onError?.('Google вход недоступен');
@@ -284,14 +320,6 @@ export function GoogleSignInButton({
     );
   }
 
-  if (!isReady) {
-    return (
-      <div className="flex items-center justify-center p-3 h-12 min-h-[48px] max-h-[48px] rounded-xl border border-slate-200 bg-white shadow-sm">
-        <span className="text-sm text-gray-500">Загрузка Google входа...</span>
-      </div>
-    );
-  }
-
   return (
     <div
       className={`relative h-12 min-h-[48px] max-h-[48px] w-full ${className || ''} ${
@@ -304,6 +332,12 @@ export function GoogleSignInButton({
         ref={buttonRef}
         className={`h-full flex items-stretch justify-center ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
       />
+
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white">
+          <span className="text-sm text-gray-500">Загрузка Google входа...</span>
+        </div>
+      )}
 
       {/* Оверлей загрузки */}
       {isLoading && (
