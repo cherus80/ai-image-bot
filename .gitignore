@@ -83,6 +83,12 @@ dist-ssr/
 # Testing
 coverage/
 
+# Local assistant artifacts
+/AGENTS.md
+/CONTINUITY.md
+/backend/coverage.xml
+/tmp_clone2/
+
 # -----------------------------------------------------------------------------
 # Logs
 # -----------------------------------------------------------------------------
