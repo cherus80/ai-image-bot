@@ -22,6 +22,7 @@ step() { echo -e "${BLUE}[STEP]${NC} $1"; }
 # Конфигурация VPS
 VPS_HOST="ai-bot-vps"  # Используем alias из ~/.ssh/config
 VPS_PROJECT_DIR="/root/ai-image-bot"
+DEPLOY_BRANCH="feature/instructions-examples"
 
 echo ""
 info "🚀 Деплой фронтенда AI Generator на VPS (Cache Busting v0.11.3)"
@@ -37,7 +38,7 @@ echo ""
 
 # Pull изменений на VPS
 step "Шаг 2/5: Обновление кода на VPS..."
-ssh $VPS_HOST "cd $VPS_PROJECT_DIR && git pull origin master" || error "Не удалось обновить код на VPS"
+ssh $VPS_HOST "cd $VPS_PROJECT_DIR && git fetch origin $DEPLOY_BRANCH && git checkout $DEPLOY_BRANCH && git pull origin $DEPLOY_BRANCH" || error "Не удалось обновить код на VPS"
 info "✅ Код обновлён"
 echo ""
 
@@ -51,7 +52,8 @@ echo ""
 
 # Остановка контейнера frontend
 echo "⏹️  Остановка контейнера frontend..."
-docker-compose -f docker-compose.prod.yml down frontend
+docker-compose -f docker-compose.prod.yml stop frontend
+docker-compose -f docker-compose.prod.yml rm -f frontend
 
 # Удаление старого образа (чтобы точно пересобрать)
 echo "🗑️  Удаление старого образа..."

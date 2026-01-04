@@ -229,7 +229,7 @@ services:
     environment:
       MODSEC_RULE_ENGINE: DetectionOnly
       MODSEC_AUDIT_LOG: /dev/stdout
-      MODSEC_RESP_BODY_ACCESS: Off
+      MODSEC_RESP_BODY_ACCESS: "Off"
       MODSEC_REQ_BODY_LIMIT: 20971520
     networks:
       - ai_image_bot_network
