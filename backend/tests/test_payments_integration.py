@@ -13,7 +13,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import AsyncMock, patch, Mock
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
 from app.models.user import User, SubscriptionType
@@ -95,7 +95,7 @@ class TestSubscriptionPurchase:
         Webhook от YuKassa при успешной оплате подписки должен:
         1. Обновить статус payment на succeeded
         2. Активировать подписку для пользователя
-        3. Начислить subscription_actions_left
+        3. Начислить subscription_ops_limit
         """
         # Create pending payment
         payment_id = f"test-payment-{uuid.uuid4()}"
@@ -157,10 +157,11 @@ class TestSubscriptionPurchase:
             # Verify subscription activated for user
             await test_db.refresh(test_user_with_credits)
             assert test_user_with_credits.subscription_type == SubscriptionType.PREMIUM
-            assert test_user_with_credits.subscription_actions_left == 250
-            assert test_user_with_credits.subscription_end_date is not None
+            assert test_user_with_credits.subscription_ops_limit == 250
+            assert test_user_with_credits.subscription_ops_used == 0
+            assert test_user_with_credits.subscription_end is not None
             # Subscription should be valid for 30 days
-            assert test_user_with_credits.subscription_end_date > datetime.utcnow()
+            assert test_user_with_credits.subscription_end > datetime.now(timezone.utc)
 
     async def test_idempotent_webhook_processing(
         self,
@@ -219,7 +220,7 @@ class TestSubscriptionPurchase:
             assert response1.status_code == 200
 
             await test_db.refresh(test_user_with_credits)
-            first_actions = test_user_with_credits.subscription_actions_left
+            first_limit = test_user_with_credits.subscription_ops_limit
 
             # Second webhook (duplicate) - should NOT process again
             response2 = await test_client.post(
@@ -231,10 +232,10 @@ class TestSubscriptionPurchase:
             assert response2.status_code == 200
 
             await test_db.refresh(test_user_with_credits)
-            second_actions = test_user_with_credits.subscription_actions_left
+            second_limit = test_user_with_credits.subscription_ops_limit
 
             # Actions should be the same (not doubled)
-            assert first_actions == second_actions
+            assert first_limit == second_limit
 
 
 @pytest.mark.asyncio
@@ -422,7 +423,7 @@ class TestPaymentHistory:
         Пользователь не должен видеть платежи других пользователей
         """
         # Create another user with payment
-        from app.models.user import User, SubscriptionType
+        from app.models.user import User
 
         other_user = User(
             telegram_id=999888777,
@@ -430,7 +431,7 @@ class TestPaymentHistory:
             first_name="Other",
             last_name="Payer",
             balance_credits=0,
-            subscription_type=SubscriptionType.NONE,
+            subscription_type=None,
         )
 
         test_db.add(other_user)
@@ -575,8 +576,9 @@ class TestSubscriptionExpiration:
             last_name="Sub",
             balance_credits=0,
             subscription_type=SubscriptionType.PREMIUM,
-            subscription_actions_left=100,
-            subscription_end_date=datetime.utcnow() - timedelta(days=1),  # Expired
+            subscription_ops_limit=100,
+            subscription_ops_used=0,
+            subscription_end=datetime.now(timezone.utc) - timedelta(days=1),  # Expired
         )
 
         test_db.add(user_expired)
@@ -674,4 +676,4 @@ class TestPaymentCancellation:
 
             # User should NOT have subscription activated
             await test_db.refresh(test_user_with_credits)
-            assert test_user_with_credits.subscription_type == SubscriptionType.NONE
+            assert test_user_with_credits.subscription_type is None

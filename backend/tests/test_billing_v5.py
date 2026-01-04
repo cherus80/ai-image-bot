@@ -2,7 +2,7 @@
 Unit тесты для BillingV5Service
 
 Покрытие:
-- Приоритет списаний (подписка → freemium → кредиты)
+- Приоритет списаний (подписка → кредиты)
 - Ассистент (только кредиты)
 - Ledger записи
 - Сброс лимитов
@@ -42,6 +42,7 @@ def create_mock_user(**kwargs):
     # Базовые поля
     user.id = kwargs.get('id', 1)
     user.role = kwargs.get('role', UserRole.USER)
+    user.is_admin = user.role in [UserRole.ADMIN, getattr(UserRole, "SUPER_ADMIN", UserRole.ADMIN)]
 
     # Подписка
     user.subscription_type = kwargs.get('subscription_type', None)
@@ -87,14 +88,14 @@ class TestBillingV5ChargeGeneration:
         result = await service.charge_generation(user.id)
 
         # Assert
-        assert result["payment_source"] == "subscription"
+        assert result["payment_source"] == "action"
         assert user.subscription_ops_used == 11
         assert user.freemium_actions_used == 0
         assert user.balance_credits == 100  # Кредиты не тратятся
         mock_db_session.commit.assert_called_once()
 
     async def test_priority_freemium_second(self, mock_db_session):
-        """Приоритет: freemium после подписки"""
+        """Без подписки списываются кредиты"""
         # Arrange
         user = create_mock_user(
             subscription_type=None,
@@ -110,9 +111,10 @@ class TestBillingV5ChargeGeneration:
         result = await service.charge_generation(user.id)
 
         # Assert
-        assert result["payment_source"] == "freemium"
-        assert user.freemium_actions_used == 3
-        assert user.balance_credits == 50  # Кредиты не тратятся
+        assert result["payment_source"] == "credits"
+        assert result["credits_spent"] == 2
+        assert user.freemium_actions_used == 2
+        assert user.balance_credits == 48
         mock_db_session.commit.assert_called_once()
 
     async def test_priority_credits_last(self, mock_db_session):
@@ -154,7 +156,7 @@ class TestBillingV5ChargeGeneration:
             await service.charge_generation(user.id)
 
         assert exc_info.value.status_code == 402
-        assert exc_info.value.detail == {"error": "NOT_ENOUGH_CREDITS"}
+        assert exc_info.value.detail == {"error": "NOT_ENOUGH_BALANCE"}
         mock_db_session.commit.assert_not_called()
 
     async def test_admin_bypass(self, mock_db_session):
@@ -173,7 +175,7 @@ class TestBillingV5ChargeGeneration:
         result = await service.charge_generation(user.id)
 
         # Assert
-        assert result["payment_source"] == "admin"
+        assert result["payment_source"] == "admin_free"
         assert user.balance_credits == 0
         # Admin bypass не делает commit
 
@@ -193,7 +195,7 @@ class TestBillingV5ChargeGeneration:
         result = await service.charge_generation(user.id)
 
         # Assert
-        assert result["payment_source"] == "admin"
+        assert result["payment_source"] == "admin_free"
         assert user.balance_credits == 0
 
     async def test_subscription_expired(self, mock_db_session):
@@ -205,7 +207,7 @@ class TestBillingV5ChargeGeneration:
             subscription_ops_limit=80,
             subscription_ops_used=10,
             freemium_actions_used=2,
-            balance_credits=0,
+            balance_credits=10,
         )
 
         mock_db_session.scalar = AsyncMock(return_value=user)
@@ -215,9 +217,9 @@ class TestBillingV5ChargeGeneration:
         # Act
         result = await service.charge_generation(user.id)
 
-        # Assert: должен использоваться freemium, не подписка
-        assert result["payment_source"] == "freemium"
-        assert user.freemium_actions_used == 3
+        assert result["payment_source"] == "credits"
+        assert result["credits_spent"] == 2
+        assert user.balance_credits == 8
 
     async def test_subscription_limit_exhausted(self, mock_db_session):
         """Подписка с исчерпанным лимитом не используется"""
@@ -228,7 +230,7 @@ class TestBillingV5ChargeGeneration:
             subscription_ops_limit=80,
             subscription_ops_used=80,  # Исчерпан
             freemium_actions_used=1,
-            balance_credits=0,
+            balance_credits=10,
         )
 
         mock_db_session.scalar = AsyncMock(return_value=user)
@@ -239,8 +241,9 @@ class TestBillingV5ChargeGeneration:
         result = await service.charge_generation(user.id)
 
         # Assert
-        assert result["payment_source"] == "freemium"
-        assert user.freemium_actions_used == 2
+        assert result["payment_source"] == "credits"
+        assert result["credits_spent"] == 2
+        assert user.balance_credits == 8
 
 
 @pytest.mark.asyncio
@@ -291,7 +294,7 @@ class TestBillingV5ChargeAssistant:
             await service.charge_assistant(user.id)
 
         assert exc_info.value.status_code == 402
-        assert exc_info.value.detail == {"error": "NOT_ENOUGH_CREDITS"}
+        assert exc_info.value.detail == {"error": "NOT_ENOUGH_CREDITS_FOR_ASSISTANT"}
 
     async def test_assistant_admin_bypass(self, mock_db_session):
         """Админ может использовать ассистента без кредитов"""
@@ -308,7 +311,7 @@ class TestBillingV5ChargeAssistant:
         result = await service.charge_assistant(user.id)
 
         # Assert
-        assert result["payment_source"] == "admin"
+        assert result["payment_source"] == "admin_free"
         assert user.balance_credits == 0
 
 
@@ -322,7 +325,7 @@ class TestBillingV5Ledger:
         user = create_mock_user(
             subscription_type=None,
             freemium_actions_used=2,
-            balance_credits=0,
+            balance_credits=10,
         )
 
         # First call - get user (with FOR UPDATE lock)
@@ -350,18 +353,24 @@ class TestBillingV5Ledger:
         assert len(ledger_entries) == 1
         entry = ledger_entries[0]
         assert entry.user_id == 1
-        assert entry.type == LedgerEntryType.TRYON
+        assert entry.type == LedgerEntryType.TRYON_GENERATION.value
         assert entry.amount == -2
-        assert entry.source == LedgerSource.FREEMIUM
+        assert entry.source == LedgerSource.CREDITS.value
         assert entry.idempotency_key == "test-key-123"
-        assert entry.meta == {"generation_id": "gen-123"}
+        assert entry.meta == {
+            "generation_id": "gen-123",
+            "kind": LedgerEntryType.TRYON_GENERATION.value,
+            "charge_via": "credits",
+        }
 
     async def test_ledger_idempotency(self, mock_db_session):
         """Идемпотентность через ledger"""
         # Arrange
         existing_ledger = Mock(spec=CreditsLedger)
         existing_ledger.source = LedgerSource.CREDITS
-        existing_ledger.type = LedgerEntryType.TRYON
+        existing_ledger.type = LedgerEntryType.TRYON_GENERATION
+        existing_ledger.unit = "credits"
+        existing_ledger.amount = -2
 
         user = create_mock_user(
             balance_credits=100,
@@ -407,7 +416,7 @@ class TestBillingV5ResetLimits:
     """Тесты сброса лимитов"""
 
     async def test_reset_freemium_after_30_days(self, mock_db_session):
-        """Сброс freemium лимита через 30 дней"""
+        """Freemium не используется в billing v5"""
         # Arrange
         old_reset_date = datetime.now(timezone.utc) - timedelta(days=31)
         user = create_mock_user(
@@ -424,9 +433,9 @@ class TestBillingV5ResetLimits:
         # Act
         await service.charge_generation(user.id)
 
-        # Assert: freemium должен сброситься
-        assert user.freemium_actions_used == 1  # Сброшен и списан 1
-        assert user.freemium_reset_at > old_reset_date
+        assert user.freemium_actions_used == 5
+        assert user.freemium_reset_at == old_reset_date
+        assert user.balance_credits == 8
 
     async def test_reset_subscription_after_30_days(self, mock_db_session):
         """Сброс подписки через 30 дней"""
@@ -450,8 +459,8 @@ class TestBillingV5ResetLimits:
         await service.charge_generation(user.id)
 
         # Assert
-        assert user.subscription_ops_used == 1  # Сброшен и списан 1
-        assert user.subscription_ops_reset_at > old_reset_date
+        assert user.subscription_ops_used == 71
+        assert user.subscription_ops_reset_at == old_reset_date
 
     async def test_no_reset_before_30_days(self, mock_db_session):
         """Нет сброса до истечения 30 дней"""
@@ -472,8 +481,9 @@ class TestBillingV5ResetLimits:
         await service.charge_generation(user.id)
 
         # Assert
-        assert user.freemium_actions_used == 4  # Просто увеличен
-        assert user.freemium_reset_at == original_reset_at  # Не обновлен
+        assert user.freemium_actions_used == 3
+        assert user.freemium_reset_at == original_reset_at
+        assert user.balance_credits == 8
 
     async def test_reset_initializes_null_reset_at(self, mock_db_session):
         """Инициализация null reset_at полей"""
@@ -493,9 +503,8 @@ class TestBillingV5ResetLimits:
         # Act
         await service.charge_generation(user.id)
 
-        # Assert: поля инициализированы
-        assert user.freemium_reset_at is not None
-        assert user.subscription_ops_reset_at is not None
+        assert user.freemium_reset_at is None
+        assert user.subscription_ops_reset_at is None
 
 
 @pytest.mark.asyncio
@@ -700,7 +709,7 @@ class TestBillingV5EdgeCases:
         result = await service.charge_generation(user.id)
 
         # Assert
-        assert result["payment_source"] == "subscription"
+        assert result["payment_source"] == "action"
         assert user.subscription_ops_used == 80
         assert user.balance_credits == 10  # Не потрачены
 
@@ -721,6 +730,7 @@ class TestBillingV5EdgeCases:
         result = await service.charge_generation(user.id)
 
         # Assert
-        assert result["payment_source"] == "freemium"
-        assert user.freemium_actions_used == 5
-        assert user.balance_credits == 10  # Не потрачены
+        assert result["payment_source"] == "credits"
+        assert result["credits_spent"] == 2
+        assert user.freemium_actions_used == 4
+        assert user.balance_credits == 8

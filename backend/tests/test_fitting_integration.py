@@ -119,7 +119,7 @@ class TestFittingWorkflow:
         """
         Примерка должна провалиться, если у пользователя нет кредитов
         """
-        from app.models.user import User, SubscriptionType
+        from app.models.user import User
         from app.utils.jwt import create_access_token
 
         # Создаём пользователя без кредитов и без подписки
@@ -129,7 +129,7 @@ class TestFittingWorkflow:
             first_name="Broke",
             last_name="User",
             balance_credits=0,
-            subscription_type=SubscriptionType.NONE,
+            subscription_type=None,
             freemium_actions_used=10,  # Freemium исчерпан
         )
 
@@ -229,7 +229,7 @@ class TestFittingWorkflow:
 
         test_client.headers["Authorization"] = f"Bearer {token}"
 
-        initial_actions = test_user_premium.subscription_actions_left
+        initial_used = test_user_premium.subscription_ops_used
 
         with patch("app.services.openrouter.OpenRouterClient.generate_virtual_tryon") as mock_generate:
             mock_generate.return_value = {
@@ -251,7 +251,7 @@ class TestFittingWorkflow:
             # Проверяем, что действие списано из подписки
             await test_db.refresh(test_user_premium)
 
-            assert test_user_premium.subscription_actions_left == initial_actions - 1
+            assert test_user_premium.subscription_ops_used == initial_used + 1
 
             # Кредиты не должны списываться
             assert test_user_premium.balance_credits == 0

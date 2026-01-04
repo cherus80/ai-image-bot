@@ -9,7 +9,7 @@ Pytest fixtures для тестов AI Generator.
 
 import pytest
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, AsyncMock, MagicMock
 from typing import Dict, Any
 
@@ -345,9 +345,13 @@ async def test_db():
         poolclass=NullPool,
     )
 
-    # Create all tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Create all tables (skip tests if DB is unavailable)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as exc:
+        await engine.dispose()
+        pytest.skip(f"PostgreSQL test DB unavailable: {exc}")
 
     # Create session factory
     TestSessionLocal = async_sessionmaker(
@@ -394,7 +398,7 @@ async def test_client(test_db):
 @pytest.fixture
 async def test_user_with_credits(test_db):
     """Create a real test user with 50 credits in test database."""
-    from app.models.user import User, SubscriptionType
+    from app.models.user import User
 
     user = User(
         telegram_id=123456789,
@@ -402,9 +406,9 @@ async def test_user_with_credits(test_db):
         first_name="Test",
         last_name="User",
         balance_credits=50,
-        subscription_type=SubscriptionType.NONE,
+        subscription_type=None,
         freemium_actions_used=0,
-        freemium_reset_date=datetime.utcnow(),
+        freemium_reset_at=datetime.utcnow(),
     )
 
     test_db.add(user)
@@ -426,10 +430,12 @@ async def test_user_premium(test_db):
         last_name="Tester",
         balance_credits=0,
         subscription_type=SubscriptionType.PREMIUM,
-        subscription_actions_left=150,
-        subscription_end_date=datetime.utcnow() + timedelta(days=30),
+        subscription_end=datetime.now(timezone.utc) + timedelta(days=30),
+        subscription_ops_limit=150,
+        subscription_ops_used=0,
+        subscription_ops_reset_at=datetime.utcnow(),
         freemium_actions_used=0,
-        freemium_reset_date=datetime.utcnow(),
+        freemium_reset_at=datetime.utcnow(),
     )
 
     test_db.add(user)
@@ -442,7 +448,7 @@ async def test_user_premium(test_db):
 @pytest.fixture
 async def test_user_freemium_only(test_db):
     """Create a Freemium-only test user (5/10 actions used)."""
-    from app.models.user import User, SubscriptionType
+    from app.models.user import User
 
     user = User(
         telegram_id=111222333,
@@ -450,9 +456,9 @@ async def test_user_freemium_only(test_db):
         first_name="Freemium",
         last_name="Tester",
         balance_credits=0,
-        subscription_type=SubscriptionType.NONE,
+        subscription_type=None,
         freemium_actions_used=5,
-        freemium_reset_date=datetime.utcnow(),
+        freemium_reset_at=datetime.utcnow(),
     )
 
     test_db.add(user)
@@ -520,7 +526,7 @@ async def test_user_with_subscription_v5(test_db):
         last_name="User",
         balance_credits=10,
         subscription_type=SubscriptionType.BASIC,
-        subscription_end=datetime.utcnow() + timedelta(days=30),
+        subscription_end=datetime.now(timezone.utc) + timedelta(days=30),
         subscription_ops_limit=80,
         subscription_ops_used=10,
         subscription_ops_reset_at=datetime.utcnow(),
@@ -649,7 +655,7 @@ async def test_user_expired_subscription_v5(test_db):
         last_name="Subscription",
         balance_credits=0,
         subscription_type=SubscriptionType.PREMIUM,
-        subscription_end=datetime.utcnow() - timedelta(days=5),  # Expired
+        subscription_end=datetime.now(timezone.utc) - timedelta(days=5),  # Expired
         subscription_ops_limit=250,
         subscription_ops_used=100,
         subscription_ops_reset_at=datetime.utcnow() - timedelta(days=35),

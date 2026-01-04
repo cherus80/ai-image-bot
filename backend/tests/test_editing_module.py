@@ -108,15 +108,12 @@ class TestOpenRouterClient:
         }
 
         with patch.object(client.client, 'post', new=AsyncMock(return_value=mock_response)):
-            prompts = await client.generate_prompts(
+            prompt = await client.generate_prompts(
                 user_message="Make the sky bluer",
                 chat_history=[]
             )
 
-            assert len(prompts) == 3
-            assert prompts[0] == "Short prompt"
-            assert prompts[1] == "Medium prompt with details"
-            assert "Detailed" in prompts[2]
+            assert prompt == "Short prompt"
 
         await client.close()
 
@@ -133,21 +130,19 @@ class TestOpenRouterClient:
         mock_response.json.return_value = {
             "choices": [{
                 "message": {
-                    "content": '{"prompts": ["Only one prompt"]}'  # Только 1 промпт вместо 3
+                    "content": '{"prompts": []}'
                 }
             }],
             "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
         }
 
         with patch.object(client.client, 'post', new=AsyncMock(return_value=mock_response)):
-            prompts = await client.generate_prompts(
+            prompt = await client.generate_prompts(
                 user_message="Test message",
                 chat_history=[]
             )
 
-            # Должен вернуть fallback промпты
-            assert len(prompts) == 3
-            assert "Test message" in prompts[0]
+            assert prompt == "Test message"
 
         await client.close()
 

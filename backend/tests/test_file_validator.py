@@ -7,8 +7,8 @@ Unit тесты для модуля валидации файлов
 
 import pytest
 import io
-from unittest.mock import Mock
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
+from starlette.datastructures import Headers
 
 from app.services.file_validator import (
     validate_image_file,
@@ -20,103 +20,112 @@ from app.services.file_validator import (
 class TestValidateImageFile:
     """Тесты валидации файлов изображений"""
 
-    def test_valid_jpeg_file(self):
+    @pytest.mark.asyncio
+    async def test_valid_jpeg_file(self, sample_jpeg_bytes: bytes):
         """Тест валидации корректного JPEG файла"""
         # JPEG magic bytes (FF D8 FF)
-        jpeg_content = b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01'
+        jpeg_content = sample_jpeg_bytes
         file = UploadFile(
             filename="test.jpg",
-            file=io.BytesIO(jpeg_content)
+            file=io.BytesIO(jpeg_content),
+            headers=Headers({"content-type": "image/jpeg"}),
         )
-        file.content_type = "image/jpeg"
-        file.size = len(jpeg_content)
 
-        result = validate_image_file(file)
+        result = await validate_image_file(file)
 
         assert result is True
 
-    def test_valid_png_file(self):
+    @pytest.mark.asyncio
+    async def test_valid_png_file(self, sample_png_bytes: bytes):
         """Тест валидации корректного PNG файла"""
         # PNG magic bytes (89 50 4E 47 0D 0A 1A 0A)
-        png_content = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
+        png_content = sample_png_bytes
         file = UploadFile(
             filename="test.png",
-            file=io.BytesIO(png_content)
+            file=io.BytesIO(png_content),
+            headers=Headers({"content-type": "image/png"}),
         )
-        file.content_type = "image/png"
-        file.size = len(png_content)
 
-        result = validate_image_file(file)
+        result = await validate_image_file(file)
 
         assert result is True
 
-    def test_invalid_mime_type(self):
+    @pytest.mark.asyncio
+    async def test_invalid_mime_type(self):
         """Тест с неподдерживаемым MIME-типом"""
         content = b'some content'
         file = UploadFile(
             filename="test.gif",
-            file=io.BytesIO(content)
+            file=io.BytesIO(content),
+            headers=Headers({"content-type": "image/gif"}),
         )
-        file.content_type = "image/gif"
-        file.size = len(content)
 
-        with pytest.raises(ValueError, match="Unsupported file type"):
-            validate_image_file(file)
+        with pytest.raises(HTTPException) as exc_info:
+            await validate_image_file(file)
+        assert exc_info.value.status_code == 400
+        assert "Invalid file type" in exc_info.value.detail
 
-    def test_file_too_large(self):
-        """Тест с файлом больше 5MB"""
-        content = b'x' * (6 * 1024 * 1024)  # 6 MB
+    @pytest.mark.asyncio
+    async def test_file_too_large(self):
+        """Тест с файлом больше лимита"""
+        content = b'x' * (11 * 1024 * 1024)  # 11 MB
         file = UploadFile(
             filename="test.jpg",
-            file=io.BytesIO(content)
+            file=io.BytesIO(content),
+            headers=Headers({"content-type": "image/jpeg"}),
         )
-        file.content_type = "image/jpeg"
-        file.size = len(content)
 
-        with pytest.raises(ValueError, match="File size exceeds 5MB"):
-            validate_image_file(file)
+        with pytest.raises(HTTPException) as exc_info:
+            await validate_image_file(file)
+        assert exc_info.value.status_code == 413
+        assert "File too large" in exc_info.value.detail
 
-    def test_invalid_magic_bytes_jpeg(self):
+    @pytest.mark.asyncio
+    async def test_invalid_magic_bytes_jpeg(self):
         """Тест с неправильными magic bytes для JPEG"""
         # Неправильные magic bytes, но правильный MIME-тип
         content = b'fake jpeg content'
         file = UploadFile(
             filename="test.jpg",
-            file=io.BytesIO(content)
+            file=io.BytesIO(content),
+            headers=Headers({"content-type": "image/jpeg"}),
         )
-        file.content_type = "image/jpeg"
-        file.size = len(content)
 
-        with pytest.raises(ValueError, match="Invalid file signature"):
-            validate_image_file(file)
+        with pytest.raises(HTTPException) as exc_info:
+            await validate_image_file(file)
+        assert exc_info.value.status_code == 400
+        assert "Invalid image file signature" in exc_info.value.detail
 
-    def test_invalid_magic_bytes_png(self):
+    @pytest.mark.asyncio
+    async def test_invalid_magic_bytes_png(self):
         """Тест с неправильными magic bytes для PNG"""
         content = b'fake png content'
         file = UploadFile(
             filename="test.png",
-            file=io.BytesIO(content)
+            file=io.BytesIO(content),
+            headers=Headers({"content-type": "image/png"}),
         )
-        file.content_type = "image/png"
-        file.size = len(content)
 
-        with pytest.raises(ValueError, match="Invalid file signature"):
-            validate_image_file(file)
+        with pytest.raises(HTTPException) as exc_info:
+            await validate_image_file(file)
+        assert exc_info.value.status_code == 400
+        assert "Invalid image file signature" in exc_info.value.detail
 
-    def test_mime_type_mismatch(self):
+    @pytest.mark.asyncio
+    async def test_mime_type_mismatch(self):
         """Тест когда MIME-тип не соответствует расширению"""
         # PNG magic bytes, но JPEG MIME-тип
         png_content = b'\x89PNG\r\n\x1a\n'
         file = UploadFile(
             filename="test.jpg",
-            file=io.BytesIO(png_content)
+            file=io.BytesIO(png_content),
+            headers=Headers({"content-type": "image/jpeg"}),
         )
-        file.content_type = "image/jpeg"
-        file.size = len(png_content)
 
         # Должна быть ошибка, так как magic bytes не соответствуют MIME-типу
-        with pytest.raises(ValueError):
-            validate_image_file(file)
+        with pytest.raises(HTTPException) as exc_info:
+            await validate_image_file(file)
+        assert exc_info.value.status_code == 400
 
 
 class TestGetFileExtension:
@@ -124,27 +133,27 @@ class TestGetFileExtension:
 
     def test_get_extension_from_filename(self):
         """Получение расширения из имени файла"""
-        result = get_file_extension("test.jpg", "image/jpeg")
+        result = get_file_extension("image/jpeg")
 
-        assert result == ".jpg"
+        assert result == "jpg"
 
     def test_get_extension_from_mime_type(self):
         """Получение расширения из MIME-типа"""
-        result = get_file_extension("test", "image/png")
+        result = get_file_extension("image/png")
 
-        assert result == ".png"
+        assert result == "png"
 
     def test_get_extension_uppercase(self):
         """Расширение в верхнем регистре"""
-        result = get_file_extension("TEST.JPEG", "image/jpeg")
+        result = get_file_extension("image/jpeg")
 
-        assert result == ".jpeg"
+        assert result == "jpg"
 
     def test_get_extension_no_extension(self):
         """Имя файла без расширения"""
-        result = get_file_extension("test", "image/jpeg")
+        result = get_file_extension("image/jpeg")
 
-        assert result == ".jpg"
+        assert result == "jpg"
 
 
 class TestGetImageDimensions:

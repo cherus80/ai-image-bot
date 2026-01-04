@@ -7,7 +7,8 @@ Unit тесты для модуля управления кредитами
 
 import pytest
 from datetime import datetime, timedelta
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import Mock, AsyncMock
+from fastapi import HTTPException
 
 from app.services.credits import (
     check_user_can_perform_action,
@@ -15,104 +16,100 @@ from app.services.credits import (
     award_credits,
     award_subscription,
 )
-from app.models.user import User, SubscriptionType
+from app.models.user import User, SubscriptionType, UserRole
 
 
+@pytest.mark.asyncio
 class TestCheckUserCanPerformAction:
     """Тесты проверки возможности выполнения действия"""
 
-    def test_user_with_credits(self):
+    async def test_user_with_credits(self):
         """Пользователь с достаточным количеством кредитов"""
         user = Mock(spec=User)
         user.balance_credits = 10
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
-        user.freemium_actions_used = 10
-        user.freemium_reset_date = datetime.utcnow()
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 0
+        user.role = UserRole.USER
 
-        result = check_user_can_perform_action(user, cost=5)
+        result = await check_user_can_perform_action(user, credits_cost=5)
 
-        assert result["can_perform"] is True
-        assert result["method"] == "credits"
-        assert result["remaining_credits"] == 10
+        assert result == (True, "credits")
 
-    def test_user_with_insufficient_credits(self):
+    async def test_user_with_insufficient_credits(self):
         """Пользователь с недостаточным количеством кредитов"""
         user = Mock(spec=User)
         user.balance_credits = 2
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
-        user.freemium_actions_used = 10
-        user.freemium_reset_date = datetime.utcnow()
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 0
+        user.role = UserRole.USER
 
-        result = check_user_can_perform_action(user, cost=5)
+        with pytest.raises(HTTPException) as exc_info:
+            await check_user_can_perform_action(user, credits_cost=5)
+        assert exc_info.value.status_code == 402
 
-        assert result["can_perform"] is False
-        assert result["method"] == "none"
-        assert result["error"] == "Insufficient credits"
-
-    def test_user_with_active_subscription(self):
+    async def test_user_with_active_subscription(self):
         """Пользователь с активной подпиской"""
         user = Mock(spec=User)
         user.balance_credits = 0
         user.subscription_type = SubscriptionType.BASIC
-        user.subscription_actions_left = 30
-        user.subscription_end_date = datetime.utcnow() + timedelta(days=15)
-        user.freemium_actions_used = 10
-        user.freemium_reset_date = datetime.utcnow()
+        user.subscription_ops_used = 5
+        user.subscription_ops_limit = 30
+        user.subscription_end = datetime.utcnow() + timedelta(days=15)
+        user.role = UserRole.USER
 
-        result = check_user_can_perform_action(user, cost=1)
+        result = await check_user_can_perform_action(user, credits_cost=1)
 
-        assert result["can_perform"] is True
-        assert result["method"] == "subscription"
-        assert result["subscription_type"] == SubscriptionType.BASIC
-        assert result["actions_left"] == 30
+        assert result == (True, "subscription")
 
-    def test_user_with_expired_subscription(self):
+    async def test_user_with_expired_subscription(self):
         """Пользователь с истёкшей подпиской"""
         user = Mock(spec=User)
         user.balance_credits = 0
         user.subscription_type = SubscriptionType.BASIC
-        user.subscription_actions_left = 30
-        user.subscription_end_date = datetime.utcnow() - timedelta(days=1)
-        user.freemium_actions_used = 10
-        user.freemium_reset_date = datetime.utcnow()
+        user.subscription_ops_used = 10
+        user.subscription_ops_limit = 30
+        user.subscription_end = datetime.utcnow() - timedelta(days=1)
+        user.role = UserRole.USER
 
-        result = check_user_can_perform_action(user, cost=1)
+        with pytest.raises(HTTPException) as exc_info:
+            await check_user_can_perform_action(user, credits_cost=1)
+        assert exc_info.value.status_code == 402
 
-        assert result["can_perform"] is False
-        assert result["method"] == "none"
-
-    def test_user_with_freemium_available(self):
-        """Пользователь может использовать Freemium"""
+    async def test_user_with_freemium_available(self):
+        """Freemium отключён: без подписки и кредитов -> ошибка"""
         user = Mock(spec=User)
         user.balance_credits = 0
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 0
         user.freemium_actions_used = 5
-        user.freemium_reset_date = datetime.utcnow()
+        user.freemium_reset_at = datetime.utcnow()
+        user.role = UserRole.USER
 
-        result = check_user_can_perform_action(user, cost=1)
+        with pytest.raises(HTTPException) as exc_info:
+            await check_user_can_perform_action(user, credits_cost=1)
+        assert exc_info.value.status_code == 402
 
-        assert result["can_perform"] is True
-        assert result["method"] == "freemium"
-        assert result["freemium_left"] == 5  # 10 - 5 = 5
-        assert result["watermark"] is True
-
-    def test_user_with_freemium_exhausted(self):
-        """Пользователь исчерпал Freemium лимит"""
+    async def test_user_with_freemium_exhausted(self):
+        """Freemium отключён: при отсутствии средств ожидаем ошибку"""
         user = Mock(spec=User)
         user.balance_credits = 0
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 0
         user.freemium_actions_used = 10
-        user.freemium_reset_date = datetime.utcnow()
+        user.freemium_reset_at = datetime.utcnow()
+        user.role = UserRole.USER
 
-        result = check_user_can_perform_action(user, cost=1)
-
-        assert result["can_perform"] is False
-        assert result["method"] == "none"
-        assert result["error"] == "Freemium limit reached"
+        with pytest.raises(HTTPException) as exc_info:
+            await check_user_can_perform_action(user, credits_cost=1)
+        assert exc_info.value.status_code == 402
 
 
 @pytest.mark.asyncio
@@ -123,16 +120,18 @@ class TestDeductCredits:
         """Списание с баланса кредитов"""
         user = Mock(spec=User)
         user.balance_credits = 10
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 0
         user.freemium_actions_used = 0
+        user.role = UserRole.USER
 
         db_mock = AsyncMock()
 
-        result = await deduct_credits(db_mock, user, cost=3)
+        result = await deduct_credits(db_mock, user, credits_cost=3)
 
-        assert result["success"] is True
-        assert result["method"] == "credits"
+        assert result["payment_method"] == "credits"
         assert user.balance_credits == 7
         db_mock.commit.assert_called_once()
 
@@ -141,53 +140,56 @@ class TestDeductCredits:
         user = Mock(spec=User)
         user.balance_credits = 0
         user.subscription_type = SubscriptionType.PREMIUM
-        user.subscription_actions_left = 50
-        user.subscription_end_date = datetime.utcnow() + timedelta(days=20)
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 50
+        user.subscription_end = datetime.utcnow() + timedelta(days=20)
         user.freemium_actions_used = 0
+        user.role = UserRole.USER
 
         db_mock = AsyncMock()
 
-        result = await deduct_credits(db_mock, user, cost=1)
+        result = await deduct_credits(db_mock, user, credits_cost=1)
 
-        assert result["success"] is True
-        assert result["method"] == "subscription"
-        assert user.subscription_actions_left == 49
+        assert result["payment_method"] == "subscription"
+        assert user.subscription_ops_used == 1
         db_mock.commit.assert_called_once()
 
-    async def test_deduct_from_freemium(self):
-        """Списание с Freemium"""
+    async def test_deduct_without_funds(self):
+        """Попытка списания при отсутствии подписки и кредитов"""
         user = Mock(spec=User)
         user.balance_credits = 0
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
-        user.freemium_actions_used = 3
-        user.freemium_reset_date = datetime.utcnow()
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 0
+        user.freemium_actions_used = 10
+        user.freemium_reset_at = datetime.utcnow()
+        user.role = UserRole.USER
 
         db_mock = AsyncMock()
 
-        result = await deduct_credits(db_mock, user, cost=1)
-
-        assert result["success"] is True
-        assert result["method"] == "freemium"
-        assert result["watermark"] is True
-        assert user.freemium_actions_used == 4
-        db_mock.commit.assert_called_once()
+        with pytest.raises(HTTPException) as exc_info:
+            await deduct_credits(db_mock, user, credits_cost=1)
+        assert exc_info.value.status_code == 402
+        db_mock.commit.assert_not_called()
 
     async def test_deduct_insufficient_credits(self):
         """Попытка списания при недостатке средств"""
         user = Mock(spec=User)
         user.balance_credits = 1
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
+        user.subscription_type = None
+        user.subscription_end = None
+        user.subscription_ops_used = 0
+        user.subscription_ops_limit = 0
         user.freemium_actions_used = 10
-        user.freemium_reset_date = datetime.utcnow()
+        user.freemium_reset_at = datetime.utcnow()
+        user.role = UserRole.USER
 
         db_mock = AsyncMock()
 
-        result = await deduct_credits(db_mock, user, cost=5)
-
-        assert result["success"] is False
-        assert "error" in result
+        with pytest.raises(HTTPException) as exc_info:
+            await deduct_credits(db_mock, user, credits_cost=5)
+        assert exc_info.value.status_code == 402
         db_mock.commit.assert_not_called()
 
 
@@ -202,15 +204,21 @@ class TestAwardCredits:
         user.balance_credits = 10
 
         db_mock = AsyncMock()
+        result_mock = Mock()
+        result_mock.scalar_one_or_none.return_value = None
+        db_mock.execute.return_value = result_mock
+        db_mock.get.return_value = user
 
         result = await award_credits(
             db_mock,
-            user,
-            amount=50,
-            idempotency_key="test_payment_123"
+            user_id=123,
+            credits=50,
+            payment_id="test-payment-123",
+            idempotency_key="test_payment_123",
         )
 
-        assert result["success"] is True
+        assert result["status"] == "success"
+        assert result["credits_awarded"] == 50
         assert user.balance_credits == 60
         db_mock.commit.assert_called_once()
 
@@ -228,24 +236,27 @@ class TestAwardSubscription:
         """Начисление новой подписки"""
         user = Mock(spec=User)
         user.id = 123
-        user.subscription_type = SubscriptionType.NONE
-        user.subscription_actions_left = 0
-        user.subscription_end_date = None
+        user.subscription_type = None
+        user.subscription_ops_limit = 0
+        user.subscription_ops_used = 0
+        user.subscription_end = None
 
         db_mock = AsyncMock()
+        db_mock.get.return_value = user
 
         result = await award_subscription(
             db_mock,
-            user,
-            subscription_type=SubscriptionType.PREMIUM,
-            actions=150,
-            idempotency_key="sub_payment_456"
+            user_id=123,
+            subscription_type="premium",
+            duration_days=30,
+            payment_id="sub_payment_456",
         )
 
-        assert result["success"] is True
-        assert user.subscription_type == SubscriptionType.PREMIUM
-        assert user.subscription_actions_left == 150
-        assert user.subscription_end_date is not None
+        assert result["status"] == "success"
+        assert user.subscription_type == "premium"
+        assert user.subscription_ops_limit == 250
+        assert user.subscription_ops_used == 0
+        assert user.subscription_end is not None
         db_mock.commit.assert_called_once()
 
     async def test_award_subscription_renewal(self):
@@ -253,21 +264,23 @@ class TestAwardSubscription:
         user = Mock(spec=User)
         user.id = 123
         user.subscription_type = SubscriptionType.BASIC
-        user.subscription_actions_left = 10
-        user.subscription_end_date = datetime.utcnow() + timedelta(days=10)
+        user.subscription_ops_limit = 80
+        user.subscription_ops_used = 10
+        user.subscription_end = datetime.utcnow() + timedelta(days=10)
 
         db_mock = AsyncMock()
+        db_mock.get.return_value = user
 
         result = await award_subscription(
             db_mock,
-            user,
-            subscription_type=SubscriptionType.PREMIUM,
-            actions=150,
-            idempotency_key="sub_payment_789"
+            user_id=123,
+            subscription_type="premium",
+            duration_days=30,
+            payment_id="sub_payment_789",
         )
 
-        assert result["success"] is True
-        assert user.subscription_type == SubscriptionType.PREMIUM
-        # Действия должны заменить старые, а не суммироваться
-        assert user.subscription_actions_left == 150
+        assert result["status"] == "success"
+        assert user.subscription_type == "premium"
+        assert user.subscription_ops_limit == 250
+        assert user.subscription_ops_used == 0
         db_mock.commit.assert_called_once()

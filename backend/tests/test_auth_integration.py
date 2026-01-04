@@ -147,9 +147,9 @@ class TestUserCreationAndRetrieval:
 
         # Проверяем информацию о подписке
         assert data["subscription_type"] == "premium"
-        assert data["subscription_actions_left"] == 150
-        assert "subscription_end_date" in data
-        assert data["subscription_end_date"] is not None
+        assert data["subscription_ops_remaining"] == 150
+        assert "subscription_expires_at" in data
+        assert data["subscription_expires_at"] is not None
 
     async def test_freemium_user_info(
         self,
@@ -178,7 +178,7 @@ class TestUserCreationAndRetrieval:
 
         # Проверяем Freemium информацию
         assert data["balance_credits"] == 0
-        assert data["subscription_type"] == "none"
+        assert data["subscription_type"] is None
         assert data["freemium_actions_used"] == 5
         # Осталось 5 из 10 Freemium действий
         # (Если в API есть поле freemium_actions_left)

@@ -438,7 +438,7 @@ class TestEditingCreditsAndPayments:
         """
         Редактирование должно провалиться, если недостаточно кредитов
         """
-        from app.models.user import User, SubscriptionType
+        from app.models.user import User
         from app.models.chat import ChatHistory
         from app.utils.jwt import create_access_token
         from datetime import datetime
@@ -450,7 +450,7 @@ class TestEditingCreditsAndPayments:
             first_name="Low",
             last_name="Credits",
             balance_credits=1,
-            subscription_type=SubscriptionType.NONE,
+            subscription_type=None,
             freemium_actions_used=10,
         )
 
@@ -558,7 +558,7 @@ class TestErrorHandling:
         """
         Пользователь не должен иметь доступ к чужим сессиям
         """
-        from app.models.user import User, SubscriptionType
+        from app.models.user import User
         from app.models.chat import ChatHistory
         from datetime import datetime
 
@@ -569,7 +569,7 @@ class TestErrorHandling:
             first_name="Other",
             last_name="User",
             balance_credits=100,
-            subscription_type=SubscriptionType.NONE,
+            subscription_type=None,
         )
 
         test_db.add(other_user)

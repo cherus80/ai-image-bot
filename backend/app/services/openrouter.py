@@ -236,7 +236,8 @@ class OpenRouterClient:
             import json
             try:
                 prompts_data = json.loads(content)
-                prompt = prompts_data.get("prompt") or prompts_data.get("prompts", [None])[0]
+                prompts_list = prompts_data.get("prompts") or []
+                prompt = prompts_data.get("prompt") or (prompts_list[0] if prompts_list else None)
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse JSON response: {content}")
                 raise OpenRouterError(f"Invalid JSON response from AI: {e}")
