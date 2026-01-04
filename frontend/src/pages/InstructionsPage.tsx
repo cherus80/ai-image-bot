@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { PublicLayout } from '../components/common/PublicLayout';
+import { AuthGuard } from '../components/auth/AuthGuard';
+import { Layout } from '../components/common/Layout';
 import { getInstructions } from '../api/content';
 import type { InstructionItem, InstructionType } from '../types/content';
 import { useSeo } from '../hooks/useSeo';
@@ -41,7 +42,7 @@ export const InstructionsPage: React.FC = () => {
   useSeo({
     title: 'Инструкции по использованию — AI Generator',
     description,
-    canonical: `${baseUrl}/instructions`,
+    canonical: `${baseUrl}/app/instructions`,
     image: `${baseUrl}/logo.png`,
   });
 
@@ -79,69 +80,71 @@ export const InstructionsPage: React.FC = () => {
   );
 
   return (
-    <PublicLayout>
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              Инструкции по использованию приложения
-            </h1>
-            <p className="text-slate-500 mt-3 text-base sm:text-lg">
-              Посмотрите видео или прочитайте короткие советы, чтобы получать лучший результат.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3 mb-10">
-            {tabs}
-          </div>
-
-          {loading ? (
-            <div className="bg-white rounded-2xl shadow p-8 text-center text-slate-500">
-              Загружаем инструкции...
+    <AuthGuard>
+      <Layout title="Инструкции" subtitle="Видео и текстовые подсказки">
+        <section className="py-12">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-10">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                Инструкции по использованию приложения
+              </h1>
+              <p className="text-slate-500 mt-3 text-base sm:text-lg">
+                Посмотрите видео или прочитайте короткие советы, чтобы получать лучший результат.
+              </p>
             </div>
-          ) : items.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow p-8 text-center text-slate-500">
-              Пока нет опубликованных инструкций.
+
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+              {tabs}
             </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2">
-              {items.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl shadow p-6">
-                  <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
-                  {item.description && (
-                    <p className="text-sm text-slate-500 mt-1 mb-3">{item.description}</p>
-                  )}
-                  {activeTab === 'video' ? (
-                    <div className="space-y-3">
-                      <div className="relative pb-[56.25%] rounded-xl overflow-hidden border border-slate-200">
-                        <iframe
-                          src={toEmbedUrl(item.content)}
-                          title={item.title}
-                          className="absolute inset-0 w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
+
+            {loading ? (
+              <div className="bg-white rounded-2xl shadow p-8 text-center text-slate-500">
+                Загружаем инструкции...
+              </div>
+            ) : items.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow p-8 text-center text-slate-500">
+                Пока нет опубликованных инструкций.
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2">
+                {items.map((item) => (
+                  <div key={item.id} className="bg-white rounded-2xl shadow p-6">
+                    <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
+                    {item.description && (
+                      <p className="text-sm text-slate-500 mt-1 mb-3">{item.description}</p>
+                    )}
+                    {activeTab === 'video' ? (
+                      <div className="space-y-3">
+                        <div className="relative pb-[56.25%] rounded-xl overflow-hidden border border-slate-200">
+                          <iframe
+                            src={toEmbedUrl(item.content)}
+                            title={item.title}
+                            className="absolute inset-0 w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                        <a
+                          href={item.content}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm text-primary-600 hover:text-primary-700 font-semibold"
+                        >
+                          Открыть видео в новой вкладке
+                        </a>
                       </div>
-                      <a
-                        href={item.content}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm text-primary-600 hover:text-primary-700 font-semibold"
-                      >
-                        Открыть видео в новой вкладке
-                      </a>
-                    </div>
-                  ) : (
-                    <p className="text-slate-600 whitespace-pre-line leading-relaxed">
-                      {item.content}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-    </PublicLayout>
+                    ) : (
+                      <p className="text-slate-600 whitespace-pre-line leading-relaxed">
+                        {item.content}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </Layout>
+    </AuthGuard>
   );
 };

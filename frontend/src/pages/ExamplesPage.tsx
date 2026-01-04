@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PublicLayout } from '../components/common/PublicLayout';
+import { AuthGuard } from '../components/auth/AuthGuard';
+import { Layout } from '../components/common/Layout';
 import { getGenerationExamples, getExampleTags, incrementExampleUse } from '../api/content';
 import type { GenerationExampleItem, ExampleTagItem } from '../types/content';
 import { useSeo } from '../hooks/useSeo';
@@ -24,7 +25,7 @@ export const ExamplesPage: React.FC = () => {
   useSeo({
     title: 'Примеры генераций — AI Generator',
     description: 'Библиотека лучших примеров генераций. Выберите стиль и запустите генерацию по образцу.',
-    canonical: `${baseUrl}/examples`,
+    canonical: `${baseUrl}/app/examples`,
     image: `${baseUrl}/logo.png`,
   });
 
@@ -103,8 +104,9 @@ export const ExamplesPage: React.FC = () => {
   );
 
   return (
-    <PublicLayout>
-      <section className="py-16">
+    <AuthGuard>
+      <Layout title="Примеры генераций" subtitle="Библиотека образцов для вдохновения">
+        <section className="py-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
@@ -272,7 +274,8 @@ export const ExamplesPage: React.FC = () => {
             </div>
           )}
         </div>
-      </section>
-    </PublicLayout>
+        </section>
+      </Layout>
+    </AuthGuard>
   );
 };

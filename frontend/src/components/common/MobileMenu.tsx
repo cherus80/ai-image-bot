@@ -80,7 +80,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         </svg>
       ),
       label: 'Инструкции',
-      onClick: () => handleNavigate('/instructions?tab=video'),
+      onClick: () => handleNavigate('/app/instructions?tab=video'),
     },
     {
       icon: (
@@ -89,7 +89,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         </svg>
       ),
       label: 'Примеры генераций',
-      onClick: () => handleNavigate('/examples'),
+      onClick: () => handleNavigate('/app/examples'),
     },
     {
       icon: (

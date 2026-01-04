@@ -8,8 +8,6 @@ interface PublicLayoutProps {
 const navItems = [
   { label: 'Возможности', href: '/#features' },
   { label: 'Как это работает', href: '/#how-it-works' },
-  { label: 'Инструкции', href: '/instructions?tab=video' },
-  { label: 'Примеры', href: '/examples' },
   { label: 'Тарифы', href: '/pricing' },
   { label: 'Контакты', href: '/contacts' },
   { label: 'Оферта', href: '/oferta' },
@@ -90,8 +88,6 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           <div className="space-y-1">
             <p className="font-semibold text-dark-800">Ссылки</p>
             <Link to="/pricing" className="block hover:text-primary-700">Тарифы</Link>
-            <Link to="/instructions?tab=video" className="block hover:text-primary-700">Инструкции</Link>
-            <Link to="/examples" className="block hover:text-primary-700">Примеры</Link>
             <Link to="/contacts" className="block hover:text-primary-700">Контакты</Link>
             <Link to="/oferta" className="block hover:text-primary-700">Оферта</Link>
             <Link to="/privacy" className="block hover:text-primary-700">Политика</Link>

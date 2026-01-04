@@ -141,7 +141,7 @@ export const HomePage: React.FC = () => {
 
             <div className="mt-6 text-center">
               <button
-                onClick={() => navigate('/examples')}
+                onClick={() => navigate('/app/examples')}
                 className="px-6 py-3 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50"
               >
                 Смотреть больше примеров

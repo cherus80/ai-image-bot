@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -41,12 +41,14 @@ function App() {
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/oferta" element={<OfertaPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/instructions" element={<InstructionsPage />} />
-          <Route path="/examples" element={<ExamplesPage />} />
+          <Route path="/instructions" element={<Navigate to="/app/instructions" replace />} />
+          <Route path="/examples" element={<Navigate to="/app/examples" replace />} />
           <Route path="/payment/return" element={<PaymentReturnPage />} />
 
           {/* Главная страница приложения (после входа) */}
           <Route path="/app" element={<HomePage />} />
+          <Route path="/app/instructions" element={<InstructionsPage />} />
+          <Route path="/app/examples" element={<ExamplesPage />} />
 
           {/* Функция 1: Примерка одежды */}
           <Route path="/fitting" element={<FittingPage />} />
