@@ -131,14 +131,26 @@ class ExampleGenerateRequest(BaseModel):
         min_length=1,
         max_length=2000,
     )
-    base_image_url: Optional[str] = Field(
-        None,
-        description="URL основного изображения (если не передано, берётся из первого вложения)",
-        max_length=500,
-    )
     attachments: Optional[List[ChatAttachment]] = Field(
         default=None,
-        description="Вложения (дополнительные изображения-референсы)",
+        description="Вложения (все изображения считаются базовыми)",
+    )
+
+
+class ExampleGenerateResponse(BaseModel):
+    """Ответ с запущенными задачами генерации по образцу"""
+
+    task_ids: List[str] = Field(
+        ...,
+        description="Список UUID задач Celery",
+    )
+    status: str = Field(
+        default="pending",
+        description="Статус задач (pending)",
+    )
+    message: str = Field(
+        default="Image generation started",
+        description="Сообщение о статусе",
     )
 
 

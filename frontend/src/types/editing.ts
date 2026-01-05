@@ -54,8 +54,14 @@ export interface GenerateImageRequest {
 // Запрос на генерацию по образцу (без истории)
 export interface ExampleGenerateRequest {
   prompt: string;
-  base_image_url: string;
   attachments?: ChatAttachment[];
+}
+
+// Ответ при запуске генерации по образцу
+export interface ExampleGenerateResponse {
+  task_ids: string[];
+  status: string;
+  message: string;
 }
 
 // Ответ при запуске генерации

@@ -17,7 +17,7 @@ export const ExampleGenerationPage: React.FC = () => {
 
   const {
     isGenerating,
-    result,
+    results,
     startGeneration,
     reset,
   } = useExampleGenerationStore();
@@ -46,7 +46,7 @@ export const ExampleGenerationPage: React.FC = () => {
     reset();
   };
 
-  const stage = result ? 'result' : isGenerating ? 'generating' : 'input';
+  const stage = results.length > 0 ? 'result' : isGenerating ? 'generating' : 'input';
 
   return (
     <AuthGuard>
@@ -69,7 +69,7 @@ export const ExampleGenerationPage: React.FC = () => {
                 placeholder="Опишите желаемый результат..."
                 prefillMessage={prompt}
                 requireAttachments
-                attachmentsHint="Фото обязательно через скрепку слева"
+                attachmentsHint="Фото обязательно через скрепку слева (можно несколько)"
                 attachmentTooltip="Нужно обязательно прикрепить фото (можно несколько)"
               />
             </div>
