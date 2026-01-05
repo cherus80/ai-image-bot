@@ -40,7 +40,9 @@ class ReferralItem(BaseModel):
     """Информация об одном реферале"""
 
     id: int = Field(..., description="ID реферала")
-    telegram_id: int = Field(..., description="Telegram ID приглашённого пользователя")
+    telegram_id: int | None = Field(
+        None, description="Telegram ID приглашённого пользователя"
+    )
     username: str | None = Field(None, description="Username приглашённого пользователя")
     credits_awarded: int = Field(..., description="Количество начисленных кредитов")
     is_awarded: bool = Field(

@@ -72,6 +72,10 @@ sleep 30
 echo "Проверка статуса контейнеров:"
 docker compose -f docker-compose.prod.yml ps
 
+# Запуск миграций
+echo "Запуск миграций базы данных..."
+docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
+
 # Проверка логов
 echo "Последние логи backend:"
 docker compose -f docker-compose.prod.yml logs --tail=20 backend

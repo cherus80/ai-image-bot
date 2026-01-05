@@ -23,8 +23,19 @@ const TYPE_LABELS: Record<InstructionType, string> = {
   text: 'Текстовые инструкции',
 };
 
+const MAX_VIDEO_SIZE_MB = 100;
+const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
+
+const isVideoSizeAllowed = (file: File): boolean => {
+  if (file.size <= MAX_VIDEO_SIZE_BYTES) {
+    return true;
+  }
+  toast.error(`Файл слишком большой. Максимум ${MAX_VIDEO_SIZE_MB}MB.`);
+  return false;
+};
+
 const TYPE_HINTS: Record<InstructionType, string> = {
-  video: 'Вставьте ссылку на видео или загрузите файл (MP4/WebM/MOV).',
+  video: `Вставьте ссылку на видео или загрузите файл (MP4/WebM/MOV, до ${MAX_VIDEO_SIZE_MB}MB).`,
   text: 'Короткие правила и советы. Можно использовать простое форматирование.',
 };
 
@@ -108,6 +119,9 @@ export const InstructionsManager: React.FC = () => {
     if (!file) {
       return;
     }
+    if (!isVideoSizeAllowed(file)) {
+      return;
+    }
     setUploadingNew(true);
     try {
       const uploaded = await uploadInstructionVideo(file);
@@ -142,6 +156,9 @@ export const InstructionsManager: React.FC = () => {
 
   const handleItemVideoUpload = async (itemId: number, file: File | null) => {
     if (!file) {
+      return;
+    }
+    if (!isVideoSizeAllowed(file)) {
       return;
     }
     setUploadingId(itemId);
