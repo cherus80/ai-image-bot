@@ -268,6 +268,21 @@ export const uploadInstructionImage = async (
   return response.data;
 };
 
+export const uploadExampleImage = async (
+  file: File
+): Promise<InstructionUploadResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await apiClient.post<InstructionUploadResponse>(
+    '/api/v1/admin/examples/upload-image',
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }
+  );
+  return response.data;
+};
+
 export const createInstruction = async (
   payload: InstructionCreateRequest
 ): Promise<InstructionAdminListResponse['items'][number]> => {

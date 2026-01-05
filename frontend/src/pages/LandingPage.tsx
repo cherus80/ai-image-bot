@@ -6,8 +6,8 @@ const featureCards = [
   { title: 'Виртуальная примерка', desc: 'AI показывает посадку и образ на вашем фото — цвет и фактура могут отличаться от оригинала, это ориентировочная визуализация.', icon: 'fa-solid fa-shirt', iconWrapperClass: 'bg-sky-500 text-white' },
   { title: 'Редактирование фото в чате', desc: 'Опишите правки, прикрепите референсы и получите улучшенный промпт от AI.', icon: 'fa-solid fa-comments', iconWrapperClass: 'bg-purple-500 text-white' },
   { title: 'Мастер из 3 шагов', desc: 'Загрузка → выбор действия → результат за несколько секунд.', icon: 'fa-solid fa-shoe-prints', iconWrapperClass: 'bg-slate-800 text-white' },
-  { title: 'Гибкая система оплаты', desc: 'Используйте действия по подписке или кредиты без ограничений.', icon: 'fa-solid fa-wallet', iconWrapperClass: 'bg-orange-100 text-orange-500' },
-  { title: 'Бесплатный старт', desc: '10 кредитов бесплатно сразу после регистрации.', icon: 'fa-solid fa-bolt', iconWrapperClass: 'bg-green-100 text-green-500' },
+  { title: 'Гибкая система оплаты', desc: 'Используйте действия по подписке или ⭐️звезды без ограничений.', icon: 'fa-solid fa-wallet', iconWrapperClass: 'bg-orange-100 text-orange-500' },
+  { title: 'Бесплатный старт', desc: '10 ⭐️звезд бесплатно сразу после регистрации.', icon: 'fa-solid fa-bolt', iconWrapperClass: 'bg-green-100 text-green-500' },
   { title: 'Безопасность данных', desc: 'Фото хранятся временно и автоматически удаляются.', icon: 'fa-solid fa-shield-halved', iconWrapperClass: 'bg-slate-200 text-slate-600' },
 ];
 
@@ -60,11 +60,11 @@ const creditPackages = [
 const faqs = [
   { question: 'Насколько точна виртуальная примерка?', answer: 'Это AI-визуализация посадки. Из-за специфики моделей оттенок, фактура и детали могут отличаться от реального товара, поэтому не ждите 100% совпадения — используйте как наглядный предварительный пример.' },
   { question: 'Что такое действия?', answer: 'Действия — это количество генераций по подписке.' },
-  { question: 'Что такое кредиты?', answer: 'Кредиты — это внутренняя валюта для генераций и AI-ассистента.' },
-  { question: 'Сколько стоит одна генерация?', answer: '1 действие по подписке или 2 кредита без подписки.' },
-  { question: 'Сколько стоит AI-ассистент?', answer: '1 кредит за одно обращение.' },
+  { question: 'Что такое ⭐️звезды?', answer: '⭐️Звезды — это внутренняя валюта для генераций и AI-ассистента.' },
+  { question: 'Сколько стоит одна генерация?', answer: '1 действие по подписке или 2 ⭐️звезды без подписки.' },
+  { question: 'Сколько стоит AI-ассистент?', answer: '1 ⭐️звезда за одно обращение.' },
   { question: 'Как работает редактирование фото?', answer: 'Загрузите фото, опишите правки в чате и при необходимости прикрепите референсы. Можно отправить промпт сразу или улучшить через AI — затем запустить генерацию.' },
-  { question: 'Что выдаётся бесплатно?', answer: '10 кредитов при регистрации.' },
+  { question: 'Что выдаётся бесплатно?', answer: '10 ⭐️звезд при регистрации.' },
 ];
 
 const testimonials = [
@@ -174,7 +174,7 @@ export const LandingPage: React.FC = () => {
                   <div>
                     <p className="font-bold text-slate-800">Специальный оффер</p>
                     <p className="text-slate-500">
-                      Каждому новому пользователю — <span className="text-purple-600 font-bold">10 бесплатных кредитов</span> сразу после регистрации.
+                      Каждому новому пользователю — <span className="text-purple-600 font-bold">10 бесплатных ⭐️звезд</span> сразу после регистрации.
                     </p>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export const LandingPage: React.FC = () => {
                         <p className="text-slate-600">Загрузите своё фото и фото одежды — AI подготовит визуализацию посадки без гарантии точного совпадения с оригиналом</p>
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold self-start">
                           <i className="fa-solid fa-coins text-purple-500" />
-                          <span>2 кредита за примерку</span>
+                          <span>2 ⭐️звезды за примерку</span>
                         </div>
                         <Link
                           to="/register"
@@ -238,7 +238,7 @@ export const LandingPage: React.FC = () => {
                         <p className="text-slate-600">Опишите правки, прикрепите референсы и выберите: отправить промпт сразу или улучшить его с AI</p>
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold self-start">
                           <i className="fa-solid fa-bolt text-orange-500" />
-                          <span>1 кредит за ассистента + 2 за генерацию (или действие по подписке)</span>
+                          <span>1 ⭐️звезда за ассистента + 2 за генерацию (или действие по подписке)</span>
                         </div>
                         <Link
                           to="/register"
@@ -253,7 +253,7 @@ export const LandingPage: React.FC = () => {
                   <div className="px-6 sm:px-8 pb-6">
                     <div className="bg-slate-50 p-3 rounded-xl text-center border border-slate-100">
                       <p className="text-xs text-slate-500 font-medium">
-                        <i className="fa-solid fa-circle-info text-orange-500 mr-1" /> Все действия списывают 1 действие по подписке или 2 кредита.
+                        <i className="fa-solid fa-circle-info text-orange-500 mr-1" /> Все действия списывают 1 действие по подписке или 2 ⭐️звезды.
                       </p>
                     </div>
                   </div>
@@ -312,7 +312,7 @@ export const LandingPage: React.FC = () => {
                   <div className="font-bold text-slate-800 mb-2 text-lg">Стоимость операций:</div>
                   <ul className="text-slate-500 space-y-2">
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-300" /> 1 генерация = 1 действие по подписке</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-300" /> или 2 кредита без подписки</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-300" /> или 2 ⭐️звезды без подписки</li>
                   </ul>
                 </div>
               </div>
@@ -323,7 +323,7 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div>
                   <span className="block font-bold text-slate-800 mb-2 text-lg">AI-ассистент:</span>
-                  <span className="text-slate-500">1 кредит = 1 обращение</span>
+                  <span className="text-slate-500">1 ⭐️звезда = 1 обращение</span>
                 </div>
               </div>
             </div>
@@ -376,7 +376,7 @@ export const LandingPage: React.FC = () => {
 
             <div className="mt-12 text-center">
               <p className="text-sm text-slate-500 bg-slate-50 inline-block px-6 py-3 rounded-full border border-slate-200">
-                <i className="fa-solid fa-circle-exclamation text-orange-500 mr-2" /> Действия списываются в первую очередь. Когда они заканчиваются — используются кредиты.
+                <i className="fa-solid fa-circle-exclamation text-orange-500 mr-2" /> Действия списываются в первую очередь. Когда они заканчиваются — используются ⭐️звезды.
               </p>
             </div>
           </div>
@@ -386,11 +386,11 @@ export const LandingPage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
               <div>
-                <h2 className="text-3xl font-bold mb-2 text-slate-900">Пакеты кредитов</h2>
+                <h2 className="text-3xl font-bold mb-2 text-slate-900">Пакеты ⭐️звезд</h2>
                 <p className="text-slate-500">Для максимальной гибкости. Работают без подписки.</p>
               </div>
               <div className="text-sm text-slate-500 text-right bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
-                Кредиты используются для генераций без подписки
+                ⭐️Звезды используются для генераций без подписки
                 <br />и для AI-ассистента.
               </div>
             </div>
@@ -409,7 +409,7 @@ export const LandingPage: React.FC = () => {
                     <div className={`w-10 h-10 rounded-full ${pack.highlight ? 'bg-gradient-to-r from-rose-400 to-orange-500 text-white shadow-md' : 'bg-orange-100 text-orange-500'} flex items-center justify-center font-bold`}>
                       {pack.credits}
                     </div>
-                    <span className="text-xs text-slate-400 uppercase font-bold">кредитов</span>
+                    <span className="text-xs text-slate-400 uppercase font-bold">⭐️звезд</span>
                   </div>
                   <div className={`text-xl font-bold ${pack.highlight ? 'text-orange-500' : 'text-slate-600 group-hover:text-orange-500 transition-colors'}`}>{pack.price}</div>
                 </div>
@@ -433,7 +433,7 @@ export const LandingPage: React.FC = () => {
                 <div className="bg-white shadow-soft rounded-xl p-6 inline-flex flex-col border border-slate-100">
                   <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Стоимость использования</span>
                   <div className="text-slate-800 font-bold text-2xl flex items-center gap-2">
-                    1 кредит <span className="text-sm font-normal text-slate-400">= 1 обращение</span>
+                    1 ⭐️звезда <span className="text-sm font-normal text-slate-400">= 1 обращение</span>
                   </div>
                 </div>
               </div>
@@ -452,7 +452,7 @@ export const LandingPage: React.FC = () => {
                     </div>
                     <div className="px-4 py-2 bg-white rounded-xl shadow-soft border border-slate-100 text-right">
                       <div className="text-lg font-extrabold text-slate-900 leading-none">106</div>
-                      <div className="text-[11px] uppercase text-slate-400 tracking-wide leading-none">кредитов</div>
+                      <div className="text-[11px] uppercase text-slate-400 tracking-wide leading-none">⭐️звезд</div>
                     </div>
                   </div>
 
@@ -568,7 +568,7 @@ export const LandingPage: React.FC = () => {
         <section className="py-16 bg-gradient-to-r from-sky-400 to-purple-600">
           <div className="max-w-6xl mx-auto px-4 text-center text-white space-y-4">
             <h2 className="text-3xl font-extrabold">Готовы примерить и отредактировать?</h2>
-            <p className="text-white/80 text-lg">Зарегистрируйтесь, получите 10 кредитов и начните прямо сейчас.</p>
+            <p className="text-white/80 text-lg">Зарегистрируйтесь, получите 10 ⭐️звезд и начните прямо сейчас.</p>
             <div className="flex justify-center gap-3 flex-wrap">
               <Link to="/register" className="px-6 py-3 bg-white text-sky-600 font-semibold rounded-xl shadow-lg hover:shadow-xl transition">Попробовать бесплатно</Link>
               <Link to="/login" className="px-6 py-3 border border-white/70 text-white font-semibold rounded-xl hover:bg-white/10 transition">У меня уже есть аккаунт</Link>

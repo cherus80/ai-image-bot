@@ -176,6 +176,11 @@ export function LoginPage() {
               <p className="text-sm text-red-600">{formErrors.password}</p>
             )}
           </div>
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-xs text-primary-700 hover:text-primary-800 underline">
+              Забыли пароль?
+            </Link>
+          </div>
 
           <div className="flex items-start gap-2">
             <input

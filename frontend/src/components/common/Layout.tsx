@@ -139,7 +139,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   <Card variant="gradient" padding="sm" className="border border-primary-200 w-full sm:w-auto">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-primary-700">{user?.balance_credits ?? 0}</p>
-                      <p className="text-xs text-primary-600 font-semibold whitespace-nowrap">кредитов</p>
+                      <p className="text-xs text-primary-600 font-semibold whitespace-nowrap">⭐️Звезд</p>
                     </div>
                     {isTrialUser && (
                       <p className="mt-1 text-[11px] text-primary-50 font-semibold">

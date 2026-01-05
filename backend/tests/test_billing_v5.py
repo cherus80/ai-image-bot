@@ -58,7 +58,7 @@ def create_mock_user(**kwargs):
     user.freemium_actions_used = kwargs.get('freemium_actions_used', 0)
     user.freemium_reset_at = kwargs.get('freemium_reset_at', datetime.now(timezone.utc))
 
-    # Кредиты
+    # ⭐️Звезды
     user.balance_credits = kwargs.get('balance_credits', 0)
 
     return user
@@ -91,7 +91,7 @@ class TestBillingV5ChargeGeneration:
         assert result["payment_source"] == "action"
         assert user.subscription_ops_used == 11
         assert user.freemium_actions_used == 0
-        assert user.balance_credits == 100  # Кредиты не тратятся
+        assert user.balance_credits == 100  # ⭐️Звезды не тратятся
         mock_db_session.commit.assert_called_once()
 
     async def test_priority_freemium_second(self, mock_db_session):

@@ -66,7 +66,7 @@ export const EditCreditsModal: React.FC<EditCreditsModalProps> = ({
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Не удалось обновить баланс кредитов');
+      setError(err.message || 'Не удалось обновить баланс ⭐️звезд');
     } finally {
       setLoading(false);
     }
@@ -94,14 +94,14 @@ export const EditCreditsModal: React.FC<EditCreditsModalProps> = ({
               </div>
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Редактировать кредиты
+                  Редактировать ⭐️звезды
                 </h3>
                 <div className="mt-2">
                   <p className="text-sm text-gray-500">
                     Пользователь: <span className="font-medium">{user.email}</span>
                   </p>
                   <p className="text-sm text-gray-500">
-                    Текущий баланс: <span className="font-medium">{user.balance_credits} кредитов</span>
+                    Текущий баланс: <span className="font-medium">{user.balance_credits} ⭐️звезд</span>
                   </p>
                 </div>
               </div>
@@ -109,7 +109,7 @@ export const EditCreditsModal: React.FC<EditCreditsModalProps> = ({
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div>
                 <label htmlFor="balance" className="block text-sm font-medium text-gray-700">
-                  Новый баланс (кредитов)
+                  Новый баланс (⭐️звезд)
                 </label>
                 <input
                   type="number"

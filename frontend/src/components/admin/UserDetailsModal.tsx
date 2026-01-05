@@ -151,12 +151,12 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                         onClick={() => setShowEditCreditsModal(true)}
                         className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                       >
-                        Редактировать кредиты
+                        Редактировать ⭐️звезды
                       </button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600">Баланс кредитов</p>
+                        <p className="text-sm text-gray-600">Баланс ⭐️звезд</p>
                         <p className="text-2xl font-bold text-gray-900">
                           {formatNumber(userDetails.user.balance_credits)}
                         </p>
@@ -350,7 +350,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         </div>
       </div>
 
-      {/* Модальное окно добавления кредитов */}
+      {/* Модальное окно добавления ⭐️звезд */}
       <EditCreditsModal
         user={
           userDetails

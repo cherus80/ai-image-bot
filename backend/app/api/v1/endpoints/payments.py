@@ -200,7 +200,7 @@ async def create_payment(
 
     Стоимость:
     - Подписки: от 369₽ (basic) до 1099₽ (premium)
-    - Кредиты: пакеты 20 / 50 / 100 / 250 кредитов
+    - ⭐️Звезды: пакеты 20 / 50 / 100 / 250 ⭐️звезд
     """
     try:
         # Определяем tariff_id и параметры тарифа
@@ -229,7 +229,7 @@ async def create_payment(
             description = f"Подписка {tariff_info['name']} — {tariff_info['description']}"
         else:
             tariff_info = CREDITS_PACKAGES[tariff_id]
-            description = f"Покупка кредитов — {tariff_info['name']}"
+            description = f"Покупка ⭐️звезд — {tariff_info['name']}"
 
         # Генерация idempotency_key
         idempotency_key = str(uuid4())
@@ -338,7 +338,7 @@ async def yukassa_webhook(
     Процесс:
     1. Верификация подписи
     2. Парсинг payload
-    3. Обработка события (начисление кредитов/подписки)
+    3. Обработка события (начисление ⭐️звезд/подписки)
     """
     try:
         # Получение body
@@ -393,7 +393,7 @@ async def yukassa_webhook(
                 existing_payment.status = PaymentStatus.SUCCEEDED
                 existing_payment.completed_at = existing_payment.completed_at or existing_payment.updated_at
 
-            # Начисление кредитов или подписки
+            # Начисление ⭐️звезд или подписки
             if payment_type == "credits":
                 credits = calculate_credits_for_tariff(payment_type, tariff_id)
                 await award_credits(
@@ -547,9 +547,9 @@ async def get_tariffs():
 
     Возвращает:
     - Подписки (basic, standard, premium)
-    - Пакеты кредитов (20, 50, 100, 250)
+    - Пакеты ⭐️звезд (20, 50, 100, 250)
 
-    Включает информацию о ценах, количестве кредитов и налогах.
+    Включает информацию о ценах, количестве ⭐️звезд и налогах.
     """
     all_tariffs = get_all_tariffs()
 
@@ -570,7 +570,7 @@ async def get_tariffs():
             )
         )
 
-    # Формируем список пакетов кредитов
+    # Формируем список пакетов ⭐️звезд
     credits_packages = []
     for tariff_id, tariff_data in all_tariffs["credits_packages"].items():
         credits_packages.append(

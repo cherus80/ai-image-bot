@@ -45,7 +45,7 @@ ai-generator.mix4.ru {
 
     # Ограничение размера загрузок (до 100 МБ с запасом)
     request_body {
-        max_size 100MB
+        max_size 200MB
     }
 }
 

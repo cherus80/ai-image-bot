@@ -156,7 +156,7 @@ export const EditingPage: React.FC = () => {
       return true;
     }
     openBalanceWarning({
-      description: 'Для генерации нужно 2 кредита или активная подписка с действиями.',
+      description: 'Для генерации нужно 2 ⭐️звезды или активная подписка с действиями.',
       requiredCredits: 2,
       requiredActions: 1,
     });
@@ -176,10 +176,10 @@ export const EditingPage: React.FC = () => {
       return true;
     }
     openBalanceWarning({
-      title: 'Недостаточно кредитов для ассистента',
+      title: 'Недостаточно ⭐️звезд для ассистента',
       description: hasActiveSubscriptionActions
-        ? 'Для улучшения через AI нужен 1 кредит. Генерация спишет действие по подписке.'
-        : 'Для улучшения через AI и последующей генерации нужно 3 кредита (1 за ассистента и 2 за генерацию).',
+        ? 'Для улучшения через AI нужна 1 ⭐️звезда. Генерация спишет действие по подписке.'
+        : 'Для улучшения через AI и последующей генерации нужно 3 ⭐️звезды (1 за ассистента и 2 за генерацию).',
       requiredCredits,
       requiredActions: hasActiveSubscriptionActions ? 1 : undefined,
     });
@@ -210,7 +210,7 @@ export const EditingPage: React.FC = () => {
       });
       addMessage({
         role: 'assistant',
-        content: 'Отправляю запрос как есть. Списание: 2 кредита за генерацию.',
+        content: 'Отправляю запрос как есть. Списание: 2 ⭐️звезды за генерацию.',
       });
 
       toast.success('Промпт отправлен без AI-ассистента');
@@ -392,7 +392,7 @@ export const EditingPage: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="text-base font-bold text-dark-900 mb-2">AI-ассистент</h3>
                       <p className="text-sm text-dark-600">
-                        Опишите изменения и при желании прикрепите референсы. Можно отправить промпт как есть или улучшить его через AI (рекомендуем {promptAssistantModel}, списывает 1 кредит).
+                        Опишите изменения и при желании прикрепите референсы. Можно отправить промпт как есть или улучшить его через AI (рекомендуем {promptAssistantModel}, списывает 1 ⭐️звезду).
                       </p>
                     </div>
                   </div>
@@ -410,7 +410,7 @@ export const EditingPage: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="text-base font-bold text-dark-900 mb-2">Прозрачная оплата</h3>
                       <p className="text-sm text-dark-600">
-                        1 кредит за сообщение AI. Генерация: 1 действие по подписке или 2 кредита без подписки.
+                        1 ⭐️звезда за сообщение AI. Генерация: 1 действие по подписке или 2 ⭐️звезды без подписки.
                       </p>
                     </div>
                   </div>

@@ -17,6 +17,8 @@ import type {
   UserProfileResponse,
   SendVerificationEmailResponse,
   VerifyEmailResponse,
+  PasswordResetRequest,
+  PasswordResetConfirm,
 } from '../types/auth';
 
 /**
@@ -106,6 +108,30 @@ export async function sendVerificationEmail(): Promise<SendVerificationEmailResp
 export async function verifyEmail(token: string): Promise<VerifyEmailResponse> {
   const response = await client.get<VerifyEmailResponse>(
     `/api/v1/auth-web/verify?token=${encodeURIComponent(token)}`
+  );
+  return response.data;
+}
+
+// ============================================================================
+// Password reset
+// ============================================================================
+
+export async function requestPasswordReset(
+  payload: PasswordResetRequest
+): Promise<{ message: string }> {
+  const response = await client.post<{ message: string }>(
+    '/api/v1/auth-web/password-reset/request',
+    payload
+  );
+  return response.data;
+}
+
+export async function confirmPasswordReset(
+  payload: PasswordResetConfirm
+): Promise<{ message: string }> {
+  const response = await client.post<{ message: string }>(
+    '/api/v1/auth-web/password-reset/confirm',
+    payload
   );
   return response.data;
 }

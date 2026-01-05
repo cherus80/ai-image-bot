@@ -16,7 +16,7 @@ from fastapi import UploadFile, HTTPException, status
 
 from app.core.config import settings
 from app.services.file_validator import get_file_extension
-from app.utils.image_utils import normalize_image_bytes
+from app.utils.image_utils import normalize_image_bytes, convert_image_bytes_to_webp
 
 
 class FileStorageError(Exception):
@@ -54,12 +54,13 @@ def _get_file_path(file_id: UUID, extension: str) -> Path:
 
 async def save_upload_file(
     file: UploadFile,
-    user_id: int
+    user_id: int,
+    convert_to_webp: bool = False,
 ) -> tuple[UUID, str, int]:
     """
     Сохранить загруженный файл.
 
-    JPEG/PNG файлы сохраняются как есть без конвертации.
+    JPEG/PNG файлы сохраняются как есть без конвертации (если не включён convert_to_webp).
     Нестандартные форматы (HEIC/HEIF) конвертируются в PNG в Celery task.
 
     Args:
@@ -84,11 +85,14 @@ async def save_upload_file(
         # Чтение содержимого файла
         content = await file.read()
 
-        # Нормализация ориентации/EXIF для изображений
+        # Нормализация ориентации/EXIF для изображений или конвертация в WebP
         try:
-            content, extension = normalize_image_bytes(content, extension)
-        except Exception as norm_err:
-            # Не падаем, если нормализация не удалась
+            if convert_to_webp:
+                content, extension = convert_image_bytes_to_webp(content, extension)
+            else:
+                content, extension = normalize_image_bytes(content, extension)
+        except Exception:
+            # Не падаем, если обработка не удалась
             pass
 
         # Получение пути для сохранения (с учётом возможного обновления расширения)

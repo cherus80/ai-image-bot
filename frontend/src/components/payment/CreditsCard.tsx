@@ -48,7 +48,7 @@ export const CreditsCard: React.FC<CreditsCardProps> = ({
         </div>
       )}
 
-      {/* Количество кредитов */}
+      {/* Количество звезд */}
       <div className="text-center mb-4">
         <div className="flex items-baseline justify-center">
           <span className="text-4xl font-bold text-gray-900 max-[360px]:text-3xl">
@@ -56,18 +56,18 @@ export const CreditsCard: React.FC<CreditsCardProps> = ({
           </span>
           {hasBonus && (
             <span className="ml-2 text-sm font-semibold text-green-600 max-[360px]:text-xs">
-              (+{bonusCredits} бонусных)
+              (+{bonusCredits} бонусных ⭐️)
             </span>
           )}
         </div>
         <div className="text-sm text-gray-600 mt-1 max-[360px]:text-[12px]">
           {hasBonus ? (
             <>
-              <span className="font-semibold">{totalCredits} кредитов</span>
+              <span className="font-semibold">{totalCredits} ⭐️звезд</span>
               <span className="text-green-600 ml-1">(с бонусом)</span>
             </>
           ) : (
-            'кредитов'
+            '⭐️звезд'
           )}
         </div>
       </div>
@@ -86,9 +86,9 @@ export const CreditsCard: React.FC<CreditsCardProps> = ({
           <span className="ml-1 text-gray-600">{pkg.currency}</span>
         </div>
 
-        {/* Стоимость за кредит */}
+        {/* Стоимость за звезду */}
         <div className="text-center text-sm text-gray-500 mt-2 max-[360px]:text-[12px]">
-          ~{(pkg.price / totalCredits).toFixed(2)} {pkg.currency} за кредит
+          ~{(pkg.price / totalCredits).toFixed(2)} {pkg.currency} за ⭐️звезду
         </div>
 
         {/* Экономия при бонусе */}
@@ -113,7 +113,7 @@ export const CreditsCard: React.FC<CreditsCardProps> = ({
                 до {editsWithAssistant}-{editsWithoutAssistant} раз
               </div>
               <div className="text-[10px] leading-tight text-gray-500 max-[360px]:text-[9px]">
-                2 кредита за действие, +1 при использовании AI-помощника
+                2 ⭐️звезды за действие, +1 при использовании AI-помощника
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@ export const CreditsCard: React.FC<CreditsCardProps> = ({
 
       {/* Срок действия */}
       <div className="mt-3 text-center text-xs text-gray-500">
-        Кредиты не сгорают
+        ⭐️Звезды не сгорают
       </div>
     </div>
   );

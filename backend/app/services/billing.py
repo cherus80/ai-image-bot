@@ -49,31 +49,31 @@ DEFAULT_SUBSCRIPTION_TARIFFS = {
     },
 }
 
-# Пакеты кредитов
+# Пакеты ⭐️звезд
 DEFAULT_CREDITS_PACKAGES = {
     "small": {
-        "name": "20 кредитов",
+        "name": "20 ⭐️звезд",
         "price": Decimal("100.00"),
         "credits_amount": 20,
-        "description": "Разовая покупка кредитов",
+        "description": "Разовая покупка ⭐️звезд",
     },
     "medium": {
-        "name": "50 кредитов",
+        "name": "50 ⭐️звезд",
         "price": Decimal("230.00"),
         "credits_amount": 50,
-        "description": "Разовая покупка кредитов",
+        "description": "Разовая покупка ⭐️звезд",
     },
     "large": {
-        "name": "100 кредитов",
+        "name": "100 ⭐️звезд",
         "price": Decimal("400.00"),
         "credits_amount": 100,
-        "description": "Разовая покупка кредитов",
+        "description": "Разовая покупка ⭐️звезд",
     },
     "pro": {
-        "name": "250 кредитов",
+        "name": "250 ⭐️звезд",
         "price": Decimal("900.00"),
         "credits_amount": 250,
-        "description": "Разовая покупка кредитов",
+        "description": "Разовая покупка ⭐️звезд",
         "is_popular": True,
     },
 }
@@ -107,7 +107,7 @@ def _build_subscription_tariffs() -> dict:
 
 def _build_credit_packages() -> dict:
     """
-    Построить пакеты кредитов из настроек (fallback на дефолт).
+    Построить пакеты ⭐️звезд из настроек (fallback на дефолт).
     """
     config = settings.BILLING_CREDIT_PACKAGES or {}
     if not config:
@@ -118,10 +118,10 @@ def _build_credit_packages() -> dict:
         credits = data.get("credits") or data.get("credits_amount") or 0
         price = Decimal(str(data.get("price", 0)))
         packages[package_id] = {
-            "name": data.get("name") or f"{credits} кредитов",
+            "name": data.get("name") or f"{credits} ⭐️звезд",
             "price": price,
             "credits_amount": credits,
-            "description": data.get("description") or "Разовая покупка кредитов",
+            "description": data.get("description") or "Разовая покупка ⭐️звезд",
             "is_popular": data.get("is_popular", False),
         }
     return packages

@@ -48,9 +48,9 @@ export const PricingPage: React.FC = () => {
       <p className="text-sm text-dark-600">{tariff.description}</p>
       <p className="text-3xl font-bold text-dark-900">{Number(tariff.price)} ₽</p>
       <ul className="text-sm text-dark-700 space-y-1">
-        <li>Действий/кредитов: {tariff.credits_amount ?? 0}</li>
+        <li>Действий/⭐️звезд: {tariff.credits_amount ?? 0}</li>
         {isSubscription && tariff.duration_days && <li>Срок: {tariff.duration_days} дней</li>}
-        {!isSubscription && <li>Кредиты не сгорают</li>}
+        {!isSubscription && <li>⭐️Звезды не сгорают</li>}
       </ul>
       <Link
         to="/register"
@@ -66,9 +66,9 @@ export const PricingPage: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-10">
         <div className="text-center space-y-3">
           <p className="text-sm font-semibold text-primary-600 uppercase">Тарифы и пакеты</p>
-          <h1 className="text-4xl font-bold text-dark-900">Подписки и кредиты</h1>
+          <h1 className="text-4xl font-bold text-dark-900">Подписки и ⭐️Звезды</h1>
           <p className="text-dark-600">
-            Цены совпадают с теми, что уходят в ЮKassa. После оплаты кредиты или подписка начисляются автоматически.
+            Цены совпадают с теми, что уходят в ЮKassa. После оплаты ⭐️звезды или подписка начисляются автоматически.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export const PricingPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-dark-900 mb-4">Кредиты</h2>
+              <h2 className="text-2xl font-bold text-dark-900 mb-4">⭐️Звезды</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {data.credits_packages.map((t) => renderCard(t, false))}
               </div>
@@ -99,8 +99,8 @@ export const PricingPage: React.FC = () => {
           <h3 className="text-xl font-semibold text-dark-900">Как получить результат</h3>
           <ul className="text-sm text-dark-700 space-y-1">
             <li>1) Зарегистрируйтесь и подтвердите e-mail.</li>
-            <li>2) Выберите тариф или пакет кредитов, оплатите через ЮKassa.</li>
-            <li>3) Кредиты/подписка начисляются автоматически, баланс виден в профиле.</li>
+            <li>2) Выберите тариф или пакет ⭐️звезд, оплатите через ЮKassa.</li>
+            <li>3) ⭐️Звезды/подписка начисляются автоматически, баланс виден в профиле.</li>
             <li>4) История результатов доступна в разделе “История”. Фото хранятся 24 часа, чаты — 30 дней.</li>
           </ul>
           <div className="flex flex-wrap gap-3 text-sm font-semibold text-primary-700">

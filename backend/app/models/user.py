@@ -307,6 +307,12 @@ class User(Base, TimestampMixin):
         cascade="all, delete-orphan",
     )
 
+    password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship(
+        "PasswordResetToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
     # Индексы
     __table_args__ = (
         Index("idx_email", "email"),

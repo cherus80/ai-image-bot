@@ -242,7 +242,7 @@ export const ProfilePage: React.FC = () => {
     return (
       <AuthGuard>
         <Layout
-          title="Покупка кредитов"
+          title="Покупка ⭐️звезд"
           subtitle="Выберите подходящий тариф"
           backTo="/profile"
           onBack={() => {
@@ -317,12 +317,12 @@ export const ProfilePage: React.FC = () => {
                 <div className="flex-1">
                   <div className="text-sm text-primary-900 font-semibold">Приветственный бонус активен</div>
                   <div className="text-xs text-gray-600">
-                    Вам начислены приветственные кредиты при регистрации. Сначала тратятся бонусные кредиты, затем подписка или оплаченные пакеты.
+                    Вам начислены приветственные ⭐️звезды при регистрации. Сначала тратятся бонусные ⭐️звезды, затем подписка или оплаченные пакеты.
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-primary-800">{user.balance_credits}</div>
-                  <div className="text-xs text-gray-500">Текущий баланс кредитов</div>
+                  <div className="text-xs text-gray-500">Текущий баланс ⭐️звезд</div>
                 </div>
               </div>
             </Card>
@@ -351,7 +351,7 @@ export const ProfilePage: React.FC = () => {
 
         {/* Баланс и подписка */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Баланс кредитов */}
+          {/* Баланс ⭐️звезд */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -363,7 +363,7 @@ export const ProfilePage: React.FC = () => {
 
               <div className="relative z-10 p-6 text-white">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold">Баланс кредитов</h2>
+                  <h2 className="text-lg font-semibold">Баланс ⭐️звезд</h2>
                   <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                     <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -371,7 +371,7 @@ export const ProfilePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-5xl font-bold mb-2">{user.balance_credits}</div>
-                <p className="text-secondary-100 text-sm font-medium">кредитов доступно</p>
+                <p className="text-secondary-100 text-sm font-medium">⭐️звезд доступно</p>
               </div>
             </Card>
           </motion.div>
@@ -447,7 +447,7 @@ export const ProfilePage: React.FC = () => {
             }
             className="shadow-glow-primary"
           >
-            Купить кредиты или подписку
+            Купить ⭐️звезды или подписку
           </Button>
         </motion.div>
 
@@ -544,8 +544,8 @@ export const ProfilePage: React.FC = () => {
                                   {payment.payment_type === 'subscription'
                                     ? `Подписка ${payment.subscription_type || ''}`.trim()
                                     : payment.credits_amount
-                                      ? `${payment.credits_amount} кредитов`
-                                      : 'Покупка кредитов'}
+                                      ? `${payment.credits_amount} ⭐️звезд`
+                                      : 'Покупка ⭐️звезд'}
                                 </span>
                                 {getPaymentStatusBadge(payment.status)}
                               </div>
@@ -641,7 +641,7 @@ export const ProfilePage: React.FC = () => {
                     <div className="text-3xl font-bold text-secondary-700 mb-1">
                       {referralStats.total_earned}
                     </div>
-                    <div className="text-xs font-semibold text-secondary-600">Заработано, кредитов</div>
+                    <div className="text-xs font-semibold text-secondary-600">Заработано, ⭐️звезд</div>
                   </div>
                 </Card>
               </div>
@@ -694,7 +694,7 @@ export const ProfilePage: React.FC = () => {
                   />
                 </div>
                 <p className="text-xs text-dark-600 mt-3 font-medium bg-accent-50 border border-accent-200 rounded-lg p-3">
-                  💰 Приглашайте друзей: 10 кредитов за каждого, кто оплатит подписку или покупку кредитов.
+                  💰 Приглашайте друзей: 10 ⭐️звезд за каждого, кто оплатит подписку или покупку ⭐️звезд.
                 </p>
               </Card>
 
@@ -725,7 +725,7 @@ export const ProfilePage: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-semibold text-gray-900">
-                            +{referral.credits_awarded} кредитов
+                            +{referral.credits_awarded} ⭐️звезд
                           </div>
                           <div className="text-xs text-gray-500">
                             {new Date(referral.created_at).toLocaleDateString('ru-RU')}

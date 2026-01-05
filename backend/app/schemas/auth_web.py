@@ -55,7 +55,7 @@ class UserProfile(BaseModel):
     last_name: Optional[str] = Field(None, description="Last name")
 
     # Balance & Subscription
-    balance_credits: int = Field(..., description="Credit balance")
+    balance_credits: int = Field(..., description="Stars balance")
     subscription_type: Optional[str] = Field(None, description="Subscription type (basic, standard, premium)")
     subscription_started_at: Optional[datetime] = Field(None, description="Subscription activation date")
     subscription_expires_at: Optional[datetime] = Field(None, description="Subscription expiration date")
@@ -70,7 +70,7 @@ class UserProfile(BaseModel):
     can_use_freemium: bool = Field(..., description="Can use Freemium actions")
     freemium_actions_remaining: int = Field(default=0, description="Freemium remaining (v5: 0)")
     freemium_actions_limit: int = Field(default=0, description="Freemium limit (v5: 0)")
-    free_trial_granted: bool = Field(default=False, description="Welcome credits already granted")
+    free_trial_granted: bool = Field(default=False, description="Welcome stars already granted")
 
     # Status
     is_blocked: bool = Field(..., description="Is user blocked/banned")
@@ -189,6 +189,56 @@ class LoginResponse(BaseModel):
         ...,
         description="User profile data"
     )
+
+
+# ============================================================================
+# Password reset
+# ============================================================================
+
+
+class PasswordResetRequest(BaseModel):
+    """Запрос на сброс пароля (отправка письма)"""
+
+    email: EmailStr = Field(
+        ...,
+        description="Email address",
+        example="user@example.com",
+    )
+
+
+class PasswordResetResponse(BaseModel):
+    """Ответ на запрос сброса пароля"""
+
+    message: str
+
+
+class PasswordResetConfirmRequest(BaseModel):
+    """Подтверждение сброса пароля"""
+
+    token: str = Field(..., min_length=10)
+    new_password: str = Field(
+        ...,
+        min_length=8,
+        max_length=100,
+        description="New password",
+        example="MySecurePass123!",
+    )
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        from app.utils.password import is_strong_password
+
+        is_valid, error_msg = is_strong_password(v)
+        if not is_valid:
+            raise ValueError(error_msg)
+        return v
+
+
+class PasswordResetConfirmResponse(BaseModel):
+    """Ответ после успешного сброса пароля"""
+
+    message: str
 
 
 # ============================================================================

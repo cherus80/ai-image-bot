@@ -38,7 +38,7 @@ class UserProfile(BaseModel):
     language_code: Optional[str] = Field(None, description="Код языка")
 
     # Баланс и подписка
-    balance_credits: int = Field(..., description="Баланс кредитов")
+    balance_credits: int = Field(..., description="Баланс ⭐️звезд")
     subscription_type: Optional[str] = Field(None, description="Тип подписки")
     subscription_expires_at: Optional[datetime] = Field(
         None,
@@ -88,7 +88,7 @@ class UserProfile(BaseModel):
     )
     free_trial_granted: bool = Field(
         default=False,
-        description="Выдан ли приветственный бонус кредитов",
+        description="Выдан ли приветственный бонус ⭐️звезд",
     )
 
     # Метаданные

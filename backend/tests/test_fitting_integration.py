@@ -253,7 +253,7 @@ class TestFittingWorkflow:
 
             assert test_user_premium.subscription_ops_used == initial_used + 1
 
-            # Кредиты не должны списываться
+            # ⭐️Звезды не должны списываться
             assert test_user_premium.balance_credits == 0
 
 
@@ -393,7 +393,7 @@ class TestErrorHandling:
             # API может вернуть 500 или 400
             assert response.status_code >= 400
 
-            # Кредиты НЕ должны списаться при ошибке
+            # ⭐️Звезды НЕ должны списаться при ошибке
             await test_db.refresh(test_user_with_credits)
             assert test_user_with_credits.balance_credits == initial_credits
 

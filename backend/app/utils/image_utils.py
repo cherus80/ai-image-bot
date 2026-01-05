@@ -131,6 +131,35 @@ def normalize_image_bytes(image_bytes: bytes, fallback_ext: Optional[str] = None
         return image_bytes, (fallback_ext or "png").lower()
 
 
+def convert_image_bytes_to_webp(
+    image_bytes: bytes,
+    fallback_ext: Optional[str] = None,
+    quality: int = 85,
+) -> tuple[bytes, str]:
+    """
+    Конвертирует изображение в WebP (с учётом EXIF-поворота).
+
+    Возвращает исходные байты, если конвертация не удалась.
+    """
+    try:
+        with Image.open(BytesIO(image_bytes)) as im:
+            oriented = ImageOps.exif_transpose(im)
+            if oriented.mode not in ("RGB", "RGBA"):
+                oriented = oriented.convert("RGBA")
+
+            buf = BytesIO()
+            oriented.save(
+                buf,
+                format="WEBP",
+                quality=quality,
+                method=6,
+            )
+            return buf.getvalue(), "webp"
+    except Exception as err:
+        logger.warning("Failed to convert image to webp: %s", err)
+        return image_bytes, (fallback_ext or "png").lower()
+
+
 def pad_image_to_match_reference(
     reference_path: str | Path,
     image_path: str | Path,

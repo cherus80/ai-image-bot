@@ -23,7 +23,7 @@ class PaymentCreateRequest(BaseModel):
 
     payment_type: PaymentType = Field(
         ...,
-        description="Тип платежа: subscription (подписка) или credits (кредиты)",
+        description="Тип платежа: subscription (подписка) или credits (⭐️звезды)",
     )
     subscription_type: Optional[SubscriptionType] = Field(
         None,
@@ -31,7 +31,7 @@ class PaymentCreateRequest(BaseModel):
     )
     credits_amount: Optional[int] = Field(
         None,
-        description="Количество кредитов (только для payment_type=credits)",
+        description="Количество ⭐️звезд (только для payment_type=credits)",
         ge=20,
         le=10000,
     )
@@ -57,7 +57,7 @@ class PaymentCreateRequest(BaseModel):
     def validate_credits_amount(
         cls, v: Optional[int], info
     ) -> Optional[int]:
-        """Валидация количества кредитов"""
+        """Валидация количества ⭐️звезд"""
         payment_type = info.data.get("payment_type")
 
         if payment_type == "credits" and v is None:
@@ -132,7 +132,7 @@ class PaymentHistoryItem(BaseModel):
     )
     credits_amount: Optional[int] = Field(
         None,
-        description="Количество кредитов (если payment_type=credits)",
+        description="Количество ⭐️звезд (если payment_type=credits)",
     )
     created_at: datetime = Field(
         ...,
@@ -211,7 +211,7 @@ class TariffInfo(BaseModel):
     )
     credits_amount: Optional[int] = Field(
         None,
-        description="Количество кредитов/действий",
+        description="Количество ⭐️звезд/действий",
     )
     actions_limit: Optional[int] = Field(
         None,
@@ -236,7 +236,7 @@ class TariffsListResponse(BaseModel):
     )
     credits_packages: list[TariffInfo] = Field(
         default_factory=list,
-        description="Доступные пакеты кредитов",
+        description="Доступные пакеты ⭐️звезд",
     )
 
 

@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class BillingState(BaseModel):
     billing_v5_enabled: bool = Field(..., description="Флаг включённого биллинга v5")
-    credits_balance: int = Field(..., description="Баланс кредитов")
+    credits_balance: int = Field(..., description="Баланс ⭐️звезд")
 
     plan_id: Optional[str] = Field(None, description="Активный план подписки")
     plan_active: bool = Field(..., description="Подписка активна")

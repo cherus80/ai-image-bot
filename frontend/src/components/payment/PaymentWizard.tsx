@@ -1,7 +1,7 @@
 /**
  * PaymentWizard Component
  * Пошаговый мастер оплаты (квиз)
- * Шаг 1: Выбор типа (Подписка / Кредиты)
+ * Шаг 1: Выбор типа (Подписка / ⭐️Звезды)
  * Шаг 2: Выбор тарифа
  * Шаг 3: Подтверждение и оплата
  */
@@ -141,7 +141,7 @@ export const PaymentWizard: React.FC = () => {
           </div>
         </div>
 
-        {/* Кредиты */}
+        {/* ⭐️Звезды */}
         <div
           className={`
             p-6 rounded-xl border-2 cursor-pointer transition-all
@@ -169,7 +169,7 @@ export const PaymentWizard: React.FC = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Кредиты</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">⭐️Звезды</h3>
             <p className="text-sm text-gray-600 mb-4">
               Разовая покупка для эпизодического использования
             </p>
@@ -178,7 +178,7 @@ export const PaymentWizard: React.FC = () => {
                 <svg className="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Кредиты не сгорают
+                ⭐️Звезды не сгорают
               </li>
               <li className="flex items-center">
                 <svg className="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,7 +246,7 @@ export const PaymentWizard: React.FC = () => {
               </svg>
             </button>
             <h2 className="text-2xl font-bold text-gray-900">
-              Выберите пакет кредитов
+              Выберите пакет ⭐️Звезд
             </h2>
           </div>
 
@@ -297,7 +297,7 @@ export const PaymentWizard: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span>Текущий баланс:</span>
-              <span className="font-medium">{user?.balance_credits || 0} кредитов</span>
+              <span className="font-medium">{user?.balance_credits || 0} ⭐️звезд</span>
             </div>
             {user?.subscription_type !== 'none' && (
               <div className="flex justify-between">

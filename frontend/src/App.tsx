@@ -8,6 +8,8 @@ import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import { ErrorPage } from './pages/ErrorPage';
 import { EmailVerificationPage } from './pages/EmailVerificationPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import MockPaymentEmulator from './pages/MockPaymentEmulator';
 import { HistoryPage } from './pages/HistoryPage';
 import { VerifyRequiredPage } from './pages/VerifyRequiredPage';
@@ -32,6 +34,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify" element={<EmailVerificationPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-required" element={<VerifyRequiredPage />} />
           <Route path="/vk/callback" element={<VKCallbackPage />} />
 

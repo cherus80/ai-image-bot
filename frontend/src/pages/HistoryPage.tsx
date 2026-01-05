@@ -101,7 +101,7 @@ export function HistoryPage() {
                           </span>
                         </div>
                         <div className="flex items-center space-x-3 text-sm text-gray-700">
-                          <span>Кредиты: {item.credits_spent ?? 0}</span>
+                          <span>⭐️Звезды: {item.credits_spent ?? 0}</span>
                           {renderType(item.generation_type)}
                         </div>
                       </div>

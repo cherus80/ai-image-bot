@@ -79,7 +79,7 @@ export const PromptSelector: React.FC<PromptSelectorProps> = ({
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="primary" size="sm">{promptAssistantModel}</Badge>
-          <Badge variant="warning" size="sm">Ассистент −1 кредит</Badge>
+          <Badge variant="warning" size="sm">Ассистент −1 ⭐️звезда</Badge>
       </div>
       </div>
 
@@ -214,7 +214,7 @@ export const PromptSelector: React.FC<PromptSelectorProps> = ({
             </div>
             <div className="flex-1">
               <p className="text-sm text-dark-700 leading-relaxed">
-                <span className="font-semibold">Генерация изображения списывает 2 кредита.</span> AI-ассистент уже списал 1 кредит за улучшение промпта — подтвердите или подредактируйте перед стартом.
+                <span className="font-semibold">Генерация изображения списывает 2 ⭐️звезды.</span> AI-ассистент уже списал 1 ⭐️звезду за улучшение промпта — подтвердите или подредактируйте перед стартом.
               </p>
             </div>
           </div>

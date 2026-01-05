@@ -74,7 +74,7 @@ class FittingResult(BaseModel):
         description="Есть ли водяной знак (для Freemium)"
     )
     error_message: Optional[str] = Field(None, description="Сообщение об ошибке")
-    credits_spent: int = Field(default=2, description="Потрачено кредитов")
+    credits_spent: int = Field(default=2, description="Потрачено ⭐️звезд")
     created_at: str = Field(..., description="Дата создания")
 
 

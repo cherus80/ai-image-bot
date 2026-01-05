@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({ balance, subscriptionType, onMen
   return (
     <div className="flex items-center p-4 justify-between bg-white/10 dark:bg-black/20 backdrop-blur-sm">
       <h2 className="text-slate-800 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1">
-        Баланс: {balance} {balance === 1 ? 'кредит' : balance < 5 ? 'кредита' : 'кредитов'}
+        Баланс: {balance} ⭐️{balance === 1 ? 'звезда' : balance < 5 ? 'звезды' : 'звезд'}
       </h2>
       <div className="flex items-center justify-end gap-4">
         {getSubscriptionBadge()}

@@ -121,7 +121,7 @@ class Generation(Base, TimestampMixin):
         comment="ID задачи Celery для отслеживания",
     )
 
-    # Кредиты и токены
+    # ⭐️Звезды и токены
     credits_spent: Mapped[int] = mapped_column(
         Integer,
         default=0,

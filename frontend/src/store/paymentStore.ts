@@ -146,7 +146,7 @@ export const usePaymentStore = create<PaymentState>()(
         );
 
         if (!pkg) {
-          set({ error: 'Пакет кредитов не найден' });
+          set({ error: 'Пакет ⭐️звезд не найден' });
           return;
         }
 
@@ -161,7 +161,7 @@ export const usePaymentStore = create<PaymentState>()(
             type: 'credits',
             credits_amount: creditsAmount,
             price: pkg.price,
-            description: `${totalCredits} кредитов${bonusText}`,
+            description: `${totalCredits} ⭐️звезд${bonusText}`,
           },
           error: null,
         });

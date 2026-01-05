@@ -120,6 +120,37 @@ async def upload_instruction_image(
         file_id, file_url, file_size = await save_upload_file(
             file,
             user_id=admin.id,
+            convert_to_webp=True,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Не удалось сохранить файл: {exc}",
+        )
+
+    return InstructionUploadResponse(
+        file_id=str(file_id),
+        file_url=file_url,
+        file_size=file_size,
+    )
+
+
+@router.post(
+    "/examples/upload-image",
+    response_model=InstructionUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_example_image(
+    admin: AdminUser,
+    file: UploadFile = File(..., description="Изображение (JPEG/PNG/WebP/HEIC)"),
+) -> InstructionUploadResponse:
+    await validate_image_file(file)
+
+    try:
+        file_id, file_url, file_size = await save_upload_file(
+            file,
+            user_id=admin.id,
+            convert_to_webp=True,
         )
     except Exception as exc:
         raise HTTPException(

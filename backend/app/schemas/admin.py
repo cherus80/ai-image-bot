@@ -373,7 +373,7 @@ class UserActivityStats(BaseModel):
     active_this_month: int = Field(..., description="Активных за месяц")
     top_users: list[TopUserByGenerations] = Field(..., description="Топ 10 пользователей по генерациям")
     avg_generations_per_user: float = Field(..., description="Среднее количество генераций на пользователя")
-    total_credits_spent: int = Field(..., description="Всего потрачено кредитов")
+    total_credits_spent: int = Field(..., description="Всего потрачено ⭐️звезд")
 
 
 # ============================================================================
@@ -381,8 +381,8 @@ class UserActivityStats(BaseModel):
 # ============================================================================
 
 class UpdateCreditsRequest(BaseModel):
-    """Запрос на установку нового баланса кредитов пользователю."""
-    new_balance: int = Field(..., ge=0, description="Итоговый баланс кредитов")
+    """Запрос на установку нового баланса ⭐️звезд пользователю."""
+    new_balance: int = Field(..., ge=0, description="Итоговый баланс ⭐️звезд")
     reason: str | None = Field(
         default=None,
         min_length=3,
@@ -400,7 +400,7 @@ class UpdateCreditsRequest(BaseModel):
 
 
 class UpdateCreditsResponse(BaseModel):
-    """Ответ на редактирование баланса кредитов."""
+    """Ответ на редактирование баланса ⭐️звезд."""
     success: bool
     user_id: int
     previous_balance: int = Field(..., description="Баланс до изменений")
@@ -431,7 +431,7 @@ class ReferralStatsItem(BaseModel):
     username: str | None
     referrals_count: int = Field(..., description="Количество приглашенных")
     active_referrals: int = Field(..., description="Активных рефералов")
-    credits_earned: int = Field(..., description="Заработано кредитов")
+    credits_earned: int = Field(..., description="Заработано ⭐️звезд")
 
     class Config:
         json_schema_extra = {
@@ -450,7 +450,7 @@ class ReferralStatsResponse(BaseModel):
     """Ответ со статистикой рефералов."""
     stats: list[ReferralStatsItem]
     total_referrals: int = Field(..., description="Всего рефералов в системе")
-    total_credits_earned: int = Field(..., description="Всего заработано кредитов")
+    total_credits_earned: int = Field(..., description="Всего заработано ⭐️звезд")
 
 
 # ============================================================================

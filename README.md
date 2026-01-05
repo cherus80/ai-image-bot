@@ -176,7 +176,7 @@ docker-compose exec backend alembic upgrade head
   - Basic: 369₽ — 80 действий/месяц
   - Standard: 599₽ — 130 действий/месяц (Pro — legacy алиас)
   - Premium: 1099₽ — 250 действий/месяц
-- **Кредиты**: 199₽ за 100 кредитов
+- **⭐️Звезды**: 199₽ за 100 кредитов
 - Интеграция с ЮKassa (webhook)
 - Учёт НПД (4%) и комиссии ЮKassa (2.8%)
 

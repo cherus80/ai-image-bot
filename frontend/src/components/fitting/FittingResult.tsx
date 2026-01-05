@@ -168,7 +168,7 @@ export const FittingResult: React.FC<FittingResultProps> = ({ onNewFitting }) =>
         {/* Info */}
         <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Потрачено кредитов:</span>
+            <span className="text-gray-600">Потрачено ⭐️звезд:</span>
             <span className="font-semibold text-gray-900">{result.credits_spent}</span>
           </div>
           {result.has_watermark && (

@@ -23,7 +23,7 @@ const TYPE_LABELS: Record<InstructionType, string> = {
   text: 'Текстовые инструкции',
 };
 
-const MAX_VIDEO_SIZE_MB = 100;
+const MAX_VIDEO_SIZE_MB = 200;
 const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
 
 const isVideoSizeAllowed = (file: File): boolean => {
@@ -366,7 +366,7 @@ export const InstructionsManager: React.FC = () => {
                 disabled={uploadingImageNew}
               />
               <p className="text-xs text-gray-500">
-                Изображение вставляется как Markdown: <span className="font-mono">![описание](url)</span>
+                Изображение вставляется как Markdown: <span className="font-mono">![описание](url)</span>. Загруженные файлы конвертируются в WebP.
               </p>
               {uploadingImageNew && (
                 <p className="text-xs text-gray-500">Загрузка изображения...</p>
@@ -502,7 +502,7 @@ export const InstructionsManager: React.FC = () => {
                       disabled={uploadingImageId === item.id}
                     />
                     <p className="text-xs text-gray-500">
-                      Изображение вставится в текст Markdown-строкой.
+                      Изображение вставится в текст Markdown-строкой (загрузка конвертируется в WebP).
                     </p>
                     {uploadingImageId === item.id && (
                       <p className="text-xs text-gray-500">Загрузка изображения...</p>

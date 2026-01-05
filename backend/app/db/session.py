@@ -79,7 +79,18 @@ async def init_db() -> None:
     """
     from app.db.base import Base  # noqa
     # Импорт всех моделей для регистрации в metadata
-    from app.models import user, generation, chat, payment, referral, user_consent, instruction, generation_example  # noqa
+    from app.models import (
+        user,
+        generation,
+        chat,
+        payment,
+        referral,
+        user_consent,
+        instruction,
+        generation_example,
+        email_verification,
+        password_reset,
+    )  # noqa
 
     async with engine.begin() as conn:
         # Создание всех таблиц

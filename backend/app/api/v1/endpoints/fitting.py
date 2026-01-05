@@ -90,7 +90,7 @@ async def upload_photo(
     summary="Запустить генерацию примерки",
     description=(
         "Запускает генерацию примерки одежды/аксессуара.\n\n"
-        "Стоимость: 1 действие по подписке или 2 кредита\n\n"
+        "Стоимость: 1 действие по подписке или 2 ⭐️звезды\n\n"
         "Требуется подтверждённый email для доступа.\n\n"
         "Возвращает task_id для отслеживания прогресса через WebSocket или polling."
     )
@@ -158,7 +158,7 @@ async def generate_fitting(
         if not can_perform:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Insufficient credits"
+                detail="Insufficient stars"
             )
 
     # Создание записи Generation в БД

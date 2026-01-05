@@ -5,8 +5,8 @@ import {
   createExample,
   updateExample,
   deleteExample,
+  uploadExampleImage,
 } from '../../api/admin';
-import { uploadAttachment } from '../../api/editing';
 import { FileUpload } from '../common/FileUpload';
 import type { GenerationExampleAdminItem } from '../../types/content';
 
@@ -63,13 +63,13 @@ export const ExamplesManager: React.FC = () => {
   const handleUpload = async (file: File, target: number | 'new') => {
     setUploadingId(target);
     try {
-      const uploaded = await uploadAttachment(file);
+      const uploaded = await uploadExampleImage(file);
       if (target === 'new') {
-        setNewImageUrl(uploaded.url);
+        setNewImageUrl(uploaded.file_url);
       } else {
         setItems((prev) =>
           prev.map((row) =>
-            row.id === target ? { ...row, draftImageUrl: uploaded.url } : row
+            row.id === target ? { ...row, draftImageUrl: uploaded.file_url } : row
           )
         );
       }
@@ -239,7 +239,7 @@ export const ExamplesManager: React.FC = () => {
           preview={newImageUrl ? resolveImageUrl(newImageUrl) : null}
           isLoading={uploadingId === 'new'}
           label="Изображение примера"
-          hint="Загрузите сгенерированное изображение, до 10MB"
+          hint="Загрузите сгенерированное изображение, до 10MB (конвертируется в WebP)"
         />
         <button
           onClick={handleCreate}
@@ -370,7 +370,7 @@ export const ExamplesManager: React.FC = () => {
                     preview={resolveImageUrl(item.draftImageUrl)}
                     isLoading={uploadingId === item.id}
                     label="Изображение"
-                    hint="Нажмите для замены"
+                    hint="Нажмите для замены (конвертируется в WebP)"
                   />
                   <div className="flex flex-wrap items-center gap-2">
                     <button

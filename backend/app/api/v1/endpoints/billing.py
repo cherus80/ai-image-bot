@@ -1,7 +1,7 @@
 """
 Billing v5 endpoints.
 
-- GET /billing/state — текущее состояние лимитов/кредитов
+- GET /billing/state — текущее состояние лимитов/⭐️звезд
 - GET /billing/ledger — история списаний/начислений
 """
 
@@ -23,7 +23,7 @@ router = APIRouter()
     "/state",
     response_model=BillingState,
     summary="Текущее состояние биллинга",
-    description="Возвращает баланс кредитов и остатки действий по подписке.",
+    description="Возвращает баланс ⭐️звезд и остатки действий по подписке.",
 )
 async def get_billing_state(
     current_user: User = Depends(get_current_active_user),

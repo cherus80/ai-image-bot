@@ -55,7 +55,7 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
 
     if (!hasCredits && !hasActiveSubscription && !isAdmin) {
       setBalanceWarning({
-        description: 'Для примерки нужно 2 кредита или активная подписка с действиями.',
+        description: 'Для примерки нужно 2 ⭐️звезды или активная подписка с действиями.',
         requiredCredits: 2,
         requiredActions: 1,
       });
@@ -123,10 +123,10 @@ export const Step3Zone: React.FC<Step3ZoneProps> = ({ onBack, onGenerate }) => {
           </svg>
           <div className="flex-1">
             <p className="text-sm font-semibold text-gray-900 mb-1">
-              Стоимость генерации: 1 действие по подписке или 2 кредита
+              Стоимость генерации: 1 действие по подписке или 2 ⭐️звезды
             </p>
             <p className="text-xs text-gray-600">
-              Кредиты: {user?.balance_credits || 0}
+              ⭐️Звезды: {user?.balance_credits || 0}
               {hasActiveSubscription && user?.subscription_ops_limit ? (
                 <span className="ml-2 text-blue-600">
                   Действия: {Math.max(user.subscription_ops_remaining || 0, 0)} / {user.subscription_ops_limit}

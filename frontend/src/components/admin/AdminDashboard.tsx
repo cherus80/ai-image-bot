@@ -243,7 +243,7 @@ export const AdminDashboard: React.FC = () => {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Всего потрачено кредитов</p>
+                <p className="text-sm text-gray-600 mb-1">Всего потрачено ⭐️звезд</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatNumber(activity.total_credits_spent)}
                 </p>

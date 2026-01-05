@@ -70,7 +70,7 @@ async def check_user_can_perform_action(
         status_code=status.HTTP_402_PAYMENT_REQUIRED,
         detail={
             "error": "NOT_ENOUGH_BALANCE",
-            "message": "Not enough credits/actions. Please purchase credits or subscribe.",
+            "message": "Not enough stars/actions. Please purchase stars or subscribe.",
             "balance_credits": user.balance_credits,
             "credits_required": credits_cost,
         }
@@ -110,7 +110,7 @@ async def deduct_credits(
     if not can_perform:
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Insufficient credits"
+            detail="Insufficient stars"
         )
 
     # Списание в зависимости от метода оплаты

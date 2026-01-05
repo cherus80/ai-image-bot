@@ -121,7 +121,7 @@ export const copyReferralLink = async (link: string): Promise<boolean> => {
  * @param text - Текст сообщения
  */
 export const shareReferralLink = async (link: string, text?: string): Promise<void> => {
-  const message = text || 'Присоединяйся к AI Generator и получай бонусные кредиты!';
+  const message = text || 'Присоединяйся к AI Generator и получай бонусные ⭐️звезды!';
 
   // Проверяем поддержку Web Share API
   if (navigator.share) {

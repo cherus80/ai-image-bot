@@ -38,7 +38,7 @@ export const OfertaPage: React.FC = () => {
             <li><strong>Сервис</strong> — AI Generator (виртуальная примерка и AI-редактирование изображений), домен ai-generator.mix4.ru.</li>
             <li><strong>Пользователь</strong> — лицо, принявшее оферту.</li>
             <li><strong>Аккаунт</strong> — учётная запись Пользователя в Сервисе.</li>
-            <li><strong>Кредиты</strong> — условные единицы для операций в Сервисе.</li>
+            <li><strong>⭐️Звезды</strong> — условные единицы для операций в Сервисе.</li>
             <li><strong>Подписка</strong> — доступ к пакету операций на период.</li>
           </ul>
         </Card>
@@ -58,7 +58,7 @@ export const OfertaPage: React.FC = () => {
         <Card variant="glass" padding="lg" className="border border-primary-200 space-y-3">
           <h2 className="text-2xl font-bold">4. Услуги и стоимость</h2>
           <ul className="space-y-2 text-dark-700 text-sm leading-relaxed">
-            <li>Тарифы и пакеты кредитов опубликованы на странице /pricing и формируются из текущего предложения Сервиса.</li>
+            <li>Тарифы и пакеты ⭐️звезд опубликованы на странице /pricing и формируются из текущего предложения Сервиса.</li>
             <li>Стоимость указана в российских рублях и отображается в окне оплаты ЮKassa.</li>
           </ul>
         </Card>
@@ -67,7 +67,7 @@ export const OfertaPage: React.FC = () => {
           <h2 className="text-2xl font-bold">5. Порядок оплаты</h2>
           <ul className="space-y-2 text-dark-700 text-sm leading-relaxed">
             <li>Оплата принимается через ЮKassa банковскими картами и иными поддерживаемыми способами.</li>
-            <li>При успешной оплате кредиты или подписка начисляются автоматически в аккаунт.</li>
+            <li>При успешной оплате ⭐️звезды или подписка начисляются автоматически в аккаунт.</li>
             <li>Доступ к операциям предоставляется сразу после начисления.</li>
           </ul>
         </Card>
@@ -85,7 +85,7 @@ export const OfertaPage: React.FC = () => {
         <Card variant="glass" padding="lg" className="border border-primary-200 space-y-3">
           <h2 className="text-2xl font-bold">7. Отказ и возвраты</h2>
           <ul className="space-y-2 text-dark-700 text-sm leading-relaxed">
-            <li>Если операция не выполнена по технической ошибке Сервиса и кредиты списаны, Пользователь вправе запросить перерасчёт или возврат через поддержку: ai-generator@mix4.ru.</li>
+            <li>Если операция не выполнена по технической ошибке Сервиса и ⭐️звезды списаны, Пользователь вправе запросить перерасчёт или возврат через поддержку: ai-generator@mix4.ru.</li>
             <li>Возвраты производятся согласно законодательству РФ и правилам платёжной системы. Обращение — не позднее 14 дней с даты оплаты, с указанием ID платежа.</li>
           </ul>
         </Card>

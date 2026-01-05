@@ -17,7 +17,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,6 +30,10 @@ from app.schemas.auth_web import (
     RegisterRequest,
     LoginRequest,
     LoginResponse,
+    PasswordResetRequest,
+    PasswordResetResponse,
+    PasswordResetConfirmRequest,
+    PasswordResetConfirmResponse,
     GoogleOAuthRequest,
     GoogleOAuthResponse,
     VKOAuthRequest,
@@ -53,6 +57,7 @@ from app.utils.vk_oauth import (
 from app.utils.referrals import generate_referral_code
 from app.services.email import email_service
 from app.models.email_verification import EmailVerificationToken
+from app.models.password_reset import PasswordResetToken
 
 router = APIRouter(prefix="/auth-web", tags=["Web Authentication"])
 # In-memory rate limit for registrations
@@ -432,6 +437,109 @@ async def login_with_email(
         access_token=access_token,
         token_type="bearer",
         user=user_to_profile(user),
+    )
+
+
+@router.post("/password-reset/request", response_model=PasswordResetResponse)
+async def request_password_reset(
+    request: Request,
+    payload: PasswordResetRequest,
+    db: DBSession,
+    background_tasks: BackgroundTasks,
+) -> PasswordResetResponse:
+    """
+    Запросить письмо для сброса пароля.
+
+    Возвращает одинаковый ответ независимо от существования email.
+    """
+    if not email_service.is_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Сервис отправки email не настроен. Попробуйте позже.",
+        )
+
+    result = await db.execute(select(User).where(User.email == payload.email))
+    user = result.scalar_one_or_none()
+
+    # Всегда возвращаем одинаковый ответ, чтобы не раскрывать наличие аккаунта
+    if not user:
+        return PasswordResetResponse(
+            message="Если email зарегистрирован, мы отправили ссылку для сброса пароля."
+        )
+
+    # Помечаем предыдущие токены как использованные
+    now = datetime.utcnow()
+    existing_tokens = await db.execute(
+        select(PasswordResetToken).where(
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.consumed_at.is_(None),
+        )
+    )
+    for token in existing_tokens.scalars().all():
+        token.consumed_at = now
+
+    token_string = secrets.token_urlsafe(32)
+    expires_at = now + timedelta(minutes=settings.PASSWORD_RESET_TOKEN_TTL_MIN)
+
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        token=token_string,
+        expires_at=expires_at,
+        request_ip=request.client.host if request.client else "unknown",
+        user_agent=request.headers.get("User-Agent"),
+    )
+    db.add(reset_token)
+    await db.commit()
+
+    user_name = user.first_name or user.username
+    background_tasks.add_task(
+        email_service.send_password_reset_email,
+        to_email=user.email,
+        reset_token=token_string,
+        user_name=user_name,
+    )
+
+    return PasswordResetResponse(
+        message="Если email зарегистрирован, мы отправили ссылку для сброса пароля."
+    )
+
+
+@router.post("/password-reset/confirm", response_model=PasswordResetConfirmResponse)
+async def confirm_password_reset(
+    payload: PasswordResetConfirmRequest,
+    db: DBSession,
+) -> PasswordResetConfirmResponse:
+    """
+    Подтвердить сброс пароля по токену.
+    """
+    result = await db.execute(
+        select(PasswordResetToken).where(PasswordResetToken.token == payload.token)
+    )
+    reset_token = result.scalar_one_or_none()
+
+    if not reset_token or not reset_token.is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Некорректный или истёкший токен",
+        )
+
+    user = await db.get(User, reset_token.user_id)
+    if not user or not user.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Некорректный токен",
+        )
+
+    user.password_hash = hash_password(payload.new_password)
+    if not user.email_verified:
+        user.email_verified = True
+        user.email_verified_at = datetime.utcnow()
+
+    reset_token.consumed_at = datetime.utcnow()
+    await db.commit()
+
+    return PasswordResetConfirmResponse(
+        message="Пароль обновлён. Войдите с новым паролем."
     )
 
 

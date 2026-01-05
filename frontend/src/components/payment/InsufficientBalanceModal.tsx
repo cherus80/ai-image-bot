@@ -67,11 +67,11 @@ export const InsufficientBalanceModal: React.FC<InsufficientBalanceModalProps> =
 
           <div className="flex flex-wrap items-center gap-2 mb-6">
             <Badge variant="neutral" size="sm">
-              Баланс: {currentCredits} кр.
+              Баланс: {currentCredits} ⭐️
             </Badge>
             {typeof requiredCredits === 'number' && (
               <Badge variant="warning" size="sm">
-                Нужно кредитов: {requiredCredits}
+                Нужно ⭐️звезд: {requiredCredits}
               </Badge>
             )}
             {typeof requiredActions === 'number' && requiredActions > 0 && (
@@ -83,7 +83,7 @@ export const InsufficientBalanceModal: React.FC<InsufficientBalanceModalProps> =
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button variant="primary" size="lg" onClick={onBuyCredits} fullWidth>
-              Купить кредиты
+              Купить ⭐️звезды
             </Button>
             <Button variant="secondary" size="lg" onClick={onBuySubscription} fullWidth>
               Оформить подписку

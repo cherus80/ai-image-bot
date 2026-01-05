@@ -122,15 +122,15 @@ class Settings(BaseSettings):
     # Монетизация
     BILLING_V5_ENABLED: bool = Field(
         default=True,
-        description="Включить биллинг v5 (действия по подписке + кредиты, без freemium)",
+        description="Включить биллинг v5 (действия по подписке + ⭐️звезды, без freemium)",
     )
     BILLING_GENERATION_COST_CREDITS: int = Field(
         default=2,
-        description="Стоимость одной генерации в кредитах",
+        description="Стоимость одной генерации в ⭐️звездах",
     )
     BILLING_ASSISTANT_COST_CREDITS: int = Field(
         default=1,
-        description="Стоимость запроса к AI-ассистенту в кредитах",
+        description="Стоимость запроса к AI-ассистенту в ⭐️звездах",
     )
     BILLING_FREEMIUM_OPS_LIMIT: int = Field(
         default=5,
@@ -138,7 +138,7 @@ class Settings(BaseSettings):
     )
     BILLING_FREE_TRIAL_CREDITS: int = Field(
         default=10,
-        description="Кредиты, выдаваемые при регистрации",
+        description="⭐️Звезды, выдаваемые при регистрации",
     )
     BILLING_SUBSCRIPTION_TIERS: dict = Field(
         default_factory=lambda: {
@@ -157,7 +157,7 @@ class Settings(BaseSettings):
             "large": {"price": 400, "credits": 100},
             "pro": {"price": 900, "credits": 250},
         },
-        description="Пакеты разовой покупки кредитов",
+        description="Пакеты разовой покупки ⭐️звезд",
     )
     BILLING_LEDGER_ENABLED: bool = Field(
         default=True,
@@ -181,7 +181,7 @@ class Settings(BaseSettings):
     # Хранение файлов
     UPLOAD_DIR: str = Field(default="./uploads")
     MAX_FILE_SIZE_MB: int = Field(default=10)
-    MAX_VIDEO_FILE_SIZE_MB: int = Field(default=100)
+    MAX_VIDEO_FILE_SIZE_MB: int = Field(default=200)
     ALLOWED_EXTENSIONS: str = Field(default="jpg,jpeg,png,webp,heic,heif,mpo")
     PHOTO_RETENTION_HOURS: int = Field(default=24, description="Хранение фото для примерки")
     CHAT_HISTORY_RETENTION_DAYS: int = Field(default=30, description="Хранение истории чата")
@@ -312,6 +312,10 @@ class Settings(BaseSettings):
     EMAIL_VERIFICATION_RESEND_PER_IP_PER_HOUR: int = Field(
         default=10,
         description="Max verification emails per IP per hour",
+    )
+    PASSWORD_RESET_TOKEN_TTL_MIN: int = Field(
+        default=30,
+        description="Password reset token validity in minutes",
     )
 
     @field_validator("ENVIRONMENT")

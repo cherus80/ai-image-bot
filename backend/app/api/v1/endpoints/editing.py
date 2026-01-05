@@ -201,7 +201,7 @@ async def create_session(
         "1. Короткий (1-2 предложения)\n"
         "2. Средний (2-3 предложения)\n"
         "3. Детальный (3-4 предложения)\n\n"
-        "Стоимость: 1 кредит\n\n"
+        "Стоимость: 1 ⭐️звезда\n\n"
         "Требуется подтверждённый email для доступа.\n\n"
         "История чата: отправляются последние 10 сообщений для контекста."
     )
@@ -228,14 +228,14 @@ async def send_message(
         if not can_perform:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=reason or "Insufficient credits"
+                detail=reason or "Insufficient stars"
             )
     else:
         # Для Billing v5 проверяем наличие кредитов
         if not getattr(current_user, "is_admin", False) and current_user.balance_credits < assistant_cost:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Insufficient credits for AI assistant"
+                detail="Insufficient stars for AI assistant"
             )
 
     try:
@@ -366,13 +366,13 @@ async def send_message(
     summary="Сгенерировать изображение по промпту",
     description=(
         "Запускает генерацию отредактированного изображения через OpenRouter API.\n\n"
-        "Стоимость: 1 действие по подписке или 2 кредита (списываются после успешной генерации)\n\n"
+        "Стоимость: 1 действие по подписке или 2 ⭐️звезды (списываются после успешной генерации)\n\n"
         "Требуется подтверждённый email для доступа.\n\n"
         "Процесс:\n"
-        "1. Проверка баланса кредитов\n"
+        "1. Проверка баланса ⭐️звезд\n"
         "2. Создание записи Generation\n"
         "3. Запуск Celery задачи\n"
-        "4. Списание 1 действия или 2 кредитов после успешной генерации\n"
+        "4. Списание 1 действия или 2 ⭐️звезд после успешной генерации\n"
         "5. Возврат task_id для отслеживания прогресса\n\n"
         "Используйте /fitting/status/{task_id} для проверки статуса."
     )
@@ -399,7 +399,7 @@ async def generate_image(
         if not can_perform:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=reason or "Insufficient credits"
+                detail=reason or "Insufficient stars"
             )
     else:
         billing = BillingV5Service(db)
@@ -444,7 +444,7 @@ async def generate_image(
             prompt=request.prompt,
             status="pending",
             progress=0,
-            credits_spent=0,  # Кредиты будут списаны в task после успеха
+            credits_spent=0,  # ⭐️Звезды будут списаны в task после успеха
         )
 
         db.add(generation)
