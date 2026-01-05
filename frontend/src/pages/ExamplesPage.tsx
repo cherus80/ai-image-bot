@@ -77,7 +77,7 @@ export const ExamplesPage: React.FC = () => {
   const handleUseExample = async (example: GenerationExampleItem) => {
     incrementExampleUse(example.id).catch(() => undefined);
     const prompt = encodeURIComponent(example.prompt);
-    navigate(`/editing?prompt=${prompt}`);
+    navigate(`/app/examples/generate?prompt=${prompt}`);
   };
 
   const toggleTag = (tag: string) => {

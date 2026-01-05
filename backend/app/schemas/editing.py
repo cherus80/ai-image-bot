@@ -122,6 +122,26 @@ class GenerateImageRequest(BaseModel):
     )
 
 
+class ExampleGenerateRequest(BaseModel):
+    """Запрос на генерацию изображения по образцу без сохранения истории"""
+
+    prompt: str = Field(
+        ...,
+        description="Промпт для генерации изображения",
+        min_length=1,
+        max_length=2000,
+    )
+    base_image_url: Optional[str] = Field(
+        None,
+        description="URL основного изображения (если не передано, берётся из первого вложения)",
+        max_length=500,
+    )
+    attachments: Optional[List[ChatAttachment]] = Field(
+        default=None,
+        description="Вложения (дополнительные изображения-референсы)",
+    )
+
+
 class GenerateImageResponse(BaseModel):
     """Ответ с запущенной задачей генерации"""
 

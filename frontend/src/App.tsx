@@ -24,6 +24,7 @@ import { YandexMetrika } from './components/analytics/YandexMetrika';
 import { PaymentReturnPage } from './pages/PaymentReturnPage';
 import { InstructionsPage } from './pages/InstructionsPage';
 import { ExamplesPage } from './pages/ExamplesPage';
+import { ExampleGenerationPage } from './pages/ExampleGenerationPage';
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
           <Route path="/app" element={<HomePage />} />
           <Route path="/app/instructions" element={<InstructionsPage />} />
           <Route path="/app/examples" element={<ExamplesPage />} />
+          <Route path="/app/examples/generate" element={<ExampleGenerationPage />} />
 
           {/* Функция 1: Примерка одежды */}
           <Route path="/fitting" element={<FittingPage />} />

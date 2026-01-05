@@ -1,0 +1,129 @@
+/**
+ * Zustand store для генерации по образцу без истории
+ */
+
+import { create } from 'zustand';
+import type { ChatAttachment } from '../types/editing';
+import type { FittingStatusResponse, FittingResult, GenerationStatus } from '../types/fitting';
+import { generateExampleImage, pollEditingStatus } from '../api/editing';
+import { useAuthStore } from './authStore';
+import toast from 'react-hot-toast';
+
+interface ExampleGenerationState {
+  isGenerating: boolean;
+  taskId: string | null;
+  generationStatus: GenerationStatus | null;
+  progress: number;
+  statusMessage: string | null;
+  result: FittingResult | null;
+  error: string | null;
+
+  startGeneration: (prompt: string, attachments: ChatAttachment[]) => Promise<FittingResult>;
+  reset: () => void;
+  updateProgress: (status: FittingStatusResponse) => void;
+}
+
+export const useExampleGenerationStore = create<ExampleGenerationState>((set, get) => ({
+  isGenerating: false,
+  taskId: null,
+  generationStatus: null,
+  progress: 0,
+  statusMessage: null,
+  result: null,
+  error: null,
+
+  startGeneration: async (prompt: string, attachments: ChatAttachment[]) => {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
+      throw new Error('Промпт не может быть пустым');
+    }
+    if (!attachments || attachments.length === 0) {
+      throw new Error('Необходимо прикрепить хотя бы одно фото');
+    }
+
+    const baseAttachment = attachments[0];
+    if (!baseAttachment.url) {
+      throw new Error('Не удалось определить основное фото');
+    }
+
+    const referenceAttachments = attachments.slice(1);
+
+    set({
+      isGenerating: true,
+      error: null,
+      progress: 0,
+      statusMessage: 'Запускаем генерацию...',
+      result: null,
+    });
+
+    try {
+      const response = await generateExampleImage({
+        prompt: trimmedPrompt,
+        base_image_url: baseAttachment.url,
+        attachments: referenceAttachments.length > 0 ? referenceAttachments : undefined,
+      });
+
+      set({
+        taskId: response.task_id,
+        generationStatus: response.status as GenerationStatus,
+        statusMessage: response.message,
+      });
+
+      const result = await pollEditingStatus(
+        response.task_id,
+        (status) => {
+          get().updateProgress(status);
+        },
+        {
+          slowWarningMs: 60000,
+          onSlowWarning: () =>
+            toast(
+              'Генерация может занять до 3 минут из-за нагрузки на сервис. Приложение продолжает ждать ответ.',
+              { icon: '⏳' }
+            ),
+        }
+      );
+
+      set({
+        result,
+        isGenerating: false,
+        generationStatus: result.status,
+        progress: 100,
+        statusMessage: result.status === 'completed' ? 'Готово!' : 'Произошла ошибка',
+      });
+
+      await useAuthStore.getState().refreshProfile();
+
+      return result;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Ошибка генерации';
+      set({
+        isGenerating: false,
+        error: errorMessage,
+        statusMessage: 'Ошибка',
+        progress: 0,
+      });
+      throw error;
+    }
+  },
+
+  updateProgress: (status: FittingStatusResponse) => {
+    set({
+      generationStatus: status.status,
+      progress: status.progress,
+      statusMessage: status.message,
+    });
+  },
+
+  reset: () => {
+    set({
+      isGenerating: false,
+      taskId: null,
+      generationStatus: null,
+      progress: 0,
+      statusMessage: null,
+      result: null,
+      error: null,
+    });
+  },
+}));

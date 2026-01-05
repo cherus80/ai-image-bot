@@ -11,6 +11,7 @@ import type {
   ChatMessageResponse,
   GenerateImageRequest,
   GenerateImageResponse,
+  ExampleGenerateRequest,
   ChatHistoryResponse,
   ResetSessionResponse,
   ChatAttachment,
@@ -105,6 +106,21 @@ export const generateEditedImage = async (
 ): Promise<GenerateImageResponse> => {
   const response = await apiClient.post<GenerateImageResponse>(
     '/api/v1/editing/generate',
+    request
+  );
+
+  return response.data;
+};
+
+/**
+ * Генерация изображения по образцу без истории
+ * POST /api/v1/editing/example-generate
+ */
+export const generateExampleImage = async (
+  request: ExampleGenerateRequest
+): Promise<GenerateImageResponse> => {
+  const response = await apiClient.post<GenerateImageResponse>(
+    '/api/v1/editing/example-generate',
     request
   );
 

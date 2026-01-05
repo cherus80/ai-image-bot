@@ -5,13 +5,14 @@ Endpoints:
 - POST /editing/session - создание сессии чата
 - POST /editing/chat - отправка сообщения AI
 - POST /editing/generate - генерация по промпту
+- POST /editing/example-generate - генерация по образцу без истории
 - GET /editing/history/{session_id} - получение истории чата
 - DELETE /editing/session/{session_id} - сброс сессии
 """
 
 import logging
 from typing import Optional, List
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy import select
@@ -28,6 +29,7 @@ from app.schemas.editing import (
     ChatMessageResponse,
     GenerateImageRequest,
     GenerateImageResponse,
+    ExampleGenerateRequest,
     ChatHistoryResponse,
     ResetSessionResponse,
     ChatHistoryMessage,
@@ -501,6 +503,125 @@ async def generate_image(
         )
     except Exception as e:
         logger.error(f"Error in generate_image: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to start generation: {str(e)}"
+        )
+
+
+@router.post(
+    "/example-generate",
+    response_model=GenerateImageResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Сгенерировать изображение по образцу без истории",
+    description=(
+        "Запускает генерацию изображения по промпту и прикреплённым фото.\n\n"
+        "История чата не сохраняется.\n\n"
+        "Стоимость: 1 действие по подписке или 2 ⭐️звезды (списываются после успешной генерации)\n\n"
+        "Требуется подтверждённый email для доступа."
+    ),
+)
+async def generate_image_from_example(
+    request: ExampleGenerateRequest,
+    current_user: User = Depends(require_verified_email),
+    db: AsyncSession = Depends(get_db),
+) -> GenerateImageResponse:
+    """
+    Сгенерировать изображение по образцу без сохранения истории чата.
+    """
+    attachments_payload: list[dict] = []
+    if request.attachments:
+        attachments_payload = [att.model_dump() for att in request.attachments]
+
+    base_image_url = request.base_image_url
+    if not base_image_url and attachments_payload:
+        base_image_url = attachments_payload[0].get("url")
+
+    if not base_image_url:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Необходимо прикрепить хотя бы одно фото для генерации.",
+        )
+
+    # Исключаем базовое изображение из списка дополнительных референсов
+    attachments_payload = [
+        att for att in attachments_payload if att.get("url") != base_image_url
+    ]
+
+    billing_v5_enabled = settings.BILLING_V5_ENABLED
+    generation_cost = settings.BILLING_GENERATION_COST_CREDITS if billing_v5_enabled else 2
+
+    # Проверяем баланс, но НЕ списываем кредиты (списание будет в Celery task после успеха)
+    if not billing_v5_enabled:
+        can_perform, reason = await check_user_can_perform_action(
+            user=current_user,
+            credits_cost=generation_cost,
+        )
+        if not can_perform:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=reason or "Insufficient stars"
+            )
+    else:
+        billing = BillingV5Service(db)
+        can_use_actions = billing._has_active_plan(current_user) and billing._actions_remaining(current_user) > 0  # type: ignore[attr-defined]
+        if not (getattr(current_user, "is_admin", False) or can_use_actions or current_user.balance_credits >= generation_cost):
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail={"error": "NOT_ENOUGH_BALANCE"},
+            )
+
+    try:
+        generation = Generation(
+            user_id=current_user.id,
+            type="editing",
+            prompt=request.prompt.strip(),
+            status="pending",
+            progress=0,
+            credits_spent=0,
+        )
+
+        db.add(generation)
+        await db.commit()
+        await db.refresh(generation)
+
+        primary_provider, fallback_provider, disable_fallback = get_generation_providers_for_worker()
+
+        session_id = str(uuid4())
+        task = generate_editing_task.apply_async(
+            args=[
+                generation.id,
+                current_user.id,
+                session_id,
+                base_image_url,
+                request.prompt.strip(),
+                attachments_payload or None,
+            ],
+            kwargs={
+                "primary_provider": primary_provider,
+                "fallback_provider": fallback_provider,
+                "disable_fallback": disable_fallback,
+            },
+            task_id=str(generation.id),
+        )
+
+        generation.task_id = task.id
+        await db.commit()
+
+        logger.info(
+            "Started example-based editing task %s for generation %s",
+            task.id,
+            generation.id,
+        )
+
+        return GenerateImageResponse(
+            task_id=task.id,
+            status="pending",
+            message="Image generation started",
+        )
+
+    except Exception as e:
+        logger.error("Error in generate_image_from_example: %s", e, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to start generation: {str(e)}"

@@ -127,7 +127,7 @@ export const HomePage: React.FC = () => {
                       <button
                         onClick={() => {
                           incrementExampleUse(example.id).catch(() => undefined);
-                          navigate(`/editing?prompt=${encodeURIComponent(example.prompt)}`);
+                          navigate(`/app/examples/generate?prompt=${encodeURIComponent(example.prompt)}`);
                         }}
                         className="mt-auto px-4 py-2 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold text-sm hover:shadow-lg transition"
                       >

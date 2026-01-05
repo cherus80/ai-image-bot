@@ -17,6 +17,9 @@ interface ChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   prefillMessage?: string;
+  requireAttachments?: boolean;
+  attachmentsHint?: string;
+  attachmentTooltip?: string;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -24,6 +27,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   disabled = false,
   placeholder = 'Опишите, как хотите изменить изображение...',
   prefillMessage,
+  requireAttachments = false,
+  attachmentsHint,
+  attachmentTooltip,
 }) => {
   const [message, setMessage] = React.useState('');
   const [attachments, setAttachments] = React.useState<ChatAttachment[]>([]);
@@ -58,6 +64,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const handleSubmit = () => {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || disabled || isUploadingAttachment) {
+      return;
+    }
+    if (requireAttachments && attachments.length === 0) {
+      toast.error('Прикрепите хотя бы одно фото для генерации');
       return;
     }
 
@@ -147,13 +157,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             Поле ввода запроса
           </span>
           <span className="text-xs text-primary-600 font-medium">
-            <span className="inline sm:hidden">Референсы через скрепку</span>
-            <span className="hidden sm:inline">Прикрепляйте референсы через скрепку слева</span>
+            <span className="inline sm:hidden">
+              {attachmentsHint || 'Референсы через скрепку'}
+            </span>
+            <span className="hidden sm:inline">
+              {attachmentsHint || 'Прикрепляйте референсы через скрепку слева'}
+            </span>
           </span>
         </div>
         <div className="flex flex-wrap items-end gap-2 sm:gap-3">
           {/* Attach button слева */}
-          <motion.div className="flex-shrink-0" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div
+            className="flex-shrink-0"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title={attachmentTooltip}
+          >
             <Button
               onClick={handleFileButtonClick}
               disabled={disabled || isUploadingAttachment}
@@ -195,7 +214,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <motion.div className="flex-shrink-0" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               onClick={handleSubmit}
-              disabled={!message.trim() || disabled || isUploadingAttachment}
+              disabled={!message.trim() || disabled || isUploadingAttachment || (requireAttachments && attachments.length === 0)}
               variant="primary"
               size="lg"
               className="!rounded-full !p-4 shadow-glow-primary"
