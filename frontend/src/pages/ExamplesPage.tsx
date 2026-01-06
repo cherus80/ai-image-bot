@@ -17,6 +17,7 @@ export const ExamplesPage: React.FC = () => {
   const [topItems, setTopItems] = useState<GenerationExampleItem[]>([]);
   const [tags, setTags] = useState<ExampleTagItem[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'popular' | 'newest'>('popular');
   const [loading, setLoading] = useState(true);
   const [loadingFilters, setLoadingFilters] = useState(true);
@@ -87,12 +88,38 @@ export const ExamplesPage: React.FC = () => {
   };
 
   const filteredItems = useMemo(() => {
-    if (topItems.length === 0) {
-      return items;
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    const matchesSearch = (item: GenerationExampleItem) => {
+      if (!normalizedSearch) {
+        return true;
+      }
+      return (item.title || '').toLowerCase().includes(normalizedSearch);
+    };
+
+    const filteredTopItems = topItems.filter(matchesSearch);
+    const filteredAllItems = items.filter(matchesSearch);
+
+    if (filteredTopItems.length === 0) {
+      return filteredAllItems;
     }
-    const topIds = new Set(topItems.map((item) => item.id));
-    return items.filter((item) => !topIds.has(item.id));
-  }, [items, topItems]);
+    const topIds = new Set(filteredTopItems.map((item) => item.id));
+    return filteredAllItems.filter((item) => !topIds.has(item.id));
+  }, [items, topItems, searchQuery]);
+
+  const visibleTopItems = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return topItems;
+    }
+    return topItems.filter((item) =>
+      (item.title || '').toLowerCase().includes(normalizedSearch)
+    );
+  }, [topItems, searchQuery]);
+
+  const hasResults = useMemo(
+    () => visibleTopItems.length > 0 || filteredItems.length > 0,
+    [visibleTopItems.length, filteredItems.length]
+  );
 
   const emptyState = useMemo(
     () => (
@@ -125,7 +152,7 @@ export const ExamplesPage: React.FC = () => {
             emptyState
           ) : (
             <div className="space-y-10">
-              {topItems.length > 0 && (
+              {visibleTopItems.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-slate-900">
@@ -136,7 +163,7 @@ export const ExamplesPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 justify-items-center">
-                    {topItems.map((item) => (
+                    {visibleTopItems.map((item) => (
                       <div key={item.id} className="bg-white rounded-2xl shadow overflow-hidden flex flex-col max-w-[360px] w-full">
                         <div className="relative">
                           <img
@@ -180,8 +207,8 @@ export const ExamplesPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl shadow p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-wrap gap-2">
+              <div className="bg-white rounded-2xl shadow p-5 flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
+                <div className="flex flex-wrap gap-2 md:flex-1">
                   {loadingFilters ? (
                     <span className="text-sm text-slate-400">Загружаем метки...</span>
                   ) : tags.length === 0 ? (
@@ -201,6 +228,19 @@ export const ExamplesPage: React.FC = () => {
                       </button>
                     ))
                   )}
+                </div>
+                <div className="w-full md:w-72">
+                  <label htmlFor="examples-search" className="sr-only">
+                    Поиск по названию примера
+                  </label>
+                  <input
+                    id="examples-search"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Поиск по названию примера"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  />
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="text-xs font-semibold text-slate-500">Сортировка:</label>
@@ -223,7 +263,7 @@ export const ExamplesPage: React.FC = () => {
                 </div>
               </div>
 
-              {filteredItems.length === 0 ? (
+              {!hasResults ? (
                 <div className="bg-white rounded-2xl shadow p-8 text-center text-slate-500">
                   По выбранным фильтрам нет результатов.
                 </div>

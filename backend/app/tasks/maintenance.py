@@ -5,6 +5,7 @@ Celery задачи для обслуживания системы.
 """
 
 import asyncio
+import re
 from datetime import datetime, timedelta
 
 from sqlalchemy import select
@@ -13,8 +14,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.session import async_session
 from app.models.user import User
+from app.models.generation_example import GenerationExample
+from app.models.instruction import Instruction
 from app.services.file_storage import delete_old_files
 from app.tasks.celery_app import celery_app
+
+UPLOAD_REF_RE = re.compile(r"/uploads/(?P<file_id>[0-9a-fA-F-]{36})\.[a-zA-Z0-9]+")
+
+
+def _extract_upload_ids(source: str | None) -> set[str]:
+    if not source:
+        return set()
+    return {match.group("file_id") for match in UPLOAD_REF_RE.finditer(source)}
 
 
 @celery_app.task(name="app.tasks.maintenance.delete_old_files_task")
@@ -34,7 +45,24 @@ def delete_old_files_task() -> dict:
             24
         )
 
-        deleted_count = delete_old_files(hours=retention_hours)
+        async def _collect_protected_ids() -> set[str]:
+            protected: set[str] = set()
+            async with async_session() as session:
+                example_rows = await session.execute(select(GenerationExample.image_url))
+                for image_url in example_rows.scalars().all():
+                    protected.update(_extract_upload_ids(image_url))
+
+                instruction_rows = await session.execute(select(Instruction.content))
+                for content in instruction_rows.scalars().all():
+                    protected.update(_extract_upload_ids(content))
+
+            return protected
+
+        protected_ids = asyncio.run(_collect_protected_ids())
+        deleted_count = delete_old_files(
+            hours=retention_hours,
+            protected_file_ids=protected_ids,
+        )
 
         return {
             "status": "success",

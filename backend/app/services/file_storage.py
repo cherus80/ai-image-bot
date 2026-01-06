@@ -269,7 +269,7 @@ def delete_file(file_id: UUID) -> bool:
         return False
 
 
-def delete_old_files(hours: int = 24) -> int:
+def delete_old_files(hours: int = 24, protected_file_ids: Optional[set[str]] = None) -> int:
     """
     Удалить файлы старше указанного количества часов.
 
@@ -283,10 +283,14 @@ def delete_old_files(hours: int = 24) -> int:
     """
     upload_dir = _ensure_upload_dir_exists()
     cutoff_time = datetime.now() - timedelta(hours=hours)
+    protected_ids = protected_file_ids or set()
     deleted_count = 0
 
     for file_path in upload_dir.glob("*"):
         if not file_path.is_file():
+            continue
+
+        if file_path.stem in protected_ids:
             continue
 
         # Проверка времени модификации файла

@@ -63,6 +63,9 @@ export const ExampleGenerationPage: React.FC = () => {
                   Промпт образца не найден. Выберите образец и повторите попытку.
                 </div>
               )}
+              <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm text-blue-800">
+                Для генерации по образцу нужно прикрепить фото через скрепку слева.
+              </div>
               <ChatInput
                 onSend={handleSend}
                 disabled={isGenerating || !prompt}

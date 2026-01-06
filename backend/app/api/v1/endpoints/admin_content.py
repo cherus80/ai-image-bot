@@ -348,7 +348,16 @@ async def update_example(
         item.image_url = payload.image_url.strip()
     if payload.tags is not None:
         normalized_tags = _normalize_tags(payload.tags)
-        item.tags = [GenerationExampleTag(tag=tag) for tag in normalized_tags]
+        existing_tags = {tag.tag for tag in item.tags}
+        desired_tags = set(normalized_tags)
+
+        for tag in list(item.tags):
+            if tag.tag not in desired_tags:
+                item.tags.remove(tag)
+
+        for tag in normalized_tags:
+            if tag not in existing_tags:
+                item.tags.append(GenerationExampleTag(tag=tag))
     if payload.is_published is not None:
         item.is_published = payload.is_published
     item.updated_by_user_id = admin.id
