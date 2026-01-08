@@ -25,7 +25,9 @@ import { useAuthStore } from './authStore';
 import toast from 'react-hot-toast';
 import { getAuthToken } from '../utils/authToken';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000')
+  .replace(/\/$/, '')
+  .replace(/\/api$/, '');
 
 interface ChatState {
   // State: сессия чата
@@ -98,8 +100,12 @@ export const useChatStore = create<ChatState>()(
 
     try {
       // Валидация на клиенте
-      if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
-        throw new Error('Поддерживаются только JPEG, PNG и WebP форматы');
+      const isSupportedType =
+        file.type.match(/^image\/(jpeg|png|webp|heic|heif|mpo)$/) ||
+        /\.(heic|heif|mpo)$/i.test(file.name);
+
+      if (!isSupportedType) {
+        throw new Error('Поддерживаются JPEG, PNG, WebP, HEIC/HEIF и MPO форматы');
       }
 
       if (file.size > 10 * 1024 * 1024) {
@@ -117,16 +123,15 @@ export const useChatStore = create<ChatState>()(
         base_image_url: uploadResponse.base_image_url,
       });
 
-      const resolvedUrl = uploadResponse.base_image_url.startsWith('http')
-        ? uploadResponse.base_image_url
-        : `${API_BASE_URL}${uploadResponse.base_image_url}`;
+      const resolvedUrl = resolveUploadUrl(uploadResponse.base_image_url);
+      const finalPreview = shouldUseServerPreview(file) ? resolvedUrl : preview;
 
       // Сохраняем в state
       set({
         baseImage: {
           file_id: 'base-image',
           url: resolvedUrl,
-          preview,
+          preview: finalPreview,
           file,
         },
         sessionId: sessionResponse.session_id,
@@ -460,6 +465,15 @@ export const useChatStore = create<ChatState>()(
 /**
  * Утилита для создания preview изображения (data URL)
  */
+const resolveUploadUrl = (url: string): string => {
+  if (!url) return url;
+  if (url.startsWith('http')) return url;
+  return `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+};
+
+const shouldUseServerPreview = (file: File): boolean =>
+  /^image\/(heic|heif|mpo)/i.test(file.type);
+
 const createPreview = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

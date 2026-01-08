@@ -369,7 +369,7 @@ export const EditingPage: React.FC = () => {
                   isLoading={isUploadingImage}
                   error={uploadError}
                   label="Базовое изображение"
-                  hint="JPEG / PNG / WebP, до 10MB"
+                  hint="JPEG / PNG / WebP / HEIC, до 10MB"
                 />
               </motion.div>
 

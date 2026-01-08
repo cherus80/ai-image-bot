@@ -156,25 +156,25 @@ export const LandingPage: React.FC = () => {
               <a href="#faq" className="text-slate-600 hover:text-secondary-500 transition-colors">FAQ</a>
             </nav>
 
-            <div className="flex items-center gap-2 sm:gap-4 text-sm font-semibold flex-shrink-0 max-[600px]:w-full max-[600px]:flex-col max-[600px]:items-end">
+            <div className="flex items-center gap-2 sm:gap-4 text-sm font-semibold flex-shrink-0 max-[600px]:w-full max-[600px]:justify-between">
               <a
                 href="https://t.me/+Fj-R8QqIEEg5OTE6"
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1 rounded-full bg-white/80 border border-slate-200 text-slate-600 text-[11px] sm:text-xs hover:text-secondary-500 transition-colors whitespace-nowrap max-[600px]:order-2"
+                className="px-3 py-1 rounded-full bg-white/80 border border-slate-200 text-slate-600 text-[11px] sm:text-xs hover:text-secondary-500 transition-colors whitespace-nowrap max-[600px]:px-2"
               >
                 Наш канал в Telegram
               </a>
-              <div className="flex items-center gap-2 sm:gap-4 max-[600px]:order-1">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Link
                   to="/login"
-                  className="text-slate-700 hover:text-secondary-500 transition-colors px-3 py-2 rounded-full bg-white/80 border border-slate-200 shadow-sm whitespace-nowrap"
+                  className="text-slate-700 hover:text-secondary-500 transition-colors px-3 py-2 rounded-full bg-white/80 border border-slate-200 shadow-sm whitespace-nowrap max-[600px]:px-2 max-[600px]:py-1.5"
                 >
                   Войти
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-5 sm:px-6 py-2.5 rounded-full transition-all transform hover:scale-[1.02] shadow-lg whitespace-nowrap"
+                  className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-5 sm:px-6 py-2.5 rounded-full transition-all transform hover:scale-[1.02] shadow-lg whitespace-nowrap max-[600px]:px-3 max-[600px]:py-2"
                 >
                   Регистрация
                 </Link>
