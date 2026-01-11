@@ -39,6 +39,7 @@ export const EditingPage: React.FC = () => {
     uploadError,
     error,
     clearError,
+    clearUploadError,
   } = useChatStore();
   const { user } = useAuthStore();
 
@@ -79,7 +80,6 @@ export const EditingPage: React.FC = () => {
   useEffect(() => {
     if (uploadError) {
       toast.error(uploadError);
-      clearError();
     }
     if (error) {
       toast.error(error);
@@ -111,6 +111,7 @@ export const EditingPage: React.FC = () => {
   const handleFileSelect = async (file: File) => {
     setIsUploadingImage(true);
     clearError();
+    clearUploadError();
 
     try {
       await uploadAndCreateSession(file);

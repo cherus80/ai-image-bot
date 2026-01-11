@@ -25,6 +25,7 @@ import { PaymentReturnPage } from './pages/PaymentReturnPage';
 import { InstructionsPage } from './pages/InstructionsPage';
 import { ExamplesPage } from './pages/ExamplesPage';
 import { ExampleGenerationPage } from './pages/ExampleGenerationPage';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -76,6 +77,7 @@ function App() {
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>
+      <Toaster position="top-right" />
       <CookieBanner />
       <YandexMetrika />
     </>

@@ -68,6 +68,7 @@ interface ChatState {
   reset: () => void;
   resetSession: () => Promise<void>;
   clearError: () => void;
+  clearUploadError: () => void;
 
   // Actions: внутренние
   updateGenerationProgress: (status: FittingStatusResponse) => void;
@@ -436,7 +437,10 @@ export const useChatStore = create<ChatState>()(
 
   // Очистка ошибок
   clearError: () => {
-    set({ error: null, uploadError: null });
+    set({ error: null });
+  },
+  clearUploadError: () => {
+    set({ uploadError: null });
   },
     }),
     {
